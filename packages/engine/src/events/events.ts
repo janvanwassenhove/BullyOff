@@ -24,7 +24,9 @@ export type MatchEvent =
   /** A player's stick imparted velocity to the ball. */
   | { t: 'BallStruck'; tick: number; playerId: PlayerId; team: TeamId; kind: StrikeKind; speed: Scalar; lift: Scalar }
   /** A player controlled/stopped the ball. */
-  | { t: 'BallTrapped'; tick: number; playerId: PlayerId; team: TeamId }
+  | { t: 'BallTrapped'; tick: number; playerId: PlayerId; team: TeamId; clean?: boolean }
+  /** A tackle contest was resolved (Phase 3). */
+  | { t: 'Tackle'; tick: number; tacklerId: PlayerId; tacklerTeam: TeamId; carrierId: PlayerId; outcome: 'won' | 'lost' | 'foulTackler' | 'foulCarrier' }
   /** Ball touched turf after being airborne (z hit 0 with downward velocity). */
   | { t: 'BallBounce'; tick: number; x: Scalar; y: Scalar; speedBefore: Scalar }
   /** Ball hit something rigid on its swept path this tick. */

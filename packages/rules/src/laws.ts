@@ -48,6 +48,11 @@ export interface Laws {
   noSubsDuringPC: boolean;
   /** Dugout zone: |y| beyond the sideline where subs enter/leave, within ±this x of halfway. FIH: 3 m either side of centre line. */
   dugoutHalfWidthX: Metres;
+  /**
+   * Engine safeguard, not a law: a PC still "active" this many playing ticks after injection is ended as cleared.
+   * Real PCs are over in seconds; this only guards against an AI stall keeping the quarter alive.
+   */
+  pcTimeoutTicks: number;
   /** Shoot-out: 8 s per attempt (FIH shoot-out competition). Phase 6 uses it. */
   shootOutTicks: number;
   /** After a goal, play restarts with a centre pass by the team that conceded. */
@@ -76,6 +81,7 @@ export const FIH_OUTDOOR: Laws = {
   persistentFoulGreenAt: 3,
   persistentFoulYellowAt: 5,
   noSubsDuringPC: true,
+  pcTimeoutTicks: 40 * SEC,
   dugoutHalfWidthX: 3,
   shootOutTicks: 8 * SEC,
   centrePassByConceding: true,

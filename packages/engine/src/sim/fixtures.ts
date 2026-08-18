@@ -7,6 +7,7 @@ import type { Command } from '../match/commands.js';
 import type { MatchSetup, PlayerSetup } from '../match/match.js';
 import type { ProfileId, SurfaceState } from '../profile.js';
 import { FIH_OUTDOOR_FAST, type Laws } from '@bullyoff/rules';
+import { attributesFor, type Role } from '../player/attributes.js';
 
 /** 11 v 11 in a 4-3-3 / 4-3-3 shape, home attacking +x. Ids 1..11 home, 12..22 away. */
 export function standardLineup(): PlayerSetup[] {
@@ -75,4 +76,21 @@ export function fullSquads(): PlayerSetup[] {
 /** A full 11-a-side match setup under the laws (not sandbox). */
 export function matchSetup(profile: ProfileId = 'mens', surface: SurfaceState = 'watered', laws: Laws = FIH_OUTDOOR_FAST): MatchSetup {
   return { profile, surface, players: fullSquads(), frameEvery: 0, laws, firstCentrePass: 0 };
+}
+
+/** Squads with roles and attributes: 4-3-3 starters + 5 bench per side, ids as fullSquads(). */
+export function aiSquads(level = 12): PlayerSetup[] {
+  const roles: Role[] = ['GK', 'DEF', 'DEF', 'DEF', 'DEF', 'MID', 'MID', 'MID', 'FWD', 'FWD', 'FWD'];
+  const benchRoles: Role[] = ['DEF', 'MID', 'MID', 'FWD', 'FWD'];
+  return fullSquads().map((p) => {
+    const i = p.team === 0 ? p.id - 1 : p.id - 12;
+    const bench = p.id >= 23;
+    const role = bench ? benchRoles[(p.id - 23) % 5] ?? 'MID' : roles[i] ?? 'MID';
+    return { ...p, role, attributes: attributesFor(role, level) };
+  });
+}
+
+/** Full match with the AI controller. */
+export function aiMatchSetup(profile: ProfileId = 'mens', surface: SurfaceState = 'watered', laws: Laws = FIH_OUTDOOR_FAST, level = 12): MatchSetup {
+  return { profile, surface, players: aiSquads(level), frameEvery: 0, laws, firstCentrePass: 0 };
 }

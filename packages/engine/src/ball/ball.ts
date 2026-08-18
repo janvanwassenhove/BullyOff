@@ -97,7 +97,9 @@ export function stepBall(b: BallState, dt: Scalar, ball: BallParams, surface: Su
     // ── rolling: constant deceleration opposing velocity ───────────────────
     const speed = Math.sqrt(vx * vx + vy * vy);
     if (speed > 0) {
-      const decel = surface.rollingDecel;
+      // Rolling: turf friction (constant) plus air drag (∝ v², applied at the tick's entry speed).
+      // Hockey reason: a hard hit dies within ~60–80 m on turf; without drag it would roll for hundreds of metres.
+      const decel = surface.rollingDecel + ball.airDrag * speed * speed;
       const tStop = speed / decel;
       if (tStop <= remaining) {
         // stops within the tick: travel the stopping distance along the direction

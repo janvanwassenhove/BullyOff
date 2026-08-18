@@ -46,6 +46,10 @@ export function naiveController(seed: number, lineup: readonly PlayerSetup[], op
       }
       const restartMine = rules.restart !== null && rules.restart.team === team;
       const restartTheirs = rules.restart !== null && rules.restart.team !== team;
+      // a restart may be taken by whoever the law placed at the ball — including the keeper
+      if (restartMine) {
+        for (const p of onPitch) { const d = dmath.hypot(p.pos.x - ball.x, p.pos.y - ball.y); if (d < bd) { bd = d; nearest = p; } }
+      }
 
       for (const p of onPitch) {
         const isNearest = p.id === nearest?.id;

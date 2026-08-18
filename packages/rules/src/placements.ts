@@ -6,7 +6,7 @@
  */
 import {
   CIRCLE_RADIUS, GOAL_HALF_WIDTH, HALF_LENGTH, HALF_WIDTH, LINE_23_X, PENALTY_SPOT_X,
-  dmath, inCircle, type End, type Scalar, type Vec2,
+  dmath, type End, type Scalar, type Vec2,
 } from '@bullyoff/shared';
 import type { Laws } from './laws.js';
 import { attackingEnd, teamDefending, type PlayerId, type PlayerView, type Restart, type Ruling, type TeamId } from './types.js';
@@ -53,12 +53,21 @@ export function placementsFor(restart: Restart, players: readonly PlayerView[], 
       const attackers = onPitch.filter((p) => p.team === restart.team);
       const injector = nearest(attackers, restart.at);
       if (injector) out.push({ playerId: injector.id, x: gx - end * 0.3, y: restart.at.y + Math.sign(restart.at.y) * 0.6, heading: dmath.atan2(-restart.at.y, -end * 8) });
-      // Other attackers outside the circle: spread along the top of the D.
-      const others = attackers.filter((p) => p.id !== injector?.id && inCircle(p.pos, end));
+      // Other attackers: outside the circle, spread along the top of the D. ALL of them are placed, not only
+      // those inside the circle — the 40 s set-up window (clock stopped) is when a real team walks up; the sim
+      // compresses that walk into the placement.
+      const others = attackers.filter((p) => p.id !== injector?.id);
+      // Spread along the D, 0.6 m outside the line: the straight top for the middle few, the post-centred arcs for the rest.
+      const R = CIRCLE_RADIUS + 0.6;
       others.forEach((p, i) => {
-        const a = (-0.9 + (1.8 * i) / Math.max(1, others.length - 1)) * 0.9; // radians around the arc, centred on the top
-        const px = gx - end * (CIRCLE_RADIUS + 0.6) * dmath.cos(a);
-        const py = (CIRCLE_RADIUS + 0.6) * dmath.sin(a) + (Math.sign(a) || 1) * GOAL_HALF_WIDTH * 0.5;
+        const u = others.length === 1 ? 0 : -1 + (2 * i) / (others.length - 1); // -1 … 1 across the D
+        let px: Scalar, py: Scalar;
+        if (Math.abs(u) < 0.25) { px = gx - end * R; py = (u / 0.25) * GOAL_HALF_WIDTH; }
+        else {
+          const phi = ((Math.abs(u) - 0.25) / 0.75) * 1.1; // up to ~63° round the arc
+          px = gx - end * R * dmath.cos(phi);
+          py = Math.sign(u) * (GOAL_HALF_WIDTH + R * dmath.sin(phi));
+        }
         out.push({ playerId: p.id, x: px, y: clampY(py), heading: end > 0 ? 0 : dmath.PI });
       });
       // Defenders: GK on the line + up to (pcDefenders − 1) behind the backline; rest beyond the centre line.

@@ -3,12 +3,13 @@ import { DT } from '../constants.js';
 import { MENS } from '../profile.js';
 import { createBall, stepBall } from './ball.js';
 
-function rollUntilStopped(v0: number, surface: 'dry' | 'watered' | 'wet'): { dist: number; ticks: number } {
+function rollUntilStopped(v0: number, surface: 'dry' | 'watered' | 'wet', airDrag = MENS.ball.airDrag): { dist: number; ticks: number } {
   const b = createBall(0, 0);
   b.vel = { x: v0, y: 0, z: 0 };
   let ticks = 0;
+  const params = { ...MENS.ball, airDrag };
   for (;;) {
-    const r = stepBall(b, DT, MENS.ball, MENS.surfaces[surface]);
+    const r = stepBall(b, DT, params, MENS.surfaces[surface]);
     b.pos = r.next.pos; b.vel = r.next.vel; b.grounded = r.next.grounded;
     ticks++;
     if (r.stopped) return { dist: b.pos.x, ticks };
@@ -17,16 +18,25 @@ function rollUntilStopped(v0: number, surface: 'dry' | 'watered' | 'wet'): { dis
 }
 
 describe('ball physics', () => {
-  it('a rolled ball stops where constant deceleration says it should: d = v²/(2a)', () => {
+  it('with air drag off, a rolled ball stops where constant deceleration says it should: d = v²/(2a)', () => {
     for (const surface of ['dry', 'watered', 'wet'] as const) {
       const a = MENS.surfaces[surface].rollingDecel;
       for (const v0 of [3, 8, 15]) {
-        const { dist } = rollUntilStopped(v0, surface);
+        const { dist } = rollUntilStopped(v0, surface, 0);
         const expected = (v0 * v0) / (2 * a);
         // exact integration inside the tick → analytic within 1e-9
         expect(Math.abs(dist - expected)).toBeLessThan(1e-9);
       }
     }
+  });
+
+  it('with drag, a hard hit (30 m/s) dies within 50–90 m on watered turf and a firm push (10 m/s) rolls 15–30 m', () => {
+    const hit = rollUntilStopped(30, 'watered').dist;
+    expect(hit).toBeGreaterThan(50);
+    expect(hit).toBeLessThan(90);
+    const push = rollUntilStopped(10, 'watered').dist;
+    expect(push).toBeGreaterThan(15);
+    expect(push).toBeLessThan(30);
   });
 
   it('a watered pitch is faster than dry: same push travels further', () => {

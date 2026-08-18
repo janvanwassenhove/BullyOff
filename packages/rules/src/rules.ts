@@ -16,13 +16,21 @@ import {
   type RulesView, type TeamId, type TickSignals,
 } from './types.js';
 
-export function createRulesState(firstCentrePassTeam: TeamId): RulesState {
+export interface RulesStartOptions {
+  /** Start with the ball live in open play at this quarter/clock (scenario fixtures), instead of pre-match. */
+  live?: { quarter: 1 | 2 | 3 | 4; clockTicks: number; score?: [number, number] };
+}
+
+export function createRulesState(firstCentrePassTeam: TeamId, opts: RulesStartOptions = {}): RulesState {
+  const live = opts.live;
   return {
-    phase: 'preMatch', quarter: 1, clockTicks: 0, matchClockTicks: 0, clockRunning: false, waitTicks: 0,
-    score: [0, 0], restart: null, ballDead: true, firstCentrePassTeam,
+    phase: live ? 'inPlay' : 'preMatch', quarter: live?.quarter ?? 1, clockTicks: live?.clockTicks ?? 0,
+    matchClockTicks: live ? ((live.quarter - 1) * 0 + live.clockTicks) : 0, clockRunning: !!live, waitTicks: 0,
+    score: live?.score ? [live.score[0], live.score[1]] : [0, 0], restart: null, ballDead: !live, firstCentrePassTeam,
     attackerTouchInCircle: [false, false], suspensions: [], personalFouls: {}, teamFouls: [0, 0],
     lastRestartTaker: null, pcActive: false, pcFirstShot: null, pcTeam: null,
     psActive: false, psTeam: null, psShotTick: null, pending23: null, lastTouchKind: null, lastTouchInOwnCircle: false,
+    pcTakenTick: null,
   };
 }
 
@@ -150,6 +158,13 @@ export function stepRules(s: RulesState, laws: Laws, view: RulesView, sig: TickS
     }
   }
 
+  // Tackle contests: a stick tackle is the tackler's offence (FIH 9.13); a carrier backing into the tackler is obstruction (FIH 9.12).
+  for (const tk of sig.tackles) {
+    if (flag.fouled) break;
+    if (tk.outcome === 'foulTackler') foul('stickTackle', tk.tacklerId, tk.tacklerTeam, tk.at);
+    else if (tk.outcome === 'foulCarrier') foul('obstruction', tk.carrierId, tk.carrierTeam, tk.at);
+  }
+
   for (const bc of sig.bodyContacts) {
     if (flag.fouled) break;
     const p = view.playerById(bc.playerId);
@@ -235,6 +250,18 @@ export function stepRules(s: RulesState, laws: Laws, view: RulesView, sig: TickS
   // ── circle exits (after the goal decision — see note above) ─────────────────
   for (const ex of sig.circleExits) s.attackerTouchInCircle[ex.end === -1 ? 0 : 1] = false;
 
+  // ── penalty stroke over without a goal: saved, stopped, or dead (FIH 13.10) → 15 m hit-out to the defence ─
+  if (s.psActive && ballLive(s) && s.psShotTick !== null && s.psTeam !== null && !flag.fouled) {
+    const defTeam = otherTeam(s.psTeam);
+    const savedByDef = [...sig.trapped, ...sig.bodyContacts].some((x) => x.team === defTeam);
+    const stopped = sig.stopped || (view.ball.speed < 0.3 && t - s.psShotTick > 10);
+    if (savedByDef || stopped || t - s.psShotTick > 60) {
+      const e = attackingEnd(s.psTeam);
+      endPs(s, out, false);
+      award(s, laws, view, 'hitOut', defTeam, hitOutSpot(e, 0, laws), out);
+    }
+  }
+
   // ── remember the last touch kind (for the intent heuristic) ────────────────
   const lastStrike = sig.struck[sig.struck.length - 1];
   const lastBody = sig.bodyContacts[sig.bodyContacts.length - 1];
@@ -250,6 +277,7 @@ export function stepRules(s: RulesState, laws: Laws, view: RulesView, sig: TickS
   if (s.pcActive && ballLive(s)) {
     const e = pcEnd(s);
     if (e !== 0 && !inCircle({ x: view.ball.pos.x, y: view.ball.pos.y }, e) && Math.abs(e * HALF_LENGTH - e * view.ball.pos.x) > 14.63 + 5) endPc(s, out, 'cleared');
+    else if (s.pcTakenTick !== null && s.matchClockTicks - s.pcTakenTick > laws.pcTimeoutTicks) endPc(s, out, 'cleared'); // safeguard
   }
 
   // ── quarter end ────────────────────────────────────────────────────────────
@@ -262,6 +290,19 @@ export function stepRules(s: RulesState, laws: Laws, view: RulesView, sig: TickS
 
 /** Ball in open play (not dead, no restart pending). A function so TS does not narrow across the mutations above. */
 const ballLive = (s: RulesState): boolean => !s.ballDead && s.restart === null;
+
+/** Scenario/umpire hook: award a restart from outside the law engine (fixtures, coaching sandbox). */
+export function forceAward(s: RulesState, laws: Laws, view: RulesView, kind: 'penaltyCorner' | 'penaltyStroke' | 'longCorner' | 'freeHit', team: TeamId, y: Scalar, x?: Scalar): Ruling[] {
+  const out: Ruling[] = [];
+  const end = attackingEnd(team);
+  if (s.pcActive) endPc(s, out, 'foul');
+  if (s.psActive) endPs(s, out, false);
+  if (kind === 'penaltyCorner') awardPc(s, laws, view, team, end, y, out);
+  else if (kind === 'penaltyStroke') awardPs(s, laws, view, team, end, out);
+  else if (kind === 'longCorner') award(s, laws, view, 'longCorner', team, longCornerSpot(end, y), out);
+  else award(s, laws, view, 'freeHit', team, { x: x ?? 0, y }, out);
+  return out;
+}
 
 // ── helpers: quarters ─────────────────────────────────────────────────────────
 
@@ -310,7 +351,7 @@ function award(s: RulesState, laws: Laws, view: RulesView, kind: RestartKind, te
 
 function awardPc(s: RulesState, laws: Laws, view: RulesView, team: TeamId, end: End, y: Scalar, out: Ruling[]): void {
   if (s.pcActive) endPc(s, out, 'foul');
-  s.pcActive = true; s.pcFirstShot = null; s.pcTeam = team;
+  s.pcActive = true; s.pcFirstShot = null; s.pcTeam = team; s.pcTakenTick = null;
   out.push({ kind: 'penaltyCornerAwarded', team, end });
   award(s, laws, view, 'penaltyCorner', team, pcSpot(end, y, laws), out);
   if (s.restart) s.restart.pc = { end, injected: false, firstShotTaken: false };
@@ -327,7 +368,7 @@ function awardPs(s: RulesState, laws: Laws, view: RulesView, team: TeamId, end: 
 function takeRestart(s: RulesState, view: RulesView, r: Restart, out: Ruling[]): void {
   s.restart = null;
   if (!s.clockRunning) { s.clockRunning = true; out.push({ kind: 'clock', running: true, reason: r.kind === 'centrePass' ? 'quarterStart' : 'resume' }); }
-  if (r.kind === 'penaltyCorner') { out.push({ kind: 'penaltyCornerTaken', team: r.team, end: attackingEnd(r.team) }); }
+  if (r.kind === 'penaltyCorner') { out.push({ kind: 'penaltyCornerTaken', team: r.team, end: attackingEnd(r.team) }); s.pcTakenTick = s.matchClockTicks; }
   if (r.kind === 'penaltyStroke') { out.push({ kind: 'penaltyStrokeTaken', team: r.team, end: attackingEnd(r.team), scored: false }); s.psShotTick = view.tick; }
   // Free hit in the attacking 23 m: the ball must travel 5 m or be touched before entering the circle. PROVISIONAL.
   if ((r.kind === 'freeHit' || r.kind === 'longCorner') && in23({ x: r.at.x, y: r.at.y }, attackingEnd(r.team))) {
@@ -406,11 +447,14 @@ function awardFoul(
 }
 
 function issueCard(s: RulesState, laws: Laws, colour: CardColour, playerId: PlayerId, team: TeamId, reason: FoulKind | 'persistent' | 'misconduct', out: Ruling[]): void {
-  // Already suspended players escalate: a second card while off is a red — PROVISIONAL.
   const dur = colour === 'green' ? laws.cards.green : colour === 'yellow' ? laws.cards.yellow : Infinity;
   const until = colour === 'red' ? Infinity : s.matchClockTicks + dur;
-  s.suspensions.push({ playerId, team, colour, untilTick: until });
   out.push({ kind: 'card', colour, playerId, team, suspensionTicks: dur, reason });
+  // A player already off (or carded again during the same stoppage) is not suspended twice: the existing
+  // suspension is extended. PROVISIONAL — a second card while serving one is often a red in practice.
+  const existing = s.suspensions.find((x) => x.playerId === playerId);
+  if (existing) { existing.untilTick = Math.max(existing.untilTick, until); existing.colour = colour; return; }
+  s.suspensions.push({ playerId, team, colour, untilTick: until });
   out.push({ kind: 'suspend', playerId, untilTick: until });
 }
 

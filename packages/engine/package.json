@@ -21,6 +21,10 @@
     "./naive": {
       "types": "./src/sim/naiveController.ts",
       "default": "./src/sim/naiveController.ts"
+    },
+    "./scenarios": {
+      "types": "./src/sim/scenarios.ts",
+      "default": "./src/sim/scenarios.ts"
     }
   },
   "scripts": {

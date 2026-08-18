@@ -1,27 +1,30 @@
 /**
  * bullyoff-sim — batch simulation CLI.
  *
- *   bullyoff-sim sandbox [--seed N] [--ticks N] [--profile mens|womens] [--surface dry|watered|wet] [--json out.json]
- *   bullyoff-sim match   [--seed N] [--profile ...] [--surface ...] [--matches N] [--json out.json]
+ *   bullyoff-sim sandbox  [--seed N] [--ticks N] [--profile mens|womens] [--surface dry|watered|wet] [--json out.json]
+ *   bullyoff-sim match    [--seed N] [--profile ...] [--surface ...] [--matches N] [--controller ai|naive] [--json out.json]
+ *   bullyoff-sim scenario <id|list> [--json out.json]
  *
  * `sandbox` runs the Phase 1 physics fixture (golden hash). `match` plays full
- * matches under the laws with the naive controller (Phase 2) — Phase 3 swaps in
- * the AI, Phase 4 adds aggregate statistics and the calibration comparison.
+ * matches under the laws with the utility AI (Phase 3; `--controller naive` for
+ * the Phase 2 placeholder). `scenario` runs a §6.2 fixture and prints its event
+ * log in text form for review. Phase 4 adds aggregate statistics + calibration.
  */
 import { writeFileSync } from 'node:fs';
-import { hashLog, simulate, simulateMatch, type MatchEvent, type ProfileId, type SurfaceState } from '@bullyoff/engine';
-import { fullSquads, matchSetup, sandboxScript, sandboxSetup } from '@bullyoff/engine/fixtures';
+import { aiController, getProfile, hashLog, simulate, simulateMatch, squadsFromSetup, type MatchEvent, type ProfileId, type SurfaceState } from '@bullyoff/engine';
+import { aiMatchSetup, fullSquads, matchSetup, sandboxScript, sandboxSetup } from '@bullyoff/engine/fixtures';
 import { naiveController } from '@bullyoff/engine/naive';
+import { SCENARIOS, runScenario, scenarioById } from '@bullyoff/engine/scenarios';
 import { FIH_OUTDOOR_FAST } from '@bullyoff/rules';
 
 const args = process.argv.slice(2);
-const mode = args[0] === 'match' ? 'match' : 'sandbox';
+const mode = args[0] === 'match' ? 'match' : args[0] === 'scenario' ? 'scenario' : 'sandbox';
 const opt = (name: string, def: string): string => {
   const i = args.indexOf(`--${name}`);
   return i >= 0 && args[i + 1] !== undefined ? String(args[i + 1]) : def;
 };
 if (args.includes('--help') || args.includes('-h')) {
-  console.log('bullyoff-sim sandbox|match [--seed N] [--ticks N] [--matches N] [--profile mens|womens] [--surface dry|watered|wet] [--json out.json]');
+  console.log('bullyoff-sim sandbox|match|scenario <id|list> [--seed N] [--ticks N] [--matches N] [--controller ai|naive] [--profile mens|womens] [--surface dry|watered|wet] [--json out.json]');
   process.exit(0);
 }
 
@@ -45,22 +48,42 @@ if (mode === 'sandbox') {
   console.log(`hash ${hashLog(log)} · ${(t1 - t0).toFixed(1)} ms · ${log.events.length} events · ${log.frames.length} frames`);
   for (const [k, v] of Object.entries(summarise(log.events))) console.log(`  ${k.padEnd(22)} ${v}`);
   if (jsonOut) { writeFileSync(jsonOut, JSON.stringify(log)); console.log(`wrote ${jsonOut}`); }
+} else if (mode === 'scenario') {
+  const id = args[1] ?? 'list';
+  if (id === 'list') {
+    for (const sc of SCENARIOS) console.log(`${sc.id.padEnd(26)} ${sc.title} — ${sc.mustLookRight}`);
+  } else {
+    const sc = scenarioById(id);
+    if (!sc) { console.error(`unknown scenario ${id}`); process.exit(1); }
+    const log = runScenario(sc);
+    console.log(`scenario ${sc.id} · ${sc.title} · seed ${sc.seed} · ${sc.ticks} ticks · hash ${hashLog(log)}`);
+    console.log(`must look right: ${sc.mustLookRight}`);
+    for (const e of log.events) {
+      if (e.t === 'BallBounce' || e.t === 'Line23Crossed' || e.t === 'BallStopped' || e.t === 'PlayersPlaced' || e.t === 'Clock') continue;
+      const { t, tick, ...rest } = e;
+      console.log(`  ${String(tick).padStart(5)} ${(tick / 20).toFixed(1).padStart(6)}s ${t.padEnd(20)} ${JSON.stringify(rest)}`);
+    }
+    if (jsonOut) { writeFileSync(jsonOut, JSON.stringify(log)); console.log(`wrote ${jsonOut}`); }
+  }
 } else {
   const n = Number(opt('matches', '1'));
+  const controllerKind = opt('controller', 'ai');
   const t0 = performance.now();
   const totals = new Map<string, number>();
   const scores: string[] = [];
   let lastLog = null as ReturnType<typeof simulateMatch> | null;
   for (let i = 0; i < n; i++) {
     const s = seed + i;
-    const log = simulateMatch(matchSetup(profile, surface, FIH_OUTDOOR_FAST), s, naiveController(s, fullSquads()));
+    const setup = controllerKind === 'naive' ? matchSetup(profile, surface, FIH_OUTDOOR_FAST) : aiMatchSetup(profile, surface, FIH_OUTDOOR_FAST);
+    const controller = controllerKind === 'naive' ? naiveController(s, fullSquads()) : aiController(s, squadsFromSetup(setup.players), { profile: getProfile(profile), surface });
+    const log = simulateMatch(setup, s, controller);
     lastLog = log;
     for (const [k, v] of Object.entries(summarise(log.events))) totals.set(k, (totals.get(k) ?? 0) + v);
     const ft = log.events.find((e) => e.t === 'FullTime');
     scores.push(ft?.t === 'FullTime' ? `${ft.score[0]}-${ft.score[1]}` : '?');
   }
   const t1 = performance.now();
-  console.log(`bullyoff-sim match · ${profile}/${surface} · ${n} match(es) from seed ${seed} · ${((t1 - t0) / n).toFixed(0)} ms/match`);
+  console.log(`bullyoff-sim match · ${controllerKind} · ${profile}/${surface} · ${n} match(es) from seed ${seed} · ${((t1 - t0) / n).toFixed(0)} ms/match`);
   console.log(`scores: ${scores.join(' ')}`);
   for (const [k, v] of [...totals.entries()].sort()) console.log(`  ${k.padEnd(22)} ${(v / n).toFixed(2)} /match`);
   if (jsonOut && lastLog) { writeFileSync(jsonOut, JSON.stringify(lastLog)); console.log(`wrote ${jsonOut} (last match)`); }

@@ -3,7 +3,7 @@
  * Coordinates: home (team 0) attacks +x (east goal at x=+45.7); away attacks −x.
  */
 import { describe, expect, it } from 'vitest';
-import { HALF_LENGTH, HALF_WIDTH, LINE_23_X } from '@bullyoff/shared';
+import { HALF_LENGTH, HALF_WIDTH, LINE_23_X, inCircle } from '@bullyoff/shared';
 import { gateCommand } from './rules.js';
 import { Harness, TEST_LAWS, fakeTeams } from './testkit.js';
 import type { TickSignals } from './types.js';
@@ -296,8 +296,11 @@ describe('penalty corner', () => {
     expect(behind.length).toBeLessThanOrEqual(5);
     const beyond = h.players.filter((p) => p.team === 1 && p.x <= 0);
     expect(behind.length + beyond.length).toBe(11);
-    const attackersInCircle = h.players.filter((p) => p.team === 0 && p.id !== h.last('placePlayers')?.placements[0]?.playerId && (HALF_LENGTH - p.x) <= 14.63 && Math.abs(p.y) < 16.46);
+    const injectorId = h.last('placePlayers')?.placements[0]?.playerId;
+    const attackersInCircle = h.players.filter((p) => p.team === 0 && p.id !== injectorId && inCircle({ x: p.x, y: p.y }, 1));
     expect(attackersInCircle.length).toBe(0);
+    // and every other attacker is within a few metres of the D — the set-up walk is compressed into the placement
+    for (const p of h.players.filter((q) => q.team === 0 && q.id !== injectorId)) expect(HALF_LENGTH - p.x).toBeLessThan(19);
   });
   it('taken → clock resumes; a first *hit* shot above 460 mm → no goal, foul; a drag flick at any height can score (fromPC)', () => {
     const h = pcAwarded();

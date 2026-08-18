@@ -8,6 +8,7 @@
 import { dmath, type Radians, type Scalar, type Vec2 } from '@bullyoff/shared';
 import type { PlayerId, TeamId } from '../events/events.js';
 import type { PlayerParams } from '../profile.js';
+import { accelFactor, attributesFor, paceFactor, staminaDrainFactor, type Attributes, type Role } from './attributes.js';
 
 export interface PlayerState {
   id: PlayerId;
@@ -24,12 +25,25 @@ export interface PlayerState {
   wantDir: Vec2;
   wantEffort: Scalar;
   onPitch: boolean;
+  role: Role;
+  attrs: Attributes;
+  /** Per-player kinematic params: profile × attribute factors. Computed once. */
+  params: PlayerParams;
 }
 
-export const createPlayer = (id: PlayerId, team: TeamId, x: Scalar, y: Scalar, heading: Radians = 0): PlayerState => ({
-  id, team, pos: { x, y }, vel: { x: 0, y: 0 }, heading, stickAngle: heading, stamina: 1,
-  wantDir: { x: 0, y: 0 }, wantEffort: 0, onPitch: true,
-});
+export function createPlayer(id: PlayerId, team: TeamId, x: Scalar, y: Scalar, heading: Radians, base: PlayerParams, role: Role = 'MID', attrs?: Attributes): PlayerState {
+  const a = attrs ?? attributesFor(role);
+  const params: PlayerParams = {
+    ...base,
+    maxSpeed: base.maxSpeed * paceFactor(a),
+    accel: base.accel * accelFactor(a),
+    staminaDrainAtMax: base.staminaDrainAtMax * staminaDrainFactor(a),
+  };
+  return {
+    id, team, pos: { x, y }, vel: { x: 0, y: 0 }, heading, stickAngle: heading, stamina: 1,
+    wantDir: { x: 0, y: 0 }, wantEffort: 0, onPitch: true, role, attrs: a, params,
+  };
+}
 
 /** Stick head position: reach along stickAngle from body centre. */
 export function stickHead(p: PlayerState, reach: Scalar): Vec2 {
@@ -42,7 +56,7 @@ export function stickHead(p: PlayerState, reach: Scalar): Vec2 {
  * not slower to think but slower to get there — the substitution bar in Phase 7
  * lives off this curve).
  */
-export function stepPlayer(p: PlayerState, dt: Scalar, params: PlayerParams): void {
+export function stepPlayer(p: PlayerState, dt: Scalar, params: PlayerParams = p.params): void {
   if (!p.onPitch) return;
   const fatigue = 0.6 + 0.4 * p.stamina; // 60 % of top speed when empty
   const maxSpeed = params.maxSpeed * fatigue * p.wantEffort;

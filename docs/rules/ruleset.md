@@ -29,11 +29,17 @@ Coordinates: home (team 0) attacks +x / the east goal (`end = +1`); away attacks
 | **PC — end** — goal, cleared out of the circle (>5 m beyond it), ball out, foul, or upgraded to a stroke | `endPc(outcome)`; `PenaltyCornerEnded` event | `penalty corner`, engine `match.test › PCs balanced` |
 | **PC — substitutions** — none between award and completion, except the goalkeeper | `gateCommand('substitute')` | `penalty corner › substitutions` |
 | **Penalty stroke — set-up & taking** — ball on the spot (6.40 m), GK on the goal line, everyone else beyond the 23 m; taker strikes once (push/flick) | `awardPs`, `placementsFor`, `gateCommand`; goal → `fromPS`; miss over the backline → PS over, defence hit-out | `penalty stroke` ×2 |
+| **Penalty stroke — over without a goal** — saved by the defence, stopped, or dead → 15 m hit-out to the defence (FIH 13.10) | `psShotTick` + (defender trap/body, ball stopped, or 3 s) → `endPs(false)` + `hitOut` | engine `brain.test` (strokes occur and matches finish); found by a stall in Phase 3 |
+| **Stick tackle** — hitting/hooking the carrier's stick is the tackler's offence (FIH 9.13) | engine `tackle` command resolves a contest from attributes + Rng (`tackleOdds`); outcome `foulTackler` → `stickTackle` foul via `TickSignals.tackles` | `attributes.test › tackles`, engine `brain.test › defends` |
+| **Obstruction** — the carrier backing into / shielding the tackler with the body (FIH 9.12) | tackle contest with the carrier's back to the tackler (>110°) → small chance of `foulCarrier` → `obstruction` foul. PROVISIONAL and rare by design | engine `brain.test` (occurs in full matches) |
+| **Card stacking** — a player carded while already suspended is not suspended twice: the suspension is extended (PROVISIONAL: often a red in practice) | `issueCard` | engine `match.test › cards` |
+| **PC — set-up compression** — at a PC *all* attackers are placed just outside the D (the 40 s walk-up compressed), defenders as before | `placementsFor('penaltyCorner')` post-centred arcs | `penalty corner › award` |
+| **PC — timeout safeguard** — an AI stall cannot keep a PC (and thus a quarter) alive forever: 40 s of playing time after injection → ended as cleared | `laws.pcTimeoutTicks` | (safeguard) |
 | **Cards & suspensions** — green 2 min, yellow 5 min (serious 10), red rest of match (durations PROVISIONAL for the Belgian league); suspension is *playing* time; team plays short | `issueCard` → `suspend` ruling (engine: `onPitch=false`, dugout) → `reinstate` when `matchClockTicks ≥ until` | `cards and suspensions` ×2, engine `match.test › cards` |
 | **Persistent fouling** — umpiring heuristic: 3rd personal foul → green, 5th → yellow (PROVISIONAL) | `laws.persistentFoul{Green,Yellow}At` | `cards › persistent fouling` |
 | **Rolling substitutions** — unlimited; at the halfway dugout; blocked during a PC (except GK) | engine `substitute` command; `gateCommand`; players teleport to/from the dugout (Phase 3 AI runs them off) | engine `match.test › substitutions never exceed 11` |
 | **No offside** | nothing to implement — and nothing implemented | — |
-| **Obstruction, stick tackle, third-party** | **not yet detectable** — needs Phase 3's tackle/duel model. `FoulKind` reserves `obstruction`, `stickTackle`. | — (listed as Phase 3 debt) |
+| **Third-party obstruction** | not modelled (needs a richer duel model) | — |
 | **Above-shoulder play, aerial receiving rules, GK equipment rules, shoot-outs** | Phase 3 (AI-dependent) / Phase 6 (shoot-outs; `laws.shootOutTicks` reserved) | — |
 
 ## Provisional readings for Jan to confirm
@@ -47,3 +53,5 @@ Coordinates: home (team 0) attacks +x / the east goal (`end = +1`); away attacks
 7. **Centre pass alternation** by quarter (Q1 toss winner, then alternating).
 8. **Set-up windows** as sim idle: 40 s in real hockey for PC/goal; `FIH_OUTDOOR` uses 3–6 s of sim idle (`setupTicks`) because the playing clock is stopped anyway; `FIH_OUTDOOR_FAST` shorter still for batch runs.
 9. **PC "cleared"**: ended once the ball is >5 m outside the circle. Real rule: the PC is over when the ball travels >5 m outside the circle *or* … (several conditions). Simplified.
+10. **Stroke over**: saved/stopped/dead → 15 m hit-out. Also ends after 3 s of play if nothing else resolved it (safeguard).
+11. **Second card while suspended**: extends the suspension (implemented) vs. red (common practice) — decide.

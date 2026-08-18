@@ -51,7 +51,7 @@ export class Harness {
   /** Step with (partial) signals. Executes deadBall/placePlayers rulings against the fake world. */
   step(sig: Partial<TickSignals> = {}): Ruling[] {
     const full: TickSignals = {
-      struck: [], trapped: [], bodyContacts: [], circleEntries: [], circleExits: [], goalLineCrossings: [], sidelineCrossings: [],
+      struck: [], trapped: [], bodyContacts: [], circleEntries: [], circleExits: [], goalLineCrossings: [], sidelineCrossings: [], tackles: [],
       ballFrom: { ...this.ball }, stopped: false, ...sig,
     };
     for (const st of full.struck) { this.lastTouch = st.playerId; this.lastTouchTeam = st.team; }

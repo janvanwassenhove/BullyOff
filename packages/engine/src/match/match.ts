@@ -10,7 +10,7 @@
  */
 import { HALF_WIDTH, LINE_23_X, Rng, dmath, inCircle, type Scalar, type Vec2 } from '@bullyoff/shared';
 import {
-  FIH_OUTDOOR, createRulesState, gateCommand, stepRules,
+  FIH_OUTDOOR, createRulesState, forceAward, gateCommand, stepRules,
   type Laws, type PlayerView, type Ruling, type RulesState, type RulesView, type TickSignals,
 } from '@bullyoff/rules';
 import { DT, ENGINE_VERSION, TICK_HZ } from '../constants.js';
@@ -18,6 +18,7 @@ import { createBall, launchBall, stepBall, type BallState } from '../ball/ball.j
 import { sweepBall, type BodyCollider } from '../ball/collide.js';
 import { FRAME_PLAYER_STRIDE, type Frame, type MatchEvent, type MatchLog, type MatchLogHeader, type PlayerId, type TeamId } from '../events/events.js';
 import { createPlayer, stepPlayer, stickHead, type PlayerState } from '../player/player.js';
+import { gkReach, gkSaveChance, strikeErrorSd, strikeSpeedFactor, tackleOdds, trapSuccess, type Attributes, type Role } from '../player/attributes.js';
 import { getProfile, type Profile, type ProfileId, type SurfaceState } from '../profile.js';
 import type { Command } from './commands.js';
 
@@ -30,6 +31,9 @@ export interface PlayerSetup {
   isGoalkeeper?: boolean;
   /** false = starts on the bench (rolling substitutions). Default true. */
   onPitch?: boolean;
+  role?: Role;
+  /** 1–20 attributes; default = attributesFor(role) at level 12. Ignored in sandbox mode (raw profile values, no Rng noise). */
+  attributes?: Attributes;
 }
 
 export interface MatchSetup {
@@ -47,6 +51,8 @@ export interface MatchSetup {
    * Default false. Kept so the physics fixtures and the golden hash stay meaningful.
    */
   sandbox?: boolean;
+  /** Scenario fixtures: start live in open play at a given quarter/clock/score, no kick-off. */
+  startLive?: { quarter: 1 | 2 | 3 | 4; clockTicks: number; score?: [number, number] };
 }
 
 export interface MatchState {
@@ -76,7 +82,9 @@ export function createMatch(setup: MatchSetup, seed: number): { state: MatchStat
   const players = [...setup.players]
     .sort((a, b) => a.id - b.id) // stable, explicit order (ADR-002)
     .map((p) => {
-      const ps = createPlayer(p.id, p.team, p.x, p.y, p.heading ?? 0);
+      const role: Role = p.role ?? (p.isGoalkeeper ? 'GK' : 'MID');
+      const ps = createPlayer(p.id, p.team, p.x, p.y, p.heading ?? 0, profile.player, role, p.attributes);
+      if (setup.sandbox) ps.params = profile.player; // sandbox: raw profile kinematics
       ps.onPitch = p.onPitch ?? true;
       if (!ps.onPitch) ps.pos = dugout(p.team);
       return ps;
@@ -92,7 +100,7 @@ export function createMatch(setup: MatchSetup, seed: number): { state: MatchStat
     inCircle: [inCircle(ball.pos, -1), inCircle(ball.pos, 1)],
     in23: [-ball.pos.x >= LINE_23_X, ball.pos.x >= LINE_23_X],
     frameEvery: Math.max(0, setup.frameEvery ?? 1),
-    rules: createRulesState(firstCentrePass),
+    rules: createRulesState(firstCentrePass, setup.startLive ? { live: setup.startLive } : {}),
     ended: false,
   };
   const header: MatchLogHeader = {
@@ -154,7 +162,7 @@ export function tick(s: MatchState, commands: readonly Command[]): MatchEvent[] 
   let struckBy: PlayerId | null = null;
   const view0 = rulesView(s);
   const sig: TickSignals = {
-    struck: [], trapped: [], bodyContacts: [], circleEntries: [], circleExits: [], goalLineCrossings: [], sidelineCrossings: [],
+    struck: [], trapped: [], bodyContacts: [], circleEntries: [], circleExits: [], goalLineCrossings: [], sidelineCrossings: [], tackles: [],
     ballFrom: { ...ball.pos }, stopped: false,
   };
   const ballDead = !s.sandbox && s.rules.ballDead;
@@ -187,8 +195,22 @@ export function tick(s: MatchState, commands: readonly Command[]): MatchEvent[] 
           case 'flick': speed = st.flickSpeed * power; lift = st.flickLiftAngle; break;
           case 'aerial': speed = st.aerialSpeed * power; lift = st.aerialLiftAngle; break;
         }
-        p.stickAngle = dmath.wrapAngle(c.angle);
-        launchBall(ball, c.angle, speed, lift);
+        let angle = dmath.wrapAngle(c.angle);
+        if (!s.sandbox) {
+          // Attributes scale speed and add angular error (a 20 sprays ~1.5°, a 1 ~9°; fatigue and composure widen it).
+          speed *= strikeSpeedFactor(p.attrs, c.strike);
+          angle = dmath.wrapAngle(angle + s.rng.gaussian(0, strikeErrorSd(p.attrs, c.strike, p.stamina)));
+          if (lift > 0) lift = Math.max(0.005, lift + s.rng.gaussian(0, lift * 0.25));
+        }
+        p.stickAngle = angle;
+        // The stick brings the ball round in front of the body before it is played: you cannot hit *through* yourself.
+        // If the ball sits behind the strike direction, move it to just ahead of the body along that direction.
+        {
+          const cx = dmath.cos(angle), sy = dmath.sin(angle);
+          const ahead = (ball.pos.x - p.pos.x) * cx + (ball.pos.y - p.pos.y) * sy;
+          if (ahead < 0.25) ball.pos = { x: p.pos.x + cx * 0.5, y: p.pos.y + sy * 0.5, z: ball.pos.z };
+        }
+        launchBall(ball, angle, speed, lift);
         ball.lastTouch = p.id; ball.inNet = false; s.lastTouchTeam = p.team;
         struckBy = p.id;
         events.push({ t: 'BallStruck', tick: t, playerId: p.id, team: p.team, kind: c.strike, speed, lift });
@@ -198,13 +220,65 @@ export function tick(s: MatchState, commands: readonly Command[]): MatchEvent[] 
       case 'trap': {
         const p = playerOf(s, c.playerId); if (!p) break;
         if (!s.sandbox && !gateCommand(s.rules, view0, 'trap', p.id, laws)) break;
-        if (!ballInReach(s, p)) break;
-        const keep = profile.strike.trapRetain;
-        ball.vel = { x: ball.vel.x * keep, y: ball.vel.y * keep, z: 0 };
-        ball.pos = { ...ball.pos, z: 0 }; ball.grounded = true; ball.lastTouch = p.id; s.lastTouchTeam = p.team;
+        const isGk = s.goalkeepers.has(p.id);
+        if (!ballInReach(s, p, isGk ? gkReach(p.attrs) : undefined, isGk ? 2.0 : undefined)) break;
+        const incoming = Math.sqrt(ball.vel.x ** 2 + ball.vel.y ** 2 + ball.vel.z ** 2);
+        let clean = true;
+        if (!s.sandbox) {
+          const dxb = ball.pos.x - p.pos.x, dyb = ball.pos.y - p.pos.y;
+          const pClean = isGk ? gkSaveChance(p.attrs, incoming, Math.sqrt(dxb * dxb + dyb * dyb)) : trapSuccess(p.attrs, incoming, ball.pos.z);
+          clean = s.rng.chance(pClean);
+        }
+        if (clean) {
+          const keep = profile.strike.trapRetain;
+          ball.vel = { x: ball.vel.x * keep, y: ball.vel.y * keep, z: 0 };
+          ball.pos = { ...ball.pos, z: 0 }; ball.grounded = true;
+        } else if (isGk) {
+          // beaten: the ball is barely touched — it carries on with most of its speed, slightly deflected (a fingertip, a pad edge)
+          const a0 = dmath.atan2(ball.vel.y, ball.vel.x);
+          const a = a0 + s.rng.gaussian(0, 0.12);
+          const vh = Math.sqrt(ball.vel.x ** 2 + ball.vel.y ** 2) * s.rng.range(0.7, 0.95);
+          ball.vel = { x: vh * dmath.cos(a), y: vh * dmath.sin(a), z: ball.vel.z * 0.8 };
+        } else {
+          // miscontrol: the ball skids off the stick face and carries on roughly onward (±70°) at reduced speed
+          const a0 = incoming > 0.5 ? dmath.atan2(ball.vel.y, ball.vel.x) : p.heading;
+          const a = a0 + s.rng.range(-1.2, 1.2);
+          const v = Math.max(1.5, incoming * s.rng.range(0.25, 0.55));
+          ball.vel = { x: v * dmath.cos(a), y: v * dmath.sin(a), z: 0 };
+          ball.pos = { ...ball.pos, z: 0 }; ball.grounded = true;
+        }
+        ball.lastTouch = p.id; s.lastTouchTeam = p.team;
         struckBy = p.id;
-        events.push({ t: 'BallTrapped', tick: t, playerId: p.id, team: p.team });
+        events.push({ t: 'BallTrapped', tick: t, playerId: p.id, team: p.team, clean });
         sig.trapped.push({ playerId: p.id, team: p.team, at: { x: ball.pos.x, y: ball.pos.y } });
+        break;
+      }
+      case 'tackle': {
+        const p = playerOf(s, c.playerId), q = playerOf(s, c.targetId);
+        if (!p || !q || p.team === q.team || !p.onPitch || !q.onPitch) break;
+        if (!s.sandbox && !gateCommand(s.rules, view0, 'strike', p.id, laws)) break;
+        // The carrier must actually have the ball (last touch, within reach); the tackler must reach it too.
+        if (ball.lastTouch !== q.id || !ballInReach(s, q) || !ballInReach(s, p, profile.player.reach * 1.15)) break;
+        const odds = tackleOdds(p.attrs, q.attrs);
+        const u = s.rng.next();
+        // Obstruction: the carrier's back is to the tackler while shielding (heading away by > 110°) — sometimes called.
+        const toTackler = dmath.atan2(p.pos.y - q.pos.y, p.pos.x - q.pos.x);
+        const shielding = Math.abs(dmath.angleDelta(q.heading, toTackler)) > 1.92;
+        let outcome: 'won' | 'lost' | 'foulTackler' | 'foulCarrier';
+        if (u < odds.foulTackler) outcome = 'foulTackler';
+        else if (shielding && u < odds.foulTackler + 0.06) outcome = 'foulCarrier';
+        else if (u < odds.foulTackler + odds.win) outcome = 'won';
+        else outcome = 'lost';
+        if (outcome === 'won') {
+          // the ball comes off the carrier's stick onto the tackler's and stops there
+          ball.vel = { x: 0, y: 0, z: 0 }; ball.pos = { ...ball.pos, z: 0 }; ball.grounded = true;
+          ball.lastTouch = p.id; s.lastTouchTeam = p.team; struckBy = p.id;
+        } else if (outcome === 'lost') {
+          // beaten: the lunge kills the tackler's momentum (they must turn and chase)
+          p.vel = { x: p.vel.x * 0.3, y: p.vel.y * 0.3 };
+        }
+        events.push({ t: 'Tackle', tick: t, tacklerId: p.id, tacklerTeam: p.team, carrierId: q.id, outcome });
+        sig.tackles.push({ tacklerId: p.id, tacklerTeam: p.team, carrierId: q.id, carrierTeam: q.team, at: { x: ball.pos.x, y: ball.pos.y }, outcome });
         break;
       }
       case 'substitute': {
@@ -230,20 +304,37 @@ export function tick(s: MatchState, commands: readonly Command[]): MatchEvent[] 
         p.pos = { x: c.x, y: c.y }; p.vel = { x: 0, y: 0 }; p.heading = dmath.wrapAngle(c.heading); p.stickAngle = p.heading;
         break;
       }
+      case 'award': {
+        if (s.sandbox) break;
+        executeRulings(s, forceAward(s.rules, laws, view0, c.restart, c.team, c.y, c.x), events, t);
+        break;
+      }
     }
   }
 
-  // 2. players
-  for (const p of s.players) stepPlayer(p, DT, profile.player);
+  // 2. players (per-player params: profile × attributes)
+  for (const p of s.players) stepPlayer(p, DT);
 
   // 3. ball (frozen while dead)
   if (!ballDead) {
     const step = stepBall(ball, DT, profile.ball, surface);
     if (step.bounced) events.push({ t: 'BallBounce', tick: t, x: step.next.pos.x, y: step.next.pos.y, speedBefore: step.speedBeforeBounce });
     const bodies: BodyCollider[] = s.players.filter((p) => p.onPitch).map((p) => ({ playerId: p.id, pos: p.pos, radius: profile.player.radius, height: profile.player.height }));
+    // The last toucher's own body does not collide with the ball while it is slow at their feet (dribbling: it's on
+    // the stick, not the boot) or moving AWAY from them (they just played it). Anyone else's body still collides → feet.
+    let ignore: PlayerId | null = struckBy;
+    if (ignore === null && ball.lastTouch !== null) {
+      const lt = playerOf(s, ball.lastTouch);
+      if (lt) {
+        const vx = step.next.vel.x, vy = step.next.vel.y;
+        const slow = vx * vx + vy * vy < 16;
+        const away = vx * (ball.pos.x - lt.pos.x) + vy * (ball.pos.y - lt.pos.y) > 0;
+        if (slow || away) ignore = lt.id;
+      }
+    }
     const sw = sweepBall({
       tick: t, from: ball.pos, to: step.next.pos, vel: step.next.vel, grounded: step.next.grounded,
-      ballRadius: profile.ball.radius, bodies, ignoreBody: struckBy, lastTouch: ball.lastTouch,
+      ballRadius: profile.ball.radius, bodies, ignoreBody: ignore, lastTouch: ball.lastTouch,
       wasInNet: ball.inNet, inCircleBefore: s.inCircle, in23Before: s.in23,
     }, DT);
     const speedBefore = Math.sqrt(step.next.vel.x ** 2 + step.next.vel.y ** 2 + step.next.vel.z ** 2);
@@ -369,19 +460,19 @@ function playerOf(s: MatchState, id: PlayerId): PlayerState | undefined {
 }
 
 /** Ball is playable if it's within stick reach of the body and not above waist height. */
-function ballInReach(s: MatchState, p: PlayerState): boolean {
+function ballInReach(s: MatchState, p: PlayerState, reachOverride?: Scalar, maxHeight = 0.6): boolean {
   if (!p.onPitch) return false;
-  const reach = s.profile.player.reach;
+  const reach = reachOverride ?? s.profile.player.reach;
   const b = s.ball;
   const head = stickHead(p, reach * 0.6);
   const dxb = b.pos.x - p.pos.x, dyb = b.pos.y - p.pos.y;
   const dxh = b.pos.x - head.x, dyh = b.pos.y - head.y;
   const nearBody = dxb * dxb + dyb * dyb <= reach * reach;
   const nearHead = dxh * dxh + dyh * dyh <= (reach * 0.8) * (reach * 0.8);
-  return (nearBody || nearHead) && b.pos.z <= 0.6;
+  return (nearBody || nearHead) && b.pos.z <= maxHeight;
 }
 
-const KIND_ORDER: Record<Command['kind'], number> = { placeBall: 0, placePlayer: 1, substitute: 2, move: 3, aim: 4, trap: 5, strike: 6 };
+const KIND_ORDER: Record<Command['kind'], number> = { placeBall: 0, placePlayer: 1, award: 2, substitute: 3, move: 4, aim: 5, tackle: 6, trap: 7, strike: 8 };
 function compareCommands(a: Command, b: Command): number {
   const ka = KIND_ORDER[a.kind], kb = KIND_ORDER[b.kind];
   if (ka !== kb) return ka - kb;

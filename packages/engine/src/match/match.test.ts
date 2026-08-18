@@ -67,7 +67,9 @@ describe('a full match under the laws', () => {
   it('cards suspend players and they are reinstated; the team plays short meanwhile; substitutions never exceed 11 on the pitch', () => {
     const cards = count(ev, 'Card');
     expect(cards).toBeGreaterThan(0);
-    expect(count(ev, 'Suspended')).toBe(cards);
+    // a card to an already-suspended player extends the suspension rather than adding a second one
+    expect(count(ev, 'Suspended')).toBeGreaterThan(0);
+    expect(count(ev, 'Suspended')).toBeLessThanOrEqual(cards);
     expect(count(ev, 'Reinstated')).toBeGreaterThan(0);
     // simulate on-pitch counts from the event stream
     const onPitch = new Map<number, number>();

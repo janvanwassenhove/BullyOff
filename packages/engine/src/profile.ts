@@ -72,9 +72,11 @@ const BALL: BallParams = { mass: 0.16, radius: 0.036, airDrag: 0.008, gravity: 9
 // Surface physics is a property of the pitch, not of who plays on it — shared
 // between profiles by construction. Ball speeds differ; turf does not.
 const SURFACES: Record<SurfaceState, SurfaceParams> = {
-  dry:     { rollingDecel: 1.35, restitution: 0.55, bounceFrictionLoss: 0.25, settleSpeed: 0.6 },
-  watered: { rollingDecel: 0.85, restitution: 0.40, bounceFrictionLoss: 0.15, settleSpeed: 0.5 },
-  wet:     { rollingDecel: 1.10, restitution: 0.30, bounceFrictionLoss: 0.30, settleSpeed: 0.4 },
+  // Rolling deceleration calibrated so a 30 m/s hit dies within ~60–80 m and a firm 10 m/s push travels ~20 m
+  // (drag ∝ v² is applied on top — see ball.ts). Phase 4 tunes per real data.
+  dry:     { rollingDecel: 3.2, restitution: 0.55, bounceFrictionLoss: 0.25, settleSpeed: 0.6 },
+  watered: { rollingDecel: 2.3, restitution: 0.40, bounceFrictionLoss: 0.15, settleSpeed: 0.5 },
+  wet:     { rollingDecel: 2.8, restitution: 0.30, bounceFrictionLoss: 0.30, settleSpeed: 0.4 },
 };
 
 export const MENS: Profile = {

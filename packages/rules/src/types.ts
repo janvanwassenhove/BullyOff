@@ -56,6 +56,8 @@ export interface TickSignals {
   circleExits: { end: End }[];
   goalLineCrossings: { end: End; inGoal: boolean; y: Scalar; z: Scalar }[];
   sidelineCrossings: { side: 1 | -1; x: Scalar }[];
+  /** Tackle contests resolved by the engine this tick. */
+  tackles: { tacklerId: PlayerId; tacklerTeam: TeamId; carrierId: PlayerId; carrierTeam: TeamId; at: Vec2; outcome: 'won' | 'lost' | 'foulTackler' | 'foulCarrier' }[];
   /** Ball position at the *start* of the tick, for "where was it played from" questions. */
   ballFrom: Vec3;
   stopped: boolean;
@@ -162,6 +164,8 @@ export interface RulesState {
   pcFirstShot: { struckTick: number; kind: StrikeKind } | null;
   /** Team taking the current PC / PS. */
   pcTeam: TeamId | null;
+  /** Playing-clock tick of the injection (for the timeout safeguard). */
+  pcTakenTick: number | null;
   psActive: boolean;
   psTeam: TeamId | null;
   psShotTick: number | null;
