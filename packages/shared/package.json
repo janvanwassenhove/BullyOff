@@ -1,0 +1,22 @@
+{
+  "name": "@bullyoff/shared",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Types, seeded RNG, deterministic math, SI units. Depends on nothing.",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./math": {
+      "types": "./src/math/index.ts",
+      "default": "./src/math/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  }
+}

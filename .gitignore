@@ -1,0 +1,14 @@
+node_modules/
+dist/
+coverage/
+.turbo/
+*.tsbuildinfo
+.vite/
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.*
+!.env.example
+# calibration outputs are regenerated, never committed
+tools/calibrate/out/

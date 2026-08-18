@@ -1,0 +1,23 @@
+{
+  "name": "@bullyoff/render",
+  "version": "0.0.0",
+  "private": true,
+  "description": "PixiJS view layer. Consumes MatchEvent logs only; never reaches into engine state.",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@bullyoff/engine": "workspace:*",
+    "@bullyoff/shared": "workspace:*",
+    "pixi.js": "^8.10.0"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "@bullyoff/worldgen",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Procedural clubs, players, leagues and twenty seasons of fictional history. Real-club blocklist lives here.",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@bullyoff/engine": "workspace:*",
+    "@bullyoff/shared": "workspace:*"
+  }
+}

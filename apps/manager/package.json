@@ -1,0 +1,26 @@
+{
+  "name": "@bullyoff/manager",
+  "version": "0.0.0",
+  "private": true,
+  "description": "BULLY OFF — coach/manager campaign. Vue 3 + Pinia. The product.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit -p tsconfig.app.json && vite build",
+    "preview": "vite preview",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json"
+  },
+  "dependencies": {
+    "@bullyoff/engine": "workspace:*",
+    "@bullyoff/render": "workspace:*",
+    "@bullyoff/shared": "workspace:*",
+    "@bullyoff/worldgen": "workspace:*",
+    "pinia": "^3.0.3",
+    "vue": "^3.5.17"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.4",
+    "vite": "^6.3.5",
+    "vue-tsc": "^2.2.10"
+  }
+}

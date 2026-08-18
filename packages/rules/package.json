@@ -1,0 +1,21 @@
+{
+  "name": "@bullyoff/rules",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The FIH outdoor hockey ruleset as data and pure predicates, separable from physics.",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@bullyoff/shared": "workspace:*"
+  }
+}

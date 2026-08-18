@@ -1,0 +1,62 @@
+/*
+ * BULLY OFF design tokens. Hand-rolled — no CSS framework (BRIEF §4.1).
+ * Palette is anchored on water-based turf blue/green and the white ball;
+ * ADR-012 owns the wider art direction. Only tokens live here, never rules.
+ */
+:root {
+  /* colour */
+  --color-turf-900: #0b3d2e;
+  --color-turf-700: #146b4a;
+  --color-turf-500: #1f9a63;
+  --color-turf-100: #d7f5e6;
+  --color-water-700: #0f4c81;
+  --color-water-500: #1e78c8;
+  --color-ball: #f4f1e8;
+  --color-card-green: #2ecc71;
+  --color-card-yellow: #f1c40f;
+  --color-card-red: #e74c3c;
+
+  --color-bg: #0e1116;
+  --color-bg-elevated: #161b22;
+  --color-fg: #e6edf3;
+  --color-fg-muted: #8b949e;
+  --color-border: #30363d;
+
+  /* type */
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 2rem;
+
+  /* space (4 px grid) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+
+  /* radius / shadow */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-2: 0 4px 12px rgb(0 0 0 / 0.45);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --color-bg: #f7f9fb;
+    --color-bg-elevated: #ffffff;
+    --color-fg: #101418;
+    --color-fg-muted: #57606a;
+    --color-border: #d0d7de;
+    --color-turf-100: #0b3d2e;
+  }
+}
