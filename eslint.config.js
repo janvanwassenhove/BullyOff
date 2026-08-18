@@ -86,7 +86,7 @@ export default defineConfig(
   // Applies to engine, rules and shared: everything that runs inside tick().
   {
     files: ['packages/engine/**/*.ts', 'packages/rules/**/*.ts', 'packages/shared/**/*.ts'],
-    ignores: ['**/*.test.ts', '**/*.spec.ts', '**/*.bench.ts'],
+    ignores: ['**/*.test.ts', '**/*.spec.ts', '**/*.bench.ts', 'packages/engine/browser/**', 'packages/engine/src/worker/worker.ts'],
     languageOptions: {
       globals: {}, // no browser, no node globals — headless means headless
     },
@@ -118,9 +118,9 @@ export default defineConfig(
     rules: { 'no-console': 'off' },
   },
 
-  // ── Browser surfaces (Vue apps, render) ───────────────────────────────────────
+  // ── Browser surfaces (Vue apps, render, the engine's browser harness) ───────
   {
-    files: ['apps/manager/**/*.{ts,vue}', 'apps/arcade/**/*.{ts,vue}', 'packages/render/**/*.ts'],
+    files: ['apps/manager/**/*.{ts,vue}', 'apps/arcade/**/*.{ts,vue}', 'packages/render/**/*.ts', 'packages/engine/browser/**/*.ts'],
     languageOptions: { globals: { ...globals.browser } },
   },
   ...vue.configs['flat/recommended'],

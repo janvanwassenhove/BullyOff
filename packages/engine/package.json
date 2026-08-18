@@ -9,11 +9,20 @@
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"
+    },
+    "./worker": {
+      "types": "./src/worker/worker.ts",
+      "default": "./src/worker/worker.ts"
+    },
+    "./fixtures": {
+      "types": "./src/sim/fixtures.ts",
+      "default": "./src/sim/fixtures.ts"
     }
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test:browsers": "vitest run --config vitest.browser.config.ts"
   },
   "dependencies": {
     "@bullyoff/rules": "workspace:*",

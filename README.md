@@ -4,7 +4,7 @@ A field hockey game for the web: a deterministic, headless match simulation engi
 
 The point is **hockey-accurate simulation** — circle rule, penalty corners, rolling substitutions, cards, four quarters, wet vs dry turf — in a sport every existing game models as "football with different rules". It is not.
 
-> Status: **Phase 1 — engine core** in progress. See [`KICKOFF.md`](KICKOFF.md).
+> Status: **Phase 2 — rules layer** in progress. Phase 1 engine core is done: deterministic 2.5D ball with swept collisions, verified bit-identical across Node, Chromium, Firefox and WebKit. See [`KICKOFF.md`](KICKOFF.md).
 
 ## Documents
 
@@ -40,7 +40,7 @@ pnpm install
 pnpm check
 ```
 
-`pnpm check` = typecheck + lint + test, and must be green before any phase handoff. Other scripts: `pnpm build`, `pnpm dev:manager`, `pnpm simcli`, `pnpm test:watch`.
+`pnpm check` = typecheck + lint + test, and must be green before any phase handoff. Other scripts: `pnpm build`, `pnpm dev:manager`, `pnpm simcli`, `pnpm test:watch`, `pnpm test:browsers` (cross-browser determinism; run `pnpm browsers:install` once).
 
 ## Ground rules (short)
 
