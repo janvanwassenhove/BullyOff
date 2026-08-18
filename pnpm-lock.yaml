@@ -80,6 +80,9 @@ importers:
       '@bullyoff/engine':
         specifier: workspace:*
         version: link:../../packages/engine
+      '@bullyoff/rules':
+        specifier: workspace:*
+        version: link:../../packages/rules
       '@bullyoff/shared':
         specifier: workspace:*
         version: link:../../packages/shared

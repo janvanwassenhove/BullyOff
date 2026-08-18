@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   CIRCLE_RADIUS, CIRCLE_TOP_X, GOAL_HALF_WIDTH, HALF_LENGTH, HALF_WIDTH, LINE_23_X,
   in23, inCircle, inField, segmentCrossX, sweptCircleCrossing,
-} from './geometry.js';
+} from './pitch.js';
 
 describe('pitch geometry', () => {
   it('has FIH dimensions', () => {

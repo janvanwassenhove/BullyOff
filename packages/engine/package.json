@@ -17,6 +17,10 @@
     "./fixtures": {
       "types": "./src/sim/fixtures.ts",
       "default": "./src/sim/fixtures.ts"
+    },
+    "./naive": {
+      "types": "./src/sim/naiveController.ts",
+      "default": "./src/sim/naiveController.ts"
     }
   },
   "scripts": {

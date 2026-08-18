@@ -10,11 +10,10 @@ export const PACKAGE_NAME = '@bullyoff/engine' as const;
 
 export { TICK_HZ, DT, ENGINE_VERSION } from './constants.js';
 export * from './profile.js';
-export * from './pitch/geometry.js';
 export * from './events/events.js';
 export * from './match/commands.js';
-export { createMatch, tick, endMatch, simulate, captureFrame } from './match/match.js';
-export type { MatchSetup, PlayerSetup, MatchState } from './match/match.js';
+export { createMatch, tick, endMatch, simulate, simulateMatch, captureFrame, rulesView, dugout } from './match/match.js';
+export type { MatchSetup, PlayerSetup, MatchState, Controller } from './match/match.js';
 export { hashLog } from './sim/hash.js';
 export * from './worker/protocol.js';
 export { createEngineHost } from './worker/host.js';

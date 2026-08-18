@@ -11,7 +11,7 @@
  *  - 23 m lines at 22.90 m from each backline
  *  - penalty spot 6.40 m from the goal line, centred
  */
-import type { Metres, Scalar, Vec2, Vec3 } from '@bullyoff/shared';
+import type { Metres, Scalar, Vec2, Vec3 } from './scalar.js';
 
 export type End = 1 | -1;
 

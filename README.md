@@ -4,7 +4,7 @@ A field hockey game for the web: a deterministic, headless match simulation engi
 
 The point is **hockey-accurate simulation** — circle rule, penalty corners, rolling substitutions, cards, four quarters, wet vs dry turf — in a sport every existing game models as "football with different rules". It is not.
 
-> Status: **Phase 2 — rules layer** in progress. Phase 1 engine core is done: deterministic 2.5D ball with swept collisions, verified bit-identical across Node, Chromium, Firefox and WebKit. See [`KICKOFF.md`](KICKOFF.md).
+> Status: **Phase 3 — players and AI** in progress. Done: deterministic 2.5D engine with swept collisions (Phase 1) and the full FIH rules layer — quarters, restarts, penalty corners/strokes, cards, rolling subs — playing complete matches (Phase 2). See [`KICKOFF.md`](KICKOFF.md).
 
 ## Documents
 

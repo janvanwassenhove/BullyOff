@@ -8,13 +8,13 @@ import { describe, expect, it } from 'vitest';
 import { dmath } from '@bullyoff/shared';
 import { createMatch, tick } from '../match/match.js';
 import type { Command } from '../match/commands.js';
-import { GOAL_HALF_WIDTH, GOAL_HEIGHT, HALF_LENGTH } from '../pitch/geometry.js';
+import { GOAL_HALF_WIDTH, GOAL_HEIGHT, HALF_LENGTH } from '@bullyoff/shared';
 import type { MatchEvent } from '../events/events.js';
 
 const KMH = 1 / 3.6;
 
 function fire(from: { x: number; y: number; z?: number }, vel: { x: number; y: number; z: number }, ticks = 40, extra: Command[] = []): MatchEvent[] {
-  const { state } = createMatch({ profile: 'mens', surface: 'watered', players: [] }, 1);
+  const { state } = createMatch({ profile: 'mens', surface: 'watered', players: [], sandbox: true }, 1);
   const cmds: Command[] = [
     { tick: 0, kind: 'placeBall', x: from.x, y: from.y, z: from.z ?? 0, vx: vel.x, vy: vel.y, vz: vel.z },
     ...extra,
@@ -97,7 +97,7 @@ describe('swept collision — goal detection', () => {
   });
 
   it('a ball hitting a player body rebounds off it, and the striker is not hit by their own strike', () => {
-    const { state } = createMatch({ profile: 'mens', surface: 'watered', players: [
+    const { state } = createMatch({ profile: 'mens', surface: 'watered', sandbox: true, players: [
       { id: 1, team: 0, x: 0, y: 0 }, { id: 2, team: 1, x: 6, y: 0 },
     ] }, 1);
     const cmds: Command[] = [
@@ -118,7 +118,7 @@ describe('swept collision — goal detection', () => {
   });
 
   it('never emits CollisionCapHit in the busy sandbox and terminates', () => {
-    const { state } = createMatch({ profile: 'mens', surface: 'dry', players: [
+    const { state } = createMatch({ profile: 'mens', surface: 'dry', sandbox: true, players: [
       { id: 1, team: 0, x: HALF_LENGTH - 0.3, y: 0.5 }, { id: 2, team: 0, x: HALF_LENGTH - 0.6, y: -0.6 },
     ] }, 3);
     const cmds: Command[] = [{ tick: 0, kind: 'placeBall', x: HALF_LENGTH - 2, y: 0, z: 0.5, vx: 30, vy: 2, vz: 4 }];
@@ -129,7 +129,7 @@ describe('swept collision — goal detection', () => {
   });
 
   it('a strike aims the stick and launches with the profile speed', () => {
-    const { state } = createMatch({ profile: 'womens', surface: 'watered', players: [{ id: 7, team: 0, x: 0, y: 0 }] }, 5);
+    const { state } = createMatch({ profile: 'womens', surface: 'watered', sandbox: true, players: [{ id: 7, team: 0, x: 0, y: 0 }] }, 5);
     const ev = tick(state, [
       { tick: 0, kind: 'placeBall', x: 0.8, y: 0, z: 0, vx: 0, vy: 0, vz: 0 },
       { tick: 0, kind: 'strike', playerId: 7, strike: 'flick', angle: dmath.HALF_PI, power: 1 },

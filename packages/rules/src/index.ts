@@ -1,11 +1,10 @@
 /**
  * @bullyoff/rules — the laws of the game, separable from physics.
- *
- * Phase 0: identity only. Phase 2 adds: circle rule, obstruction, foot/body,
- * dangerous play by ball height, back-stick, self-pass, free hits & 5 m,
- * 23 m restarts, long corners, penalty corners, penalty strokes, cards with
- * timed suspension, quarters & clock, rolling substitutions.
- *
- * Rule: when a law is ambiguous, stop and ask Jan. Do not invent hockey.
+ * Pure: depends only on @bullyoff/shared. The engine calls `gateCommand` before
+ * physics and `stepRules` after, and executes the returned rulings.
  */
 export const PACKAGE_NAME = '@bullyoff/rules' as const;
+export * from './types.js';
+export * from './laws.js';
+export { createRulesState, stepRules, gateCommand, centrePassTeamForQuarter, type GateKind } from './rules.js';
+export { placementsFor, longCornerSpot, hitOutSpot, pcSpot, strokeSpot, centreSpot } from './placements.js';

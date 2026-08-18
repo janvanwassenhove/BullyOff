@@ -8,8 +8,9 @@
  * `tick`. Time in seconds is always derived as `tick * DT`, never stored.
  */
 import type { Scalar } from '@bullyoff/shared';
-import type { End } from '../pitch/geometry.js';
+import type { End } from '@bullyoff/shared';
 import type { ProfileId, SurfaceState } from '../profile.js';
+import type { CardColour, FoulKind, Restart, RestartKind } from '@bullyoff/rules';
 
 export type PlayerId = number;
 export type TeamId = 0 | 1; // 0 = home (attacks +x), 1 = away (attacks −x)
@@ -43,8 +44,28 @@ export type MatchEvent =
   | { t: 'SidelineCrossed'; tick: number; side: 1 | -1; x: Scalar; lastTouch: PlayerId | null }
   /** Ball came to rest (rolling speed reached zero). */
   | { t: 'BallStopped'; tick: number; x: Scalar; y: Scalar }
-  /** Player crossed a 23 m line with the ball in possession-ish proximity — informational for Phase 3. */
-  | { t: 'Line23Crossed'; tick: number; end: End; entering: boolean; lastTouch: PlayerId | null };
+  /** Ball crossed a 23 m line. */
+  | { t: 'Line23Crossed'; tick: number; end: End; entering: boolean; lastTouch: PlayerId | null }
+  // ── rule events (Phase 2) ──────────────────────────────────────────────────
+  | { t: 'QuarterStart'; tick: number; quarter: 1 | 2 | 3 | 4; centrePassTeam: TeamId }
+  | { t: 'QuarterEnd'; tick: number; quarter: 1 | 2 | 3 | 4; score: [number, number] }
+  | { t: 'FullTime'; tick: number; score: [number, number] }
+  | { t: 'Clock'; tick: number; running: boolean; reason: string; matchClockTicks: number }
+  | { t: 'Goal'; tick: number; team: TeamId; scorerId: PlayerId | null; end: End; fromPC: boolean; fromPS: boolean; score: [number, number] }
+  | { t: 'Foul'; tick: number; foul: FoulKind; againstPlayer: PlayerId | null; againstTeam: TeamId; x: Scalar; y: Scalar; awards: RestartKind; toTeam: TeamId }
+  | { t: 'Card'; tick: number; colour: CardColour; playerId: PlayerId; team: TeamId; suspensionTicks: number; reason: string }
+  | { t: 'Suspended'; tick: number; playerId: PlayerId; untilMatchClockTick: number }
+  | { t: 'Reinstated'; tick: number; playerId: PlayerId }
+  | { t: 'BallDead'; tick: number; x: Scalar; y: Scalar }
+  | { t: 'RestartAwarded'; tick: number; restart: Restart }
+  | { t: 'RestartTaken'; tick: number; kind: RestartKind; team: TeamId; playerId: PlayerId }
+  | { t: 'PenaltyCornerAwarded'; tick: number; team: TeamId; end: End }
+  | { t: 'PenaltyCornerTaken'; tick: number; team: TeamId; end: End }
+  | { t: 'PenaltyCornerEnded'; tick: number; team: TeamId; end: End; outcome: string }
+  | { t: 'PenaltyStrokeAwarded'; tick: number; team: TeamId; end: End }
+  | { t: 'PenaltyStrokeTaken'; tick: number; team: TeamId; end: End; scored: boolean }
+  | { t: 'Substitution'; tick: number; team: TeamId; outId: PlayerId; inId: PlayerId }
+  | { t: 'PlayersPlaced'; tick: number; count: number };
 
 export type MatchEventType = MatchEvent['t'];
 

@@ -15,7 +15,8 @@
   "dependencies": {
     "@bullyoff/engine": "workspace:*",
     "@bullyoff/shared": "workspace:*",
-    "@bullyoff/worldgen": "workspace:*"
+    "@bullyoff/worldgen": "workspace:*",
+    "@bullyoff/rules": "workspace:*"
   },
   "devDependencies": {
     "tsx": "^4.23.12"

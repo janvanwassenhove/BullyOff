@@ -14,7 +14,7 @@ import type { Scalar, Vec2, Vec3 } from '@bullyoff/shared';
 import {
   BOARD_HEIGHT, GOAL_DEPTH, GOAL_HALF_WIDTH, GOAL_HEIGHT, HALF_LENGTH, HALF_WIDTH,
   LINE_23_X, POST_RADIUS, lerp3, postPositions, segmentCrossX, sweptCircleCrossing, type End,
-} from '../pitch/geometry.js';
+} from '@bullyoff/shared';
 import type { CollisionSurface, MatchEvent, PlayerId } from '../events/events.js';
 
 export const MAX_RESOLUTIONS = 4;

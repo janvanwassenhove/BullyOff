@@ -13,7 +13,9 @@ export type Command =
   /** Aim the stick at an absolute angle this tick (otherwise it follows heading). */
   | { tick: number; kind: 'aim'; playerId: PlayerId; angle: Radians }
   /** Strike the ball if within reach: kind selects speed/lift from the profile; power 0..1 scales speed. */
-  | { tick: number; kind: 'strike'; playerId: PlayerId; strike: StrikeKind; angle: Radians; power: Scalar }
+  | { tick: number; kind: 'strike'; playerId: PlayerId; strike: StrikeKind; angle: Radians; power: Scalar; face?: 'flat' | 'round' }
+  /** Rolling substitution: `outId` leaves at the dugout, `inId` enters there. Blocked during a PC (rules). */
+  | { tick: number; kind: 'substitute'; team: 0 | 1; outId: PlayerId; inId: PlayerId }
   /** Trap/stop the ball if within reach. */
   | { tick: number; kind: 'trap'; playerId: PlayerId }
   /** Phase 1 sandbox helper: place the ball (tests, scenario setup). Not available to players in play. */

@@ -12,3 +12,4 @@ export * from './scalar.js';
 export * from './rng.js';
 export * from './hash.js';
 export * as dmath from './math/index.js';
+export * from './pitch.js';
