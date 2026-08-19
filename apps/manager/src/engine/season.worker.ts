@@ -3,7 +3,7 @@
  * day (or the rest of the season) is played through the engine, the World goes
  * back (ADR-008: state crosses the boundary as data; the UI never simulates).
  */
-import { advanceDay, engineRunner, newSeason, recordCoachedFixture, type World } from '@bullyoff/season';
+import { advanceDay, createWorld, engineRunner, newSeason, recordCoachedFixture, type World, type WorldOptions } from '@bullyoff/season';
 import { decodeReplay } from '@bullyoff/engine';
 import type { MatchLog } from '@bullyoff/engine';
 
@@ -11,6 +11,8 @@ export type ToSeason =
   | { type: 'day'; id: number; world: World; userClub: string | null }
   | { type: 'toEnd'; id: number; world: World; userClub: string | null }
   | { type: 'newSeason'; id: number; world: World }
+  /** Phase 8: generate a world (identities, squads, 20 seasons of history) off the UI thread. */
+  | { type: 'create'; id: number; seed: number; profile: 'mens' | 'womens'; opts: WorldOptions }
   /** Phase 7: record a match the coach played live in the engine worker (log from that worker). */
   | { type: 'record'; id: number; world: World; fixtureId: number; log: MatchLog };
 export type FromSeason =
@@ -22,6 +24,7 @@ declare const self: { postMessage(m: FromSeason): void; onmessage: ((ev: { data:
 self.onmessage = (ev): void => {
   const m = ev.data;
   try {
+    if (m.type === 'create') { const world = createWorld(m.seed, m.profile, m.opts); self.postMessage({ type: 'world', id: m.id, world, userLog: null, playedFixtureIds: [] }); return; }
     if (m.type === 'newSeason') { newSeason(m.world); self.postMessage({ type: 'world', id: m.id, world: m.world, userLog: null, playedFixtureIds: [] }); return; }
     if (m.type === 'record') { const f = recordCoachedFixture(m.world, m.fixtureId, m.log); self.postMessage({ type: 'world', id: m.id, world: m.world, userLog: m.log, playedFixtureIds: [f.id] }); return; }
     const w = m.world;

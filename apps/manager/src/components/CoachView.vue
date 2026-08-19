@@ -59,7 +59,7 @@ async function start(): Promise<void> {
     // first chunk so the view has frames to draw
     await pump(l, BUFFER);
     if (!canvas.value || destroyed) return;
-    const v = await createMatchView(canvas.value, l, { mode: mode.value, live: true, coachTeam: me, autoPauseOn: ['QuarterEnd'] });
+    const v = await createMatchView(canvas.value, l, { mode: mode.value, live: true, coachTeam: me, autoPauseOn: ['QuarterEnd'], homeColour: props.coaching.colours[0], awayColour: props.coaching.colours[1] });
     v.onFrame((t, h) => { playTick.value = t; hud.value = h; playing.value = v.playing; if (!v.playing && !briefing.value && h.phase === 'break') openBriefing(); });
     view.value = v;
     v.setSpeed(speed.value);

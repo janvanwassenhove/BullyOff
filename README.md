@@ -4,7 +4,7 @@ A field hockey game for the web: a deterministic, headless match simulation engi
 
 The point is **hockey-accurate simulation** — circle rule, penalty corners, rolling substitutions, cards, four quarters, wet vs dry turf — in a sport every existing game models as "football with different rules". It is not.
 
-> Status: **Phase 8 — world generation** is next. Phases 0–7 are built: deterministic engine, FIH rules, utility AI, calibration against Belgian League aggregates, a PixiJS replay viewer, a season/career shell and in-match coaching (`pnpm dev:manager`: generate a world, pick a club, coach today's match from the bench — tactics, PC designer, rotation bar, quarter briefings — or sim the day; play-offs, promotion/relegation, saves). See [`KICKOFF.md`](KICKOFF.md).
+> Status: **Phase 9 — ship** is next. Phases 0–8 are built: deterministic engine, FIH rules, utility AI, calibration against Belgian League aggregates, a PixiJS replay viewer, a season/career shell, in-match coaching and a fictional world generator with twenty seasons of history (`pnpm dev:manager`: generate a world — blocklist-clean clubs, nationality-weighted names, 20 years of champions and promotions — pick a club, coach today's match from the bench or sim the day; play-offs, promotion/relegation, saves). See [`KICKOFF.md`](KICKOFF.md).
 
 ## Documents
 
@@ -20,8 +20,8 @@ The point is **hockey-accurate simulation** — circle rule, penalty corners, ro
 packages/shared    types, seeded RNG, deterministic math, SI units — depends on nothing
 packages/rules     FIH ruleset as data + predicates
 packages/engine    headless deterministic sim: tick(state, inputs) → state, MatchEvent[]
-packages/season    season/career model: fixtures, play-offs, tables, match days, development, saves
-packages/worldgen  fictional clubs, players, leagues, 20 seasons of history (Phase 8)
+packages/season    season/career model: fixtures, play-offs, tables, match days, development, 20-season history, saves
+packages/worldgen  real-club blocklist, name pools, invented towns/club identities, kit palette
 packages/render    PixiJS view layer — reads event logs only
 apps/manager       Vue 3 + Pinia — the coach/manager product
 apps/simcli        Node CLI — batch simulation for calibration

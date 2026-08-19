@@ -140,6 +140,9 @@ importers:
       '@bullyoff/shared':
         specifier: workspace:*
         version: link:../shared
+      '@bullyoff/worldgen':
+        specifier: workspace:*
+        version: link:../worldgen
 
   packages/shared: {}
 

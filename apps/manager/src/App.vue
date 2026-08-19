@@ -62,7 +62,7 @@ const label = (e: { t: string; tick: number } & Record<string, unknown>): string
           Match viewer
         </button>
       </nav>
-      <span class="sub">Phase 7 — in-match coaching</span>
+      <span class="sub">Phase 8 — world generation</span>
     </header>
 
     <template v-if="season.coaching">
@@ -164,6 +164,7 @@ const label = (e: { t: string; tick: number } & Record<string, unknown>): string
         <MatchViewer
           v-if="match.log"
           :log="match.log"
+          :colours="match.colours"
         />
         <div
           v-else

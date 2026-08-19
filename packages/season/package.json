@@ -18,6 +18,7 @@
   "dependencies": {
     "@bullyoff/engine": "workspace:*",
     "@bullyoff/rules": "workspace:*",
-    "@bullyoff/shared": "workspace:*"
+    "@bullyoff/shared": "workspace:*",
+    "@bullyoff/worldgen": "workspace:*"
   }
 }

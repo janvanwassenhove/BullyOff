@@ -3,7 +3,7 @@ import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import type { MatchLog } from '@bullyoff/engine';
 import { createMatchView, type HudState, type MatchView, type ViewMode } from '@bullyoff/render';
 
-const props = defineProps<{ log: MatchLog }>();
+const props = defineProps<{ log: MatchLog; colours?: [number, number] | null }>();
 
 const canvas = ref<HTMLCanvasElement | null>(null);
 const view = ref<MatchView | null>(null);
@@ -18,7 +18,7 @@ const sound = ref(false);
 async function mount(): Promise<void> {
   if (!canvas.value) return;
   view.value?.destroy();
-  const v = await createMatchView(canvas.value, props.log, { mode: mode.value });
+  const v = await createMatchView(canvas.value, props.log, { mode: mode.value, ...(props.colours ? { homeColour: props.colours[0], awayColour: props.colours[1] } : {}) });
   v.onFrame((t, h) => { tick.value = t; hud.value = h; playing.value = v.playing; });
   lastTick.value = v.lastTick;
   view.value = v;

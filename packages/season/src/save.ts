@@ -5,7 +5,7 @@
  */
 import type { World } from './model.js';
 
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 
 export interface SaveFile {
   format: 'bullyoff-save';
@@ -25,6 +25,17 @@ type Migration = (doc: Record<string, unknown>) => Record<string, unknown>;
 export const MIGRATIONS: Record<number, Migration> = {
   // 0 → 1: pre-release saves had no `history`
   0: (d) => ({ ...d, version: 1, world: { history: [], ...(d['world'] as Record<string, unknown>) } }),
+  // 1 → 2 (Phase 8): club identity fields and world.flavour
+  1: (d) => {
+    const world: Record<string, unknown> = { flavour: 'mixed', ...(d['world'] as Record<string, unknown>) };
+    const clubs = world['clubs'] as Record<string, Record<string, unknown>>;
+    for (const c of Object.values(clubs)) {
+      c['town'] ??= (typeof c['name'] === 'string' ? c['name'].split(' ')[0] : undefined) ?? 'Town';
+      c['lang'] ??= 'nl'; c['nickname'] ??= null; c['badge'] ??= { shape: 'shield', motif: 'stick', split: 'plain' }; c['founded'] ??= 1950;
+      c['honours'] ??= { titles: [], promotions: [] };
+    }
+    return { ...d, version: 2, world };
+  },
 };
 
 export function deserialize(json: string | SaveFile): World {

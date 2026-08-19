@@ -10,7 +10,7 @@ import { generateFinal, generateFixtures, generatePlaydown, generatePlayoffs } f
 import { fixtureSetup, playFixture, recordFixture, resolveShootOut, type MatchRunner } from './matchday.js';
 import { matchStats, type MatchLog } from '@bullyoff/engine';
 import { standings, tieAggregate } from './table.js';
-import { developSeason, recomputeClubLevels } from './develop.js';
+import { normaliseLevels, developSeason, recomputeClubLevels } from './develop.js';
 import { seasonFinances } from './finance.js';
 
 export interface AdvanceOptions {
@@ -158,6 +158,8 @@ function finishSeason(w: World): void {
     promoted, relegated, topScorer: scorers ? { person: scorers.id, goals: scorers.goals } : null,
   };
   w.history.push(summary);
+  w.clubs[champion]?.honours.titles.push(w.year);
+  for (const id of promoted) w.clubs[id]?.honours.promotions.push(w.year);
 }
 
 /** Roll the world into the next season: tiers, finances, development, new fixtures. */
@@ -194,6 +196,8 @@ export function newSeason(w: World): void {
     }
   }
   developSeason(w, (club) => (club ? (w.clubs[club]?.facilities ?? 3) : 3));
+  recomputeClubLevels(w);
+  normaliseLevels(w, rng);
   recomputeClubLevels(w);
   for (const c of Object.values(w.clubs)) c.reputation = clamp(c.reputation * 0.9 + (c.tier === 1 ? 6 : 2) + (last.champion === c.id ? 12 : 0) + (last.relegated.includes(c.id) ? -10 : 0), 5, 99);
   w.year++;

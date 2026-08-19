@@ -17,11 +17,13 @@ interface MatchStoreState {
   profile: 'mens' | 'womens';
   surface: 'dry' | 'watered' | 'wet';
   scenarioId: string;
+  /** Kit colours [home, away] for the viewer (null = defaults). */
+  colours: [number, number] | null;
 }
 
 export const useMatchStore = defineStore('match', {
   state: (): MatchStoreState => ({
-    log: null, source: '', busy: false, error: '', seed: 42, profile: 'mens', surface: 'watered', scenarioId: 'pc-dragFlick',
+    log: null, source: '', busy: false, error: '', seed: 42, profile: 'mens', surface: 'watered', scenarioId: 'pc-dragFlick', colours: null,
   }),
   getters: {
     events: (s): MatchEvent[] => s.log?.events ?? [],

@@ -45,11 +45,21 @@ export interface Finances {
   coachingCosts: number;
 }
 
+export interface ClubBadge { shape: string; motif: string; split: string }
+
 export interface Club {
   id: ClubId;
   name: string;
   short: string;
   colours: [number, number];
+  /** Phase 8 identity (worldgen): invented town, language community, optional nickname, badge, founding year. */
+  town: string;
+  lang: 'nl' | 'fr';
+  nickname: string | null;
+  badge: ClubBadge;
+  founded: number;
+  /** Titles and promotions from generated history onwards (season years). */
+  honours: { titles: number[]; promotions: number[] };
   tier: Tier;
   /** Squad quality anchor 1–20; players are generated around it. */
   level: number;
@@ -113,6 +123,8 @@ export interface Season {
 export interface World {
   seed: number;
   profile: ProfileId;
+  /** Region flavour used for names (worldgen). */
+  flavour: 'mixed' | 'vlaanderen' | 'wallonie' | 'bruxelles';
   year: number;
   clubs: Record<ClubId, Club>;
   persons: Record<PersonId, Person>;

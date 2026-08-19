@@ -2,27 +2,27 @@
 
 > Read this first. Then `BRIEF.md`, then `docs/adr/`, then the latest `docs/handoff/`.
 
-## Current phase: **8 — World generation** (Phase 7 deterministic-instructions gate met by test; touchline review owed; Phase 3/5/6 human reviews still owed)
+## Current phase: **9 — Ship** (Phase 8 testable gate met; name-pool review owed; Phase 3/5/6/7 human reviews still owed)
 
-Phase 7 (`docs/handoff/phase-7.md`): stamina in the controller view + bench recovery; stamina-driven rotation; `CoachInstruction` (tactics patch / substitute / swapSlots) applied by the AI at a tick — the only way a coach touches a match; `createAi` handle; PC battery preferences; step-wise coached worker mode (`initAi/advance/instruct/end`) proven bit-identical to `simulateMatch`; `quarterStats`; renderer `coach` mode + live append; manager **CoachView** (tactics, PC designer, rotation bar, quarter briefings, three view modes) wired into the season (coach today's fixture → recorded like any other). A rules bug that stalled a match forever (PC still active after a no-goal crossing) was found and fixed; engine **0.5.0**, sandbox golden `51e34b89dcb71850`.
+Phase 8 (`docs/handoff/phase-8.md`): `packages/worldgen` — real-club blocklist incl. towns (token + substring match, tested on every entry and on 2 000 generated identities), gendered nationality-weighted name pools with a Belgian nl/fr region flavour, invented towns from place-name morphology, club-name patterns, kit palette, badge seeds, founding years; `packages/season` builds worlds from it and **generates 20 seasons of history through the real season loop** (quick resolver, labelled) in ≈ 0.6 s — which exposed and fixed the long-horizon bugs in the career model (squad bloat, level inflation, rich-club drift, keeperless clubs): squad regulator, growth capped at potential, relative rating scale with tier anchors, rebalanced finances. Save version 2 (+ migration). Manager: world creation in the worker with flavour/history options; club colours in the coach view and viewer.
 
-Phase 6 (`docs/handoff/phase-6.md`): `packages/season` — play-offs-first fixtures, tables, real-engine match days, shoot-outs, development, finances, promotion/relegation, versioned saves; manager career shell. Phase 5 (`docs/handoff/phase-5.md`): replay format, `packages/render` MatchView, three-browser test. Phases 0–4 built (`docs/handoff/phase-{0..4}.md`); Jan waived the Phase 3 coach gate on 2026-08-19 — **the verdict is still owed**.
+Phase 7 (`docs/handoff/phase-7.md`): in-match coaching (CoachInstruction, stamina rotation, PC designer, coached worker mode, quarter briefings, coach view). Phase 6: season/career shell. Phase 5: renderer + replay. Phases 0–4: engine, rules, AI, calibration. Jan waived the Phase 3 coach gate on 2026-08-19 — **the verdict is still owed**.
 
-### Phase 8 deliverables (BRIEF §8)
+### Phase 9 deliverables (BRIEF §8)
 
-World generation: fictional clubs (names, colours, badges, towns, histories — **no real club or player, C3**; a real-club/real-player blocklist enforced by test), generated squads with plausible attribute and age distributions per tier, leagues/tiers wired to the season model, and **20 seasons of generated history** (tables, champions, promotions, records) so a new career starts in a world with a past. Name pools for NL/FR-speaking Belgium (Phase 9 i18n), GDPR-clean (BRIEF §7).
+Ship v1.0 of the manager: PWA (installable, offline after first load, the engine and worlds entirely local), i18n **NL / EN / FR** for the UI (name pools untouched), privacy statement (ADR-006), onboarding that sells the fictional world in ten minutes, performance budget on a mid-range phone (renderer fps, world generation, match day), save/export polish, accessibility basics, a deploy pipeline (static hosting) and a release checklist. Arcade stays v1.x.
 
-### Phase 8 gate
+### Phase 9 gate
 
-A generated world has no string that matches the blocklist; squads and tables look like Belgian club hockey to a coach (tier spread, ages, GK/outfield ratios); the 20-season history is internally consistent (every champion was in tier 1 that year, promotions match relegations); generation is deterministic per seed and fast enough for a phone (< 2 s).
+A fresh phone installs the PWA, generates a world offline, plays a coached match at 60 fps and a season without a stall, saves survive a reload and an app update (migrations), the UI reads in all three languages, and the privacy statement is true.
 
 ### Where to start
 
-1. Replace the placeholder generator in `packages/season/src/world.ts` with `packages/worldgen` (the stub exists): name pools (`towns`, `suffixes`, first/last names by language), colour palettes, badge seeds; keep `createWorld(seed, profile, opts)` as the API the app and tests use.
-2. Blocklist: `packages/worldgen/src/blocklist.ts` — Belgian clubs (all divisions), Dutch/European well-known clubs, national-team players of the last 20 years; test that no generated club/person name matches (normalised, diacritics-folded, token-wise).
-3. History: generate 20 seasons backwards with the labelled quick resolver (`quickRunner`) and the real promotion/relegation rules, then age the squads forward so the present squads are consistent with the past (careers, retirements).
-4. Club colours into the coach view and MatchView (`homeColour/awayColour`).
-5. Wire `apps/manager` career setup to worldgen options (region flavour, seed) and show club history in the club picker.
+1. PWA: `vite-plugin-pwa` in `apps/manager` (precache app shell + engine worker + season worker chunks; runtime cache nothing external — there is nothing external), manifest, icons from the wordmark placeholder.
+2. i18n: `vue-i18n` with `nl.json / en.json / fr.json`; extract the strings in `SeasonView/CoachView/MatchViewer/App`; Belgian French and Flemish Dutch as the voice, not Parisian/Hollands.
+3. Performance pass on a phone: renderer resolution cap (≤ 1.5 on mobile), `frameEvery` for the user's fixture (1 for coaching, 4 for "watch later"), sharded match days, progress messages from the season worker.
+4. Privacy statement page + first-run onboarding (three screens: your club, your squad, your first match day).
+5. Deploy: static build to GitHub Pages (or Cloudflare Pages) from CI on tags; release checklist in `docs/release.md`.
 
 ### The still-owed Phase 3 verdict
 
@@ -50,6 +50,7 @@ Owed:
 0b. **Phase 5 device check + coach review** — run `pnpm dev:manager` on a phone (Vite `--host`), watch a match at 1×–8×; run the scenario deck with the panel.
 0c. **Phase 6 "feels earned"** — play a career for three or four seasons (`pnpm dev:manager` → Season); judge play-off drama and development curves.
 0d. **Phase 7 touchline review** — coach a match from the bench (Season → Coach today's match): PC designer, rotation bar, tactics knobs — what is missing for a Belgian club coach?
+0e. **Phase 8 name-pool review** — a Belgian eye on `packages/worldgen/src/{clubs,names}.ts`: towns, club patterns, nicknames that read as real should go on the blocklist or out of the pool.
 
 Carried:
 
@@ -84,6 +85,12 @@ New from Phase 5:
 
 21. **Kit colours and pitch palette** — placeholders now (red/blue, water-blue turf). Club colours come from worldgen (Phase 8); a real palette pass with the wordmark face belongs to the art direction (ADR-012).
 22. **Auto-pause defaults** for the coach — Phase 7 chose quarter breaks only (briefings); goals/PCs are moments. Change?
+
+New from Phase 8:
+
+28. **Relative rating scale** — tier anchors (12.5 / 10) keep twenty generated seasons on the calibrated scale. Acceptable modelling stance for the manual ("a 13 is a 13 against today's top flight")?
+29. **History depth and records** — 20 seasons of summaries are generated; keeping per-season tables would enable a records view at ≈ +30 KB per save. Wanted for v1.0?
+30. **Region flavour** — mixed / Vlaanderen / Wallonie / Bruxelles shifts names only. Should it also shift club-name patterns (e.g. fewer "Royal" in Vlaanderen) or surfaces/finances?
 
 New from Phase 7:
 

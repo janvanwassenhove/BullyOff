@@ -8,6 +8,8 @@ const season = useSeasonStore();
 const match = useMatchStore();
 const seed = ref(2026);
 const profile = ref<'mens' | 'womens'>('mens');
+const flavour = ref<'mixed' | 'vlaanderen' | 'wallonie' | 'bruxelles'>('mixed');
+const historyYears = ref(20);
 const tab = ref<'table' | 'squad' | 'fixtures' | 'history'>('table');
 
 onMounted(() => { void season.refreshSlots(); });
@@ -19,7 +21,7 @@ const myFixtures = computed(() => {
   return w.season.fixtures.filter((f) => f.home === u || f.away === u).sort((a, b) => a.day - b.day);
 });
 function watchLast(): void {
-  if (season.lastUserLog) { match.log = season.lastUserLog; match.source = 'my last match'; emit('watch'); }
+  if (season.lastUserLog) { match.log = season.lastUserLog; match.colours = season.lastUserColours; match.source = 'my last match'; emit('watch'); }
 }
 function res(f: { result?: { home: number; away: number; shootOut?: [number, number] } }): string {
   if (!f.result) return '—';
@@ -43,15 +45,18 @@ function download(): void {
     >
       <h2>New career</h2>
       <label>Competition <select v-model="profile"><option value="mens">men's</option><option value="womens">women's</option></select></label>
+      <label>Region flavour <select v-model="flavour"><option value="mixed">mixed (nl/fr)</option><option value="vlaanderen">Vlaanderen</option><option value="wallonie">Wallonie</option><option value="bruxelles">Bruxelles/Brussel</option></select></label>
+      <label>History <select v-model.number="historyYears"><option :value="0">none (fresh world)</option><option :value="10">10 seasons</option><option :value="20">20 seasons</option></select></label>
       <label>World seed <input
         v-model.number="seed"
         type="number"
       ></label>
       <button
         class="btn primary"
-        @click="season.newWorld(seed, profile)"
+        :disabled="season.busy"
+        @click="season.newWorld(seed, profile, flavour, historyYears)"
       >
-        Generate world
+        {{ season.busy ? season.message : 'Generate world' }}
       </button>
       <div
         v-if="season.slots.length"
@@ -92,7 +97,8 @@ function download(): void {
               :style="{ background: '#' + c.colours[0].toString(16).padStart(6, '0') }"
             />
             <span class="name">{{ c.name }}</span>
-            <span class="meta">tier {{ c.tier }} · level {{ c.level.toFixed(1) }} · facilities {{ c.facilities }}/5</span>
+            <span class="meta">{{ c.town }} · est. {{ c.founded }}{{ c.nickname ? ' · "' + c.nickname + '"' : '' }}</span>
+            <span class="meta">tier {{ c.tier }} · level {{ c.level.toFixed(1) }} · facilities {{ c.facilities }}/5{{ c.honours.titles.length ? ' · ' + c.honours.titles.length + ' title' + (c.honours.titles.length > 1 ? 's' : '') + ' (last ' + c.honours.titles[c.honours.titles.length - 1] + ')' : '' }}</span>
           </button>
         </div>
       </section>
@@ -266,8 +272,8 @@ function download(): void {
 .btn.active { border-color: var(--color-turf-500); color: var(--color-turf-100); }
 .btn:disabled { opacity: 0.5; cursor: default; }
 .clubs { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--space-2); }
-.club { display: grid; grid-template-columns: 14px 1fr; gap: 4px 8px; text-align: left; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 8px; cursor: pointer; color: var(--color-fg); font: inherit; }
-.swatch { width: 14px; height: 14px; border-radius: 3px; grid-row: 1 / span 2; }
+.club { display: grid; grid-template-columns: 14px 1fr; gap: 2px 8px; text-align: left; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 8px; cursor: pointer; color: var(--color-fg); font: inherit; }
+.swatch { width: 14px; height: 14px; border-radius: 3px; grid-row: 1 / span 3; }
 .name { font-weight: 700; }
 .meta { font-size: var(--text-xs); color: var(--color-fg-muted); }
 .bar { display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; }

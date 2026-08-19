@@ -181,3 +181,51 @@ describe('coached fixture (Phase 7)', () => {
     expect(w.season.day).toBe(1);
   }, 120_000);
 });
+
+describe('generated history (Phase 8)', () => {
+  it('a world with 20 seasons of past is consistent, blocklist-clean, plausible and fast', async () => {
+    const { isBlocked, FIRST_M, FIRST_W } = await import('@bullyoff/worldgen');
+    const t0 = performance.now();
+    const w = createWorld(2026, 'womens', { historyYears: 20, flavour: 'vlaanderen' });
+    const ms = performance.now() - t0;
+    expect(ms).toBeLessThan(4000); // ≈ 0.6 s on a laptop; phone budget 2 s is a Phase 9 measurement
+    expect(w.year).toBe(2026);
+    expect(w.history.length).toBe(20);
+    expect(w.history[0]?.year).toBe(2006);
+    expect(w.history[19]?.year).toBe(2025);
+    // internal consistency: promotions = relegations each year; tiers stay 12/12; honours match history
+    for (const h of w.history) { expect(h.promoted.length).toBe(h.relegated.length); expect(h.promoted.length).toBeGreaterThanOrEqual(1); }
+    expect(Object.values(w.clubs).filter((c) => c.tier === 1).length).toBe(TIER_SIZE);
+    expect(Object.values(w.clubs).reduce((s, c) => s + c.honours.titles.length, 0)).toBe(20);
+    for (const c of Object.values(w.clubs)) for (const y of c.honours.titles) expect(w.history.find((h) => h.year === y)?.champion).toBe(c.id);
+    // clean identities
+    for (const c of Object.values(w.clubs)) { expect(isBlocked(c.name), c.name).toBe(false); expect(c.town.length).toBeGreaterThan(3); expect(c.founded).toBeLessThan(2007); expect(c.founded).toBeGreaterThan(1900); }
+    expect(new Set(Object.values(w.clubs).map((c) => c.name)).size).toBe(24);
+    // plausible squads: 18–22 first-squad players, ≥ 1 keeper, ages 15–40, women's first names only
+    const men = new Set([...FIRST_M.nl, ...FIRST_M.fr]), women = new Set([...FIRST_W.nl, ...FIRST_W.fr, ...FIRST_W.en, ...FIRST_W.de, ...FIRST_W.es, ...FIRST_W.it, ...FIRST_W.in]);
+    for (const c of Object.values(w.clubs)) {
+      const sq = clubPlayers(w, c.id);
+      expect(sq.length).toBeGreaterThanOrEqual(18); expect(sq.length).toBeLessThanOrEqual(22);
+      expect(sq.some((p) => p.role === 'GK')).toBe(true);
+      for (const p of sq) { const a = ageOf(p, w.year); expect(a).toBeGreaterThanOrEqual(15); expect(a).toBeLessThanOrEqual(40); expect(women.has(p.first) || !men.has(p.first)).toBe(true); }
+    }
+    // tier levels sit on the calibrated scale
+    const lv = (t: 1 | 2): number => { const cs = Object.values(w.clubs).filter((c) => c.tier === t); return cs.reduce((s, c) => s + c.level, 0) / cs.length; };
+    expect(lv(1)).toBeGreaterThan(11.5); expect(lv(1)).toBeLessThan(14.5); expect(lv(2)).toBeGreaterThan(8.5); expect(lv(2)).toBeLessThan(11.5);
+    // the present season is fresh and the world is deterministic
+    expect(w.season.day).toBe(0); expect(w.season.fixtures.every((f) => !f.played)).toBe(true);
+    const w2 = createWorld(2026, 'womens', { historyYears: 20, flavour: 'vlaanderen' });
+    expect(JSON.stringify(w2.history)).toBe(JSON.stringify(w.history));
+    expect(w2.clubs['c1']?.name).toBe(w.clubs['c1']?.name);
+  }, 60_000);
+  it('save migration 1 → 2 adds identity fields to old clubs', () => {
+    const w = createWorld(4, 'mens', { tierSize: 4 });
+    const legacyWorld = JSON.parse(JSON.stringify(w)) as Record<string, unknown>;
+    delete legacyWorld['flavour'];
+    for (const c of Object.values(legacyWorld['clubs'] as Record<string, Record<string, unknown>>)) { delete c['town']; delete c['badge']; delete c['honours']; delete c['founded']; delete c['lang']; delete c['nickname']; }
+    const back = deserialize(JSON.stringify({ format: 'bullyoff-save', version: 1, engineVersion: 'x', profile: 'mens', createdAt: 'now', world: legacyWorld }));
+    expect(back.flavour).toBe('mixed');
+    expect(back.clubs['c1']?.honours).toEqual({ titles: [], promotions: [] });
+    expect(typeof back.clubs['c1']?.town).toBe('string');
+  });
+});
