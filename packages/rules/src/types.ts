@@ -122,6 +122,8 @@ export type Ruling =
   | { kind: 'penaltyCornerAwarded'; team: TeamId; end: End }
   | { kind: 'penaltyCornerTaken'; team: TeamId; end: End }
   | { kind: 'penaltyCornerEnded'; team: TeamId; end: End; outcome: 'goal' | 'cleared' | 'foul' | 'out' | 'stroke' }
+  /** A restart not taken in time was given to the other team (FIH 12.1 delaying — engine safeguard). */
+  | { kind: 'restartReversed'; from: TeamId; to: TeamId; restart: RestartKind }
   | { kind: 'penaltyStrokeAwarded'; team: TeamId; end: End }
   | { kind: 'penaltyStrokeTaken'; team: TeamId; end: End; scored: boolean };
 

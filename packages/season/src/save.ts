@@ -5,7 +5,7 @@
  */
 import type { World } from './model.js';
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 
 export interface SaveFile {
   format: 'bullyoff-save';
@@ -35,6 +35,21 @@ export const MIGRATIONS: Record<number, Migration> = {
       c['honours'] ??= { titles: [], promotions: [] };
     }
     return { ...d, version: 2, world };
+  },
+  // 2 → 3 (Phase 9.1): named tactics (formation / press / mentality) on every club
+  2: (d) => {
+    const world = d['world'] as Record<string, unknown>;
+    const clubs = world['clubs'] as Record<string, Record<string, unknown>>;
+    for (const c of Object.values(clubs)) {
+      const tac = (c['tactics'] ?? {}) as Record<string, unknown>;
+      const ph = typeof tac['pressHeight'] === 'number' ? tac['pressHeight'] : 0.55;
+      const dl = typeof tac['defensiveLine'] === 'number' ? tac['defensiveLine'] : 0.45;
+      tac['formation'] ??= '4-3-3';
+      tac['press'] ??= ph > 0.75 ? 'full' : ph < 0.35 ? 'zone' : 'half';
+      tac['mentality'] ??= dl > 0.55 ? 'attacking' : dl < 0.35 ? 'defensive' : 'balanced';
+      c['tactics'] = tac;
+    }
+    return { ...d, version: 3, world };
   },
 };
 

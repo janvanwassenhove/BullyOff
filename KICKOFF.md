@@ -4,6 +4,8 @@
 
 ## Current phase: **v1.0 candidate built — ship when the device pass is done** (all nine phases built; human/device reviews owed)
 
+Phase 9.1 (`docs/handoff/phase-9.1.md`): realism + tactics pass after Jan's first play-through — named systems/press/mentality, AI no longer gives the ball away in its own D, defenders in the D, win-the-corner, point-blank feet, restart-timeout safeguard, HUD/coach bar show which colour is yours. Engine **0.6.0**, golden `e872b9301b4cfd6e`, save v3. Calibration: goals in band; PCs/entries still low (next tuning, see calibration.md).
+
 Phase 9 (`docs/handoff/phase-9.md`): PWA (precached app shell + engine/season workers, prompt-style updates, install button, generated icons), i18n **NL / EN / FR** for every UI string (names and rules stay data), About & privacy page (ADR-006 statement), first-run onboarding, phone render cap, season-end progress, GitHub Pages deploy workflow on push to `main`, `docs/release.md` checklist. `pnpm check` 151 tests green; `pnpm test:browsers` green.
 
 Earlier phases: 8 worldgen + 20-season history (`phase-8.md`), 7 in-match coaching (`phase-7.md`), 6 season/career shell (`phase-6.md`), 5 renderer/replay (`phase-5.md`), 0–4 engine/rules/AI/calibration (`phase-{0..4}.md`). Engine **0.5.0**, sandbox golden `51e34b89dcb71850`, save format **v2**.

@@ -24,6 +24,9 @@ export type ViewMode = 'director' | 'tactical' | 'coach';
 export interface MatchViewOptions {
   homeColour?: number;
   awayColour?: number;
+  /** Short names shown in the HUD next to colour chips ("ESP 1 – 0 GRO"). */
+  homeName?: string;
+  awayName?: string;
   mode?: ViewMode;
   /** Pause automatically on these event types (auto-pause triggers). */
   autoPauseOn?: MatchEvent['t'][];
@@ -125,11 +128,13 @@ export async function createMatchView(canvas: HTMLCanvasElement, log: MatchLog, 
   const hudStyle = new TextStyle({ fontFamily: 'system-ui, sans-serif', fontSize: 18, fill: 0xf0f0f0, fontWeight: '700' });
   const subStyle = new TextStyle({ fontFamily: 'system-ui, sans-serif', fontSize: 13, fill: 0xb0b8c0 });
   const hudBg = new Graphics();
+  const hudChips = new Graphics();
+  const homeName = opts.homeName ?? 'HOME', awayName = opts.awayName ?? 'AWAY';
   const hudText = new Text({ text: '', style: hudStyle });
   const hudSub = new Text({ text: '', style: subStyle });
   const banner = new Text({ text: '', style: new TextStyle({ fontFamily: 'system-ui, sans-serif', fontSize: 44, fill: 0xffffff, fontWeight: '900', letterSpacing: 6, dropShadow: { color: 0x000000, blur: 8, distance: 0, alpha: 0.8 } }) });
   banner.anchor.set(0.5); banner.alpha = 0;
-  app.stage.addChild(hudBg, hudText, hudSub, banner);
+  app.stage.addChild(hudBg, hudChips, hudText, hudSub, banner);
 
   // ── playback state ────────────────────────────────────────────────────────
   let tick = 0, speed = 1, playing = false;
@@ -201,6 +206,12 @@ export async function createMatchView(canvas: HTMLCanvasElement, log: MatchLog, 
     }
   }
 
+  const measureText = new Text({ text: '', style: hudStyle });
+  function measureAwayChip(): number {
+    // x offset (from the text start) of the end of "... {awayName}" — measured with the same style
+    measureText.text = `    ${homeName} ${hud.score[0]}  –  ${hud.score[1]} ${awayName}`;
+    return measureText.width + 6;
+  }
   function draw(s: Sample, dtWall: number): void {
     // camera
     const w = app.screen.width, h = app.screen.height;
@@ -248,10 +259,13 @@ export async function createMatchView(canvas: HTMLCanvasElement, log: MatchLog, 
 
     // HUD
     const mm = Math.floor(hud.clockSeconds / 60), ss = Math.floor(hud.clockSeconds % 60);
-    hudText.text = `${hud.score[0]}  –  ${hud.score[1]}    ${hud.phase}  ${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
+    hudText.text = `    ${homeName} ${hud.score[0]}  –  ${hud.score[1]} ${awayName}    ${hud.phase}  ${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
     hudSub.text = `${speed}×${wall < slowmoUntil ? '  slow-mo' : ''}${playing ? '' : '  paused'}   ${hud.lastEvent}   ${surface} turf`;
     hudBg.clear().roundRect(8, 8, Math.max(hudText.width, hudSub.width) + 24, 52, 8).fill({ color: 0x000000, alpha: 0.55 });
     hudText.position.set(20, 12); hudSub.position.set(20, 36);
+    // colour chips: home before its name, away after its name — the kit colours on the pitch
+    hudChips.clear().roundRect(20, 17, 14, 14, 3).fill(homeColour).stroke({ width: 1, color: 0xffffff, alpha: 0.7 });
+    hudChips.roundRect(20 + measureAwayChip(), 17, 14, 14, 3).fill(awayColour).stroke({ width: 1, color: 0xffffff, alpha: 0.7 });
     banner.position.set(w / 2, h * 0.28);
     banner.alpha = wall < bannerUntil ? Math.min(1, (bannerUntil - wall) / 0.4) : 0;
   }

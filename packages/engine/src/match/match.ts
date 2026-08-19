@@ -412,6 +412,7 @@ function executeRulings(s: MatchState, rulings: readonly Ruling[], events: Match
       case 'penaltyCornerAwarded': events.push({ t: 'PenaltyCornerAwarded', tick: t, team: r.team, end: r.end }); break;
       case 'penaltyCornerTaken': events.push({ t: 'PenaltyCornerTaken', tick: t, team: r.team, end: r.end }); break;
       case 'penaltyCornerEnded': events.push({ t: 'PenaltyCornerEnded', tick: t, team: r.team, end: r.end, outcome: r.outcome }); break;
+      case 'restartReversed': events.push({ t: 'RestartReversed', tick: t, from: r.from, to: r.to, restart: r.restart }); break;
       case 'penaltyStrokeAwarded': events.push({ t: 'PenaltyStrokeAwarded', tick: t, team: r.team, end: r.end }); break;
       case 'penaltyStrokeTaken': events.push({ t: 'PenaltyStrokeTaken', tick: t, team: r.team, end: r.end, scored: r.scored }); break;
       case 'substitution': events.push({ t: 'Substitution', tick: t, team: r.team, outId: r.outId, inId: r.inId }); break;

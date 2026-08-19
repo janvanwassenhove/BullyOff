@@ -60,6 +60,8 @@ export type MatchEvent =
   | { t: 'Reinstated'; tick: number; playerId: PlayerId }
   | { t: 'BallDead'; tick: number; x: Scalar; y: Scalar }
   | { t: 'RestartAwarded'; tick: number; restart: Restart }
+  /** A restart nobody took in time was given to the other team (FIH 12.1 delaying; engine safeguard). */
+  | { t: 'RestartReversed'; tick: number; from: TeamId; to: TeamId; restart: Restart['kind'] }
   | { t: 'RestartTaken'; tick: number; kind: RestartKind; team: TeamId; playerId: PlayerId }
   | { t: 'PenaltyCornerAwarded'; tick: number; team: TeamId; end: End }
   | { t: 'PenaltyCornerTaken'; tick: number; team: TeamId; end: End }

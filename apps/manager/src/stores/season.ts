@@ -17,6 +17,9 @@ export interface Coaching {
   tactics: [TeamTactics, TeamTactics];
   coachTeam: 0 | 1;
   colours: [number, number];
+  /** Club short codes [home, away] and names. */
+  shorts: [string, string];
+  clubNames: [string, string];
   /** local engine player id → display name / role */
   names: Record<number, { name: string; role: string }>;
   title: string;
@@ -114,7 +117,9 @@ export const useSeasonStore = defineStore('season', {
       for (const [local, pid] of idMap) { const p = w.persons[pid]; if (p) names[local] = { name: `${p.first} ${p.last}`, role: p.role }; }
       const coachTeam: 0 | 1 = f.home === w.userClub ? 0 : 1;
       const colours: [number, number] = [w.clubs[f.home]?.colours[0] ?? 0xe63946, w.clubs[f.away]?.colours[0] ?? 0x2a9df4];
-      this.coaching = markRaw({ fixtureId: f.id, setup, seed: f.seed, tactics, coachTeam, colours, names, title: `${this.clubName(f.home)} v ${this.clubName(f.away)} · day ${f.day} · ${f.phase}` });
+      const shorts: [string, string] = [w.clubs[f.home]?.short ?? 'HOME', w.clubs[f.away]?.short ?? 'AWAY'];
+      const clubNames: [string, string] = [this.clubName(f.home), this.clubName(f.away)];
+      this.coaching = markRaw({ fixtureId: f.id, setup, seed: f.seed, tactics, coachTeam, colours, shorts, clubNames, names, title: `${this.clubName(f.home)} v ${this.clubName(f.away)} · day ${f.day} · ${f.phase}` });
       this.error = '';
     },
     async finishCoaching(log: MatchLog): Promise<void> {

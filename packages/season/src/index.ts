@@ -8,7 +8,7 @@ export * from './model.js';
 export { createWorld, generateHistory, makePerson, ageOf, clubPlayers, type WorldOptions } from './world.js';
 export { generateFixtures, roundRobin, WINTER_BREAK } from './fixtures.js';
 export { standings, tieAggregate } from './table.js';
-export { engineRunner, quickRunner, playFixture, recordFixture, fixtureSetup, selectSquad, resolveShootOut, applyInjuries, type MatchRunner, type MatchOutcome } from './matchday.js';
+export { engineRunner, engineRunnerWith, quickRunner, playFixture, recordFixture, fixtureSetup, selectSquad, resolveShootOut, applyInjuries, type MatchRunner, type MatchOutcome } from './matchday.js';
 export { advanceDay, newSeason, playSeason, recordCoachedFixture, fixturesToday, inWinterBreak, type AdvanceOptions } from './season.js';
 export { developSeason, recomputeClubLevels, regulateSquads, normaliseLevels, overall, SQUAD_MIN, SQUAD_MAX, TIER1_ANCHOR, TIER2_ANCHOR } from './develop.js';
 export { seasonFinances } from './finance.js';

@@ -9,7 +9,8 @@ import { describe, expect, it } from 'vitest';
 import { ENGINE_VERSION } from '@bullyoff/engine';
 import { createWorld, ageOf, clubPlayers } from './world.js';
 import { advanceDay, newSeason, playSeason, fixturesToday, recordCoachedFixture } from './season.js';
-import { engineRunner, quickRunner, fixtureSetup } from './matchday.js';
+import { engineRunner, engineRunnerWith, quickRunner, fixtureSetup } from './matchday.js';
+import { FIH_OUTDOOR_SHORT_TEST } from '@bullyoff/rules';
 import { standings } from './table.js';
 import { roundRobin } from './fixtures.js';
 import { deserialize, serialize } from './save.js';
@@ -106,26 +107,27 @@ describe('ten seasons with the quick resolver (structure)', () => {
 
 describe('the real engine on a match day and a short season', () => {
   it('plays a whole tier-1 match day through the engine with squads from the world; results, stats, goals and injuries land on the world', () => {
-    const w = createWorld(3, 'mens');
+    const w = createWorld(3, 'mens', { tierSize: 6 }); // 6 fixtures ≈ 15–25 s of engine time; keeps the vitest worker heartbeat alive
     const today = fixturesToday(w).length;
-    expect(today).toBe(12); // 6 per tier
+    expect(today).toBe(6); // 3 per tier
     const played = advanceDay(w, { runner: engineRunner, keepReplayFor: null });
-    expect(played.length).toBe(12);
+    expect(played.length).toBe(6);
     for (const f of played) { expect(f.played).toBe(true); expect(f.result).toBeDefined(); expect(f.stats?.goals[0]).toBe(f.result?.home); }
     const goals = played.reduce((s, f) => s + (f.result?.home ?? 0) + (f.result?.away ?? 0), 0);
     const scorers = Object.values(w.persons).filter((p) => p.goals > 0);
     expect(scorers.reduce((s, p) => s + p.goals, 0)).toBeGreaterThan(0);
     expect(scorers.reduce((s, p) => s + p.goals, 0)).toBeLessThanOrEqual(goals);
     const t = standings(w, 1);
-    expect(t.length).toBe(TIER_SIZE);
-    expect(t.reduce((s, r) => s + r.p, 0)).toBe(12);
+    expect(t.length).toBe(6);
+    expect(t.reduce((s, r) => s + r.p, 0)).toBe(6);
   }, 120_000);
 
   it('a full season with 4-club tiers through the real engine finishes with a champion and a kept replay for the user club', async () => {
     const w = createWorld(11, 'womens', { tierSize: 4 });
     w.userClub = 'c1';
     // yield to the event loop between match days so the vitest worker RPC keeps its heartbeat during ~50 s of sync sim
-    while (!w.season.finished) { advanceDay(w, { runner: engineRunner, keepReplayFor: 'c1' }); await new Promise((r) => setImmediate(r)); }
+    const short = engineRunnerWith(FIH_OUTDOOR_SHORT_TEST); // 4-minute quarters: the same laws, a quarter of the sim time
+    while (!w.season.finished) { advanceDay(w, { runner: short, keepReplayFor: 'c1' }); await new Promise((r) => setImmediate(r)); }
     expect(w.season.finished).toBe(true);
     const h = w.history[0]!;
     expect(h.champion).toBeTruthy();
@@ -135,7 +137,7 @@ describe('the real engine on a match day and a short season', () => {
     const others = w.season.fixtures.filter((f) => f.home !== 'c1' && f.away !== 'c1');
     expect(others.every((f) => f.replay === undefined)).toBe(true);
     const goals = w.season.fixtures.reduce((s, f) => s + (f.result?.home ?? 0) + (f.result?.away ?? 0), 0);
-    expect(goals / w.season.fixtures.length).toBeGreaterThan(1.5); // women's ≈ 3.6 calibrated; a small league varies
+    expect(goals / w.season.fixtures.length).toBeGreaterThan(0.4); // 4-minute quarters ≈ a quarter of the calibrated 3.6 goals
   }, 600_000);
 });
 

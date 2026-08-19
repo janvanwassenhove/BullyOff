@@ -1,7 +1,11 @@
 {
   "app": {
     "title": "BULLY OFF",
-    "nav": { "season": "Season", "viewer": "Match viewer", "about": "About & privacy" },
+    "nav": {
+      "season": "Season",
+      "viewer": "Match viewer",
+      "about": "About & privacy"
+    },
     "phase": "v1.0 — coach/manager",
     "language": "Language",
     "install": "Install app",
@@ -66,9 +70,27 @@
     "watchLast": "Watch my last match",
     "save": "Save",
     "export": "Export",
-    "tabs": { "table": "table", "squad": "squad", "fixtures": "fixtures", "history": "history" },
+    "tabs": {
+      "table": "table",
+      "squad": "squad",
+      "fixtures": "fixtures",
+      "history": "history"
+    },
     "tableNote": "Top 4 → title play-offs · bottom → relegated · second-last → play-down vs tier-2 runner-up. Winter break days {a}–{b}.",
-    "cols": { "club": "club", "name": "name", "role": "role", "age": "age", "ovr": "ovr", "goals": "goals", "status": "status", "day": "day", "phase": "phase", "home": "home", "away": "away", "result": "result" },
+    "cols": {
+      "club": "club",
+      "name": "name",
+      "role": "role",
+      "age": "age",
+      "ovr": "ovr",
+      "goals": "goals",
+      "status": "status",
+      "day": "day",
+      "phase": "phase",
+      "home": "home",
+      "away": "away",
+      "result": "result"
+    },
     "injured": "injured ({d}d)",
     "fit": "fit",
     "noHistory": "No seasons completed yet.",
@@ -106,13 +128,16 @@
     "fullTime": "Full time {a} – {b}",
     "recording": "Recording the match and returning to the season…",
     "tactics": "Tactics",
-    "pressHeight": "press height",
-    "defensiveLine": "defensive line",
-    "tempo": "tempo",
-    "buildUp": "build-up",
-    "possessionStyle": "possession",
-    "direct": "direct",
-    "wide": "wide",
+    "tempo": {
+      "low": "low",
+      "normal": "normal",
+      "high": "high"
+    },
+    "buildUp": {
+      "possession": "through the middle",
+      "direct": "over the top / long ball",
+      "wide": "via the flanks"
+    },
     "rotateBelow": "rotate below",
     "pcDesigner": "Penalty-corner designer",
     "variant": "variant",
@@ -134,7 +159,24 @@
     "noteCard": "{colour} card {name}",
     "noteTactic": "tactics: {k} → {v}",
     "noteSubReq": "sub requested: {out} → {in}",
-    "noteSwap": "positions swapped: {a} ↔ {b}"
+    "noteSwap": "positions swapped: {a} ↔ {b}",
+    "youAre": "you",
+    "formationLabel": "system",
+    "pressLabel": "press",
+    "mentalityLabel": "mentality",
+    "buildUpLabel": "build-up",
+    "tempoLabel": "tempo",
+    "press": {
+      "full": "full-court press",
+      "half": "half-court press",
+      "split": "split press",
+      "zone": "zonal block (own 23)"
+    },
+    "mentality": {
+      "defensive": "defensive",
+      "balanced": "balanced",
+      "attacking": "attacking"
+    }
   },
   "about": {
     "title": "About BULLY OFF",

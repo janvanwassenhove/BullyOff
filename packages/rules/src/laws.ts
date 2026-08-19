@@ -53,6 +53,12 @@ export interface Laws {
    * Real PCs are over in seconds; this only guards against an AI stall keeping the quarter alive.
    */
   pcTimeoutTicks: number;
+  /**
+   * Umpiring safeguard: a restart not taken this many ticks after it is ready is given to the other team
+   * (FIH 12.1: delaying a restart is an offence — the umpire reverses it). A centre pass that nobody takes
+   * (a team with nobody on the pitch) passes to the opponents. Keeps a match from stalling forever.
+   */
+  restartTimeoutTicks: number;
   /** Shoot-out: 8 s per attempt (FIH shoot-out competition). Phase 6 uses it. */
   shootOutTicks: number;
   /** After a goal, play restarts with a centre pass by the team that conceded. */
@@ -82,11 +88,20 @@ export const FIH_OUTDOOR: Laws = {
   persistentFoulYellowAt: 5,
   noSubsDuringPC: true,
   pcTimeoutTicks: 40 * SEC,
+  restartTimeoutTicks: 20 * SEC,
   dugoutHalfWidthX: 3,
   shootOutTicks: 8 * SEC,
   centrePassByConceding: true,
   restartRequiresStationary: true,
   stationarySpeed: 0.05,
+};
+
+/** Test-only: 4 × 4-minute quarters — the laws of play unchanged, for long-horizon structure tests that must stay fast. */
+export const FIH_OUTDOOR_SHORT_TEST: Laws = {
+  ...FIH_OUTDOOR,
+  quarterTicks: 4 * MIN,
+  breakTicks: [1 * SEC, 2 * SEC, 1 * SEC],
+  setupTicks: { centrePass: 1 * SEC, freeHit: 10, penaltyCorner: 2 * SEC, penaltyStroke: 2 * SEC },
 };
 
 /** Shorter breaks for batch simulation — same laws of play, less idle sim time. */

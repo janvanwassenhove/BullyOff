@@ -5,7 +5,7 @@
  * seasons of generated history. Everything is derived from the seed.
  */
 import { Rng, clamp } from '@bullyoff/shared';
-import { DEFAULT_TACTICS, attributesFor, type Attributes, type ProfileId, type Role } from '@bullyoff/engine';
+import { DEFAULT_TACTICS, MENTALITY_LINE, PRESS_HEIGHT, attributesFor, type Attributes, type FormationId, type Mentality, type PressId, type ProfileId, type Role, type TeamTactics } from '@bullyoff/engine';
 import { generateClubIdentities, generatePersonName, type RegionFlavour } from '@bullyoff/worldgen';
 import { TIER_SIZE, type Club, type ClubId, type Person, type World } from './model.js';
 import { generateFixtures } from './fixtures.js';
@@ -50,7 +50,7 @@ export function createWorld(seed: number, profile: ProfileId, opts: WorldOptions
       id, name: ident.name, short: ident.short, colours: ident.colours, town: ident.town, lang: ident.lang, nickname: ident.nickname, badge: ident.badge, founded: ident.founded,
       honours: { titles: [], promotions: [] },
       tier, level, reputation: clamp(50 + (level - 12) * 8 + rng.gaussian(0, 6), 5, 95), facilities: clamp(Math.round(2.5 + (level - 12) * 0.4 + rng.gaussian(0, 0.5)), 1, 5),
-      tactics: { ...DEFAULT_TACTICS, pressHeight: clamp(0.55 + rng.gaussian(0, 0.15), 0.1, 0.95), defensiveLine: clamp(0.45 + rng.gaussian(0, 0.15), 0.1, 0.9), tempo: clamp(0.5 + rng.gaussian(0, 0.15), 0.1, 0.9) },
+      tactics: clubTactics(rng),
       finances: { balance: Math.round(20000 + level * 5000 + rng.gaussian(0, 8000)), membershipIncome: 0, sponsorIncome: 0, facilityCosts: 0, travelCosts: 0, coachingCosts: 0 },
       surface: rng.chance(0.75) ? 'watered' : 'dry',
       seasonsInTier: 0,
@@ -86,6 +86,22 @@ export function generateHistory(world: World, years: number): void {
     playSeason(world, quickRunner);
     newSeason(world);
   }
+}
+
+/** A club's board: system, press, mentality, tempo — drawn from what Belgian club sides actually play (4-3-3 dominant). */
+function clubTactics(rng: Rng): TeamTactics {
+  const formations: FormationId[] = ['4-3-3', '4-3-3', '4-3-3', '3-4-3', '4-4-2', '5-3-2', '3-3-3-1', '4-2-3-1'];
+  const presses: PressId[] = ['half', 'half', 'full', 'split', 'zone'];
+  const mentalities: Mentality[] = ['balanced', 'balanced', 'attacking', 'defensive'];
+  const press = presses[rng.int(presses.length)] ?? 'half';
+  const mentality = mentalities[rng.int(mentalities.length)] ?? 'balanced';
+  return {
+    ...DEFAULT_TACTICS,
+    formation: formations[rng.int(formations.length)] ?? '4-3-3', press, mentality,
+    pressHeight: clamp(PRESS_HEIGHT[press] + rng.gaussian(0, 0.06), 0.1, 0.95),
+    defensiveLine: clamp(MENTALITY_LINE[mentality] + rng.gaussian(0, 0.06), 0.1, 0.9),
+    tempo: clamp(0.5 + rng.gaussian(0, 0.15), 0.1, 0.9),
+  };
 }
 
 export function makePerson(id: number, rng: Rng, profile: ProfileId, role: Role, clubLevel: number, year: number, youth: boolean, flavour: RegionFlavour = 'mixed'): Person {

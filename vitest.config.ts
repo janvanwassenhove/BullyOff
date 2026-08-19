@@ -4,10 +4,14 @@ import { defineConfig } from 'vitest/config';
 // vitest.config.ts for environment overrides (e.g. jsdom for render/manager);
 // the engine, rules, shared and worldgen packages must stay on the `node`
 // environment so nothing DOM-shaped can accidentally leak into tick().
+// Forked processes (not worker threads): several test files block the event loop for
+// tens of seconds of synchronous simulation, which starves a thread's RPC heartbeat.
 export default defineConfig({
   test: {
     projects: ['packages/*', 'apps/*', 'tools/*'],
     passWithNoTests: true,
+    pool: 'forks',
+    maxWorkers: 4,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html'],

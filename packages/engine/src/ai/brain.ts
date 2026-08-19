@@ -21,7 +21,7 @@ import { attackingEnd, type PlayerView, type RulesState, type RulesView, type Te
 import type { Command } from '../match/commands.js';
 import type { Controller, PlayerSetup } from '../match/match.js';
 import { attributesFor, norm, type Attributes, type Role } from '../player/attributes.js';
-import { DEFAULT_TACTICS, FORMATION_433, shapeTarget, type Slot, type TeamTactics } from './tactics.js';
+import { DEFAULT_TACTICS, FORMATION_433, FORMATIONS, assignSlots, presetPatch, shapeTarget, type Slot, type TeamTactics } from './tactics.js';
 import { laneEntersCircle, pitchValue, shotQuality } from './valueGrid.js';
 import { MENS, type Profile, type SurfaceState } from '../profile.js';
 import { strikeSpeedFactor } from '../player/attributes.js';
@@ -124,8 +124,16 @@ export function createAi(seed: number, squads: [AiTeam, AiTeam], opts: AiOptions
   const roleMap = new Map<number, Role>();
   for (const t of squads) for (const p of t.players) {
     attrsMap.set(p.id, p.attrs); roleMap.set(p.id, p.role);
-    slotMap.set(p.id, FORMATION_433[p.slot] ?? { role: p.role, xp: 30, y: 0 });
+    slotMap.set(p.id, FORMATIONS[t.tactics.formation][p.slot] ?? FORMATION_433[p.slot] ?? { role: p.role, xp: 30, y: 0 });
   }
+  /** Re-assign a team's slots to a formation from the players currently on the pitch (bench keeps covering by role). */
+  const reshape = (team: AiTeam, view: RulesView): void => {
+    const on = view.players.filter((p) => p.team === team.team && p.onPitch).map((p) => ({ id: p.id, role: roleMap.get(p.id) ?? 'MID', isGoalkeeper: p.isGoalkeeper }));
+    const idx = assignSlots(team.tactics.formation, on);
+    const slots = FORMATIONS[team.tactics.formation];
+    for (const [id, i] of idx) { const s = slots[i]; if (s) slotMap.set(id, s); }
+    for (const p of team.players) if (!idx.has(p.id)) { const role = roleMap.get(p.id) ?? 'MID'; slotMap.set(p.id, slots.find((s) => s.role === role) ?? slots[1] ?? { role, xp: 30, y: 0 }); }
+  };
   const leaving = new Map<number, number>(); // outId → inId, players jogging to the dugout
   const lastTackleTick = new Map<number, number>();
   const pcRoles: PcRoles = { key: -1, injector: null, trapper: null, striker: null };
@@ -138,7 +146,12 @@ export function createAi(seed: number, squads: [AiTeam, AiTeam], opts: AiOptions
     for (const i of due) {
       const team = squads[i.team];
       switch (i.kind) {
-        case 'tactics': Object.assign(team.tactics, i.patch); break;
+        case 'tactics': {
+          const before = team.tactics.formation;
+          Object.assign(team.tactics, presetPatch(i.patch));
+          if (team.tactics.formation !== before) reshape(team, view);
+          break;
+        }
         case 'substitute': {
           const out = view.playerById(i.outId), inn = view.playerById(i.inId);
           if (out?.onPitch && inn && !inn.onPitch && out.team === i.team && inn.team === i.team && !leaving.has(i.outId) && !isLeavingTarget(leaving, i.inId)) leaving.set(i.outId, i.inId);
@@ -296,8 +309,25 @@ function bestOption(c: Ctx, me: PlayerView, restart: boolean): Option {
     const strike = dGoal < 7 ? 'push' : flickPref > 0.1 && dGoal < 12 ? 'flick' : 'hit';
     // Shoot when the chance is decent; from a poor angle prefer to work the ball (carry/pass) unless pressed.
     // Hockey reason: a shot from the edge of the D at 30° is a turnover; the spot strip is where goals come from.
-    const u = 0.2 + 1.4 * q + 0.25 * pressure * norm(a.mental.composure) - 0.15 * (1 - team.tactics.tempo) + c.rng.gaussian(0, noise);
+    const u = 0.08 + 1.4 * q + 0.25 * pressure * norm(a.mental.composure) - 0.15 * (1 - team.tactics.tempo) + c.rng.gaussian(0, noise);
     options.push({ kind: 'shoot', angle, strike, power: strike === 'push' ? 0.9 : 1, u });
+    // "Win the corner": a defender's feet inside the D are a target. A firm push/hit at a defender standing between
+    // ball and goal is how most club-level PCs are won (FIH 13.3: feet in the circle → PC). Umpires give it; attackers know.
+    const gvx = gx - ball.x, gvy = -ball.y; const gl = Math.sqrt(gvx * gvx + gvy * gvy) || 1;
+    let feetTarget: PlayerView | null = null, feetD = 4.5;
+    for (const o of opp) {
+      if (o.isGoalkeeper) continue;
+      const dx = o.pos.x - ball.x, dy = o.pos.y - ball.y;
+      const along = (dx * gvx + dy * gvy) / gl; const perp = Math.abs(dx * gvy - dy * gvx) / gl;
+      // any defender within 4 m in front of the ball and within a stride of the shooting line is a feet target
+      if (along > 0.5 && along < feetD && perp < 1.8) { feetD = along; feetTarget = o; }
+    }
+    if (feetTarget) {
+      const ang = dmath.atan2(feetTarget.pos.y - ball.y, feetTarget.pos.x - ball.x);
+      // worth a lot when the clean shot is poor; a little composure noise so it is not automatic
+      const uFeet = 0.85 - 0.55 * q + 0.1 * norm(a.mental.decisions) + c.rng.gaussian(0, noise);
+      options.push({ kind: 'shoot', angle: ang, strike: 'push', power: 0.8, u: uFeet });
+    }
   }
 
   // passes
@@ -310,13 +340,17 @@ function bestOption(c: Ctx, me: PlayerView, restart: boolean): Option {
     const risk = laneRisk(opp, ball, lead);
     const open = clamp((nearestDist(opp, lead) - 1.5) / 4, 0, 1);
     const lengthPen = d > 28 ? (d - 28) / 30 : d < 7 ? (7 - d) / 10 : 0;
-    const intoD = laneEntersCircle(ball, lead, end) ? 0.25 : 0;
+    // A pass INTO the circle is the most valuable object on the pitch (valueGrid): weight it like one.
+    const ment = team.tactics.mentality === 'attacking' ? 0.12 : team.tactics.mentality === 'defensive' ? -0.08 : 0;
+    const intoD = laneEntersCircle(ball, lead, end) ? 0.45 + ment : (in23(lead, end) && !in23(ball, end) ? 0.12 + ment * 0.5 : 0);
     // backwards passes are fine when pressed, poor otherwise
     const backwards = end * (lead.x - ball.x) < -5 ? (pressure > 0.5 ? 0 : 0.12) : 0;
     const vision = 0.15 * norm(a.mental.vision);
+    // never play a teammate the ball inside our own circle (the keeper aside as a last resort under real pressure)
+    const intoOwnD = inCircle(lead, -end as End) ? (pressure > 0.7 ? 0.25 : 0.6) : 0;
     // Inside the attacking D a "risky" lane past a defender is a chance to hit a foot and win a PC — attackers take it.
     const riskW = inD ? 0.6 : 1.4;
-    let u = 0.15 + 1.2 * gain + 0.35 * open - riskW * risk - lengthPen + intoD - backwards + vision + c.rng.gaussian(0, noise);
+    let u = 0.15 + 1.2 * gain + 0.35 * open - riskW * risk - lengthPen + intoD - backwards + vision - intoOwnD + c.rng.gaussian(0, noise);
     if (restart) u += 0.2; // restarts want to be taken
     const angle = dmath.atan2(lead.y - ball.y, lead.x - ball.x);
     // arrive at a trappable ~6 m/s (a bit quicker when the receiver is pressed and needs it early)
@@ -338,12 +372,18 @@ function bestOption(c: Ctx, me: PlayerView, restart: boolean): Option {
       const to = { x: ball.x + dir.x * 5, y: ball.y + dir.y * 5 };
       if (Math.abs(to.x) > HALF_LENGTH - 0.5 || Math.abs(to.y) > HALF_WIDTH - 0.5) continue;
       const gain = pitchValue(to, end) - here;
-      const space = clamp((nearestDistAhead(opp, ball, dir, 6) - 1) / 4, 0, 1);
+      const ahead = nearestDistAhead(opp, ball, dir, 6);
+      const space = clamp((ahead - 1) / 4, 0, 1);
       const elim = 0.15 * norm(a.technical.elimination);
       let u = 0.05 + 1.0 * gain + 0.7 * space - 0.5 * pressure * (1 - elim) + c.rng.gaussian(0, noise * 0.5);
+      // Dribbling straight into a defender's stick hands them the ball (the turnover of the amateur game):
+      // only a real eliminator takes that on; everyone else looks sideways or passes.
+      if (ahead < 2.6) u -= 0.55 * (1 - norm(a.technical.elimination) * 0.6);
       if (restart) u -= 0.1; // self-pass is fine, but a pass usually beats it
-      // don't carry into your own circle
+      // don't carry into your own circle; do carry into theirs — elimination into the D is how PCs are won
       if (inCircle(to, -end as End)) u -= 0.4;
+      if (inCircle(to, end) && !inD) u += 0.3 + 0.2 * norm(a.technical.elimination);
+      else if (in23(to, end) && !in23(ball, end)) u += 0.1;
       options.push({ kind: 'carry', dir, u });
     }
   }
@@ -353,7 +393,7 @@ function bestOption(c: Ctx, me: PlayerView, restart: boolean): Option {
   if (in23(ball, ownEnd) && pressure > 0.4) {
     const side = ball.y >= 0 ? 1 : -1;
     const angle = dmath.atan2(side * 18 - ball.y, end * 35 - ball.x);
-    options.push({ kind: 'clear', angle, u: 0.3 + 0.5 * pressure - 0.2 * team.tactics.tempo });
+    options.push({ kind: 'clear', angle, u: 0.3 + 0.5 * pressure - 0.2 * team.tactics.tempo + (team.tactics.mentality === 'defensive' ? 0.15 : 0) });
   }
 
   // tempo: quick teams shave carry utility
@@ -375,7 +415,9 @@ function issue(c: Ctx, me: PlayerView, o: Option): void {
       c.cmds.push({ tick, kind: 'move', playerId: me.id, dx: o.dir.x, dy: o.dir.y, effort: 0.85 });
       if (c.ballSpeed < 1.5 && dist(me.pos, ball) < 1.3) {
         const ang = dmath.atan2(o.dir.y, o.dir.x);
-        c.cmds.push({ tick, kind: 'strike', playerId: me.id, strike: 'push', angle: ang, power: 0.24 });
+        // keep it on the stick when someone is close: a short touch, not a 5 m prod into their reach
+        const near = nearestDist(c.opp, ball);
+        c.cmds.push({ tick, kind: 'strike', playerId: me.id, strike: 'push', angle: ang, power: near < 2.5 ? 0.08 : near < 4 ? 0.15 : 0.24 });
       }
       break;
     }
@@ -429,6 +471,9 @@ function defend(c: Ctx, carrier: PlayerView, ballXp: Scalar, ballY: Scalar, last
   const byDist = [...outfield].sort((a, b) => dist(a.pos, ball) - dist(b.pos, ball));
   const first = byDist[0], second = byDist[1], third = byDist[2];
   const inOwnDNow = inCircle(ball, -end as End);
+  // Marking in our 23 (hockey: zonal shape until the ball reaches the 23, then every attacker who gets into the D
+  // is picked up goal-side — a free forward on the spot is a goal). Greedy, nearest defender to each runner.
+  const marks = assignMarks(c, outfield, new Set([first?.id, second?.id, inOwnDNow ? third?.id : undefined]), carrier.id);
   for (const p of outfield) {
     if (engage && (p.id === first?.id || p.id === second?.id || (inOwnDNow && p.id === third?.id))) {
       // close down: run at the ball, tackle when in reach; second man covers the pass inside
@@ -438,11 +483,18 @@ function defend(c: Ctx, carrier: PlayerView, ballXp: Scalar, ballY: Scalar, last
       const inOwnD = inCircle(ball, -end as End);
       const ownGoal = { x: -end * HALF_LENGTH, y: 0 };
       const gvx = ownGoal.x - ball.x, gvy = ownGoal.y - ball.y; const gl = Math.sqrt(gvx * gvx + gvy * gvy) || 1;
+      // Split press (hockey: first defender closes from the INSIDE shoulder so the carrier is shepherded to the
+      // touchline and the team shifts across; the middle of the pitch is closed, the ball goes into the traffic on one side).
+      const split = team.tactics.press === 'split' && !inOwnD;
+      const inside = ball.y > 0 ? -1 : 1; // towards the centre line
       const goalSide = inOwnD
         ? { x: ball.x + (gvx / gl) * 1.7, y: ball.y + (gvy / gl) * 1.7 }
-        : { x: ball.x - end * 2.0, y: ball.y + (p.pos.y > ball.y ? 0.5 : -0.5) };
+        : split
+          ? { x: ball.x - end * 1.6, y: ball.y + inside * 1.4 }
+          : { x: ball.x - end * 2.0, y: ball.y + (p.pos.y > ball.y ? 0.5 : -0.5) };
       // second and third defenders stack the line towards goal, slightly staggered — a real D is crowded
-      const cover = inOwnD ? { x: ball.x + (gvx / gl) * 3.2, y: ball.y + (gvy / gl) * 3.2 + (ball.y > 0 ? -1.0 : 1.0) } : { x: ball.x - end * 5, y: ball.y + (ball.y > 0 ? -4 : 4) };
+      // in a split press the second defender sits on the touchline side ahead of the ball to spring the trap
+      const cover = inOwnD ? { x: ball.x + (gvx / gl) * 3.2, y: ball.y + (gvy / gl) * 3.2 + (ball.y > 0 ? -1.0 : 1.0) } : split ? { x: ball.x - end * 6, y: ball.y - inside * 5 } : { x: ball.x - end * 5, y: ball.y + (ball.y > 0 ? -4 : 4) };
       const cover3 = { x: ball.x + (gvx / gl) * 4.6, y: ball.y + (gvy / gl) * 4.6 + (ball.y > 0 ? 1.0 : -1.0) };
       const target = p.id === first?.id ? goalSide : p.id === second?.id ? cover : cover3;
       if (inOwnD) c.cmds.push({ tick, kind: 'move', playerId: p.id, dx: target.x - p.pos.x, dy: target.y - p.pos.y, effort: dist(p.pos, target) < 0.4 ? 0 : 1 });
@@ -451,19 +503,50 @@ function defend(c: Ctx, carrier: PlayerView, ballXp: Scalar, ballY: Scalar, last
       // Tackle: pick the moment (not every tick), and a beaten tackler is out of it for ~2 s — a lunge that misses
       // leaves you behind the play; that is what makes elimination skills matter.
       if (p.id === first?.id && d < 1.9 && tick - (lastTackleTick.get(p.id) ?? -99) >= 40) {
-        const aggr = 0.08 + 0.2 * norm(c.attrsOf(p.id).technical.tackling) + 0.2 * (in23(ball, -end as End) ? 1 : 0) + 0.2 * (inOwnD ? 1 : 0);
+        // Midfield is jockey-and-channel territory; committed tackles belong in the 23 and the D (a missed lunge at halfway is how counters start)
+        const aggr = 0.02 + 0.1 * norm(c.attrsOf(p.id).technical.tackling) + 0.25 * (in23(ball, -end as End) ? 1 : 0) + 0.4 * (inOwnD ? 1 : 0);
         if (c.rng.chance(aggr)) { c.cmds.push({ tick, kind: 'tackle', playerId: p.id, targetId: carrier.id }); lastTackleTick.set(p.id, tick); }
       }
+    } else if (marks.has(p.id)) {
+      const r = marks.get(p.id);
+      if (r) markRunner(c, p, r);
     } else {
       moveToShape(c, p, false, ballXp, ballY);
     }
   }
 }
 
+/**
+ * Marking in our 23 (hockey: zonal shape until the ball reaches the 23, then every attacker who gets into the D
+ * is picked up goal-side — a free forward on the spot is a goal). Greedy, nearest free defender to each runner.
+ */
+function assignMarks(c: Ctx, outfield: readonly PlayerView[], busy: Set<number | undefined>, carrierId: number | null): Map<number, PlayerView> {
+  const { end, ball } = c;
+  const marks = new Map<number, PlayerView>();
+  if (!in23(ball, -end as End)) return marks;
+  const runners = c.opp.filter((o) => !o.isGoalkeeper && o.id !== carrierId && in23(o.pos, -end as End)).sort((a, b) => dist(a.pos, ball) - dist(b.pos, ball));
+  const free = outfield.filter((p) => !busy.has(p.id));
+  for (const r of runners) {
+    let best: PlayerView | null = null, bd = 14;
+    for (const p of free) if (!marks.has(p.id)) { const d = dist(p.pos, r.pos); if (d < bd) { bd = d; best = p; } }
+    if (best) marks.set(best.id, r);
+  }
+  return marks;
+}
+function markRunner(c: Ctx, p: PlayerView, r: PlayerView): void {
+  const { end, ball } = c;
+  const ownGoal = { x: -end * HALF_LENGTH, y: 0 };
+  const gvx = ownGoal.x - r.pos.x, gvy = ownGoal.y - r.pos.y; const gl = Math.sqrt(gvx * gvx + gvy * gvy) || 1;
+  // goal-side and a touch ball-side: between the runner and the goal, stick to the ball
+  moveTo(c, p, { x: r.pos.x + (gvx / gl) * 1.4, y: r.pos.y + (gvy / gl) * 1.4 + (ball.y > r.pos.y ? 0.4 : -0.4) }, 1);
+}
+
 function looseBall(c: Ctx, ballXp: Scalar, ballY: Scalar, inPossession: boolean): void {
   const { mine, ball, tick } = c;
   const outfield = mine.filter((p) => !p.isGoalkeeper);
   const chaser = nearestTo(outfield, ball);
+  // a loose ball in our 23 when we are not in possession: the non-chasers mark, they do not watch the ball
+  const marks = inPossession ? new Map<number, PlayerView>() : assignMarks(c, outfield, new Set([chaser?.id]), null);
   for (const p of outfield) {
     if (p.id === chaser?.id) {
       // meet the ball where it will be
@@ -471,9 +554,16 @@ function looseBall(c: Ctx, ballXp: Scalar, ballY: Scalar, inPossession: boolean)
       const meet = { x: ball.x + c.ballVel.x * t * 0.6, y: ball.y + c.ballVel.y * t * 0.6 };
       moveTo(c, p, meet, 1);
       const d = dist(p.pos, ball);
-      if (d < 1.4 && c.ballSpeed > 3.5 && approaching(c, p)) c.cmds.push({ tick, kind: 'trap', playerId: p.id });
+      // No reaction time: a ball fired from inside ~4 m at pace reaches you before the stick does — the body takes it
+      // (that is the feet foul the attacker was after). Only a deliberate stop from distance is a trap.
+      const lt = c.view.ball.lastTouch === null ? undefined : c.view.playerById(c.view.ball.lastTouch);
+      const pointBlank = c.ballSpeed > 8 && lt !== undefined && lt.team !== p.team && dist(lt.pos, p.pos) < 4;
+      if (d < 1.4 && c.ballSpeed > 3.5 && approaching(c, p) && !pointBlank) c.cmds.push({ tick, kind: 'trap', playerId: p.id });
       // collect: a slow ball within reach goes onto the stick (a controlled pick-up, not a stop)
       else if (d < 1.3 && c.ballSpeed <= 3.5 && c.view.ball.lastTouch !== p.id) c.cmds.push({ tick, kind: 'trap', playerId: p.id });
+    } else if (marks.has(p.id)) {
+      const r = marks.get(p.id);
+      if (r) markRunner(c, p, r);
     } else {
       moveToShape(c, p, inPossession, ballXp, ballY);
     }

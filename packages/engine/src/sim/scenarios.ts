@@ -129,8 +129,8 @@ export const SCENARIOS: Scenario[] = [
       // home GK off, kicking back (bench player 23) on
       players: aiSquads().map((p) => (p.id === 1 ? { ...p, onPitch: false } : p.id === 23 ? { ...p, onPitch: true, x: -30, y: 0 } : p)),
     }),
-    tactics: [{ ...DEFAULT_TACTICS, pressHeight: 1, defensiveLine: 1, tempo: 1 }, { ...DEFAULT_TACTICS, pressHeight: 0.1, defensiveLine: 0.1, tempo: 0.2 }],
-    script: [ballAt(5, 0)], ticks: 20 * 120 + 40,
+    tactics: [{ ...DEFAULT_TACTICS, press: 'full', mentality: 'attacking', pressHeight: 1, defensiveLine: 1, tempo: 1 }, { ...DEFAULT_TACTICS, press: 'zone', mentality: 'defensive', pressHeight: 0.1, defensiveLine: 0.1, tempo: 0.2 }],
+    script: [ballAt(5, 0)], ticks: 20 * 120 + 400, // 2 min of play + stoppages (the clock stops for PCs)
   },
   {
     id: 'counter-attack', title: 'Counter-attack from a turnover', seed: 140,

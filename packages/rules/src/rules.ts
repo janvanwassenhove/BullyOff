@@ -279,6 +279,16 @@ export function stepRules(s: RulesState, laws: Laws, view: RulesView, sig: TickS
     s.lastTouchInOwnCircle = inCircle({ x: lastBody.at.x, y: lastBody.at.y }, attackingEnd(otherTeam(lastBody.team)));
   }
 
+  // ── a restart nobody takes is reversed (FIH 12.1 delaying) — engine safeguard against a stalled match ──
+  if (s.restart && view.tick - s.restart.readyTick > laws.restartTimeoutTicks) {
+    const r0 = s.restart;
+    if (s.pcActive) endPc(s, out, 'foul');
+    if (s.psActive) endPs(s, out, false);
+    out.push({ kind: 'restartReversed', from: r0.team, to: otherTeam(r0.team), restart: r0.kind });
+    if (r0.kind === 'centrePass') award(s, laws, view, 'centrePass', otherTeam(r0.team), centreSpot(), out);
+    else award(s, laws, view, 'freeHit', otherTeam(r0.team), r0.at, out);
+  }
+
   // ── PC ends when the ball leaves the circle (cleared) — FIH 13.6 (simplified: leaves circle by > 5 m or defender clears out) ──
   if (s.pcActive && ballLive(s)) {
     const e = pcEnd(s);

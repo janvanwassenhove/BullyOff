@@ -1,7 +1,11 @@
 {
   "app": {
     "title": "BULLY OFF",
-    "nav": { "season": "Saison", "viewer": "Visionneuse", "about": "À propos & vie privée" },
+    "nav": {
+      "season": "Saison",
+      "viewer": "Visionneuse",
+      "about": "À propos & vie privée"
+    },
     "phase": "v1.0 — coach/manager",
     "language": "Langue",
     "install": "Installer l'app",
@@ -66,9 +70,27 @@
     "watchLast": "Revoir mon dernier match",
     "save": "Sauvegarder",
     "export": "Exporter",
-    "tabs": { "table": "classement", "squad": "noyau", "fixtures": "calendrier", "history": "historique" },
+    "tabs": {
+      "table": "classement",
+      "squad": "noyau",
+      "fixtures": "calendrier",
+      "history": "historique"
+    },
     "tableNote": "Top 4 → play-offs pour le titre · dernier → relégué · avant-dernier → barrage contre le 2e de division 2. Trêve hivernale journées {a}–{b}.",
-    "cols": { "club": "club", "name": "nom", "role": "poste", "age": "âge", "ovr": "gén.", "goals": "buts", "status": "état", "day": "jour", "phase": "phase", "home": "domicile", "away": "extérieur", "result": "score" },
+    "cols": {
+      "club": "club",
+      "name": "nom",
+      "role": "poste",
+      "age": "âge",
+      "ovr": "gén.",
+      "goals": "buts",
+      "status": "état",
+      "day": "jour",
+      "phase": "phase",
+      "home": "domicile",
+      "away": "extérieur",
+      "result": "score"
+    },
     "injured": "blessé ({d}j)",
     "fit": "apte",
     "noHistory": "Aucune saison terminée pour l'instant.",
@@ -106,13 +128,16 @@
     "fullTime": "Fin du match {a} – {b}",
     "recording": "Enregistrement du match, retour à la saison…",
     "tactics": "Tactique",
-    "pressHeight": "hauteur du pressing",
-    "defensiveLine": "ligne défensive",
-    "tempo": "tempo",
-    "buildUp": "construction",
-    "possessionStyle": "possession",
-    "direct": "direct",
-    "wide": "large",
+    "tempo": {
+      "low": "bas",
+      "normal": "normal",
+      "high": "élevé"
+    },
+    "buildUp": {
+      "possession": "par l'axe",
+      "direct": "par-dessus / long ballon",
+      "wide": "par les ailes"
+    },
     "rotateBelow": "remplacer sous",
     "pcDesigner": "Atelier penalty corner",
     "variant": "variante",
@@ -134,7 +159,24 @@
     "noteCard": "carte {colour} {name}",
     "noteTactic": "tactique : {k} → {v}",
     "noteSubReq": "changement demandé : {out} → {in}",
-    "noteSwap": "postes échangés : {a} ↔ {b}"
+    "noteSwap": "postes échangés : {a} ↔ {b}",
+    "youAre": "vous",
+    "formationLabel": "système",
+    "pressLabel": "pressing",
+    "mentalityLabel": "mentalité",
+    "buildUpLabel": "construction",
+    "tempoLabel": "tempo",
+    "press": {
+      "full": "pressing tout-terrain",
+      "half": "pressing mi-terrain",
+      "split": "split press",
+      "zone": "bloc en zone (23 m)"
+    },
+    "mentality": {
+      "defensive": "défensive",
+      "balanced": "équilibrée",
+      "attacking": "offensive"
+    }
   },
   "about": {
     "title": "À propos de BULLY OFF",

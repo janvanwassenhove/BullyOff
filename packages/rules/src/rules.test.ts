@@ -363,6 +363,17 @@ describe('penalty corner', () => {
     expect(h.s.pcActive).toBe(false);
     expect(h.last('restart')?.restart.kind).toBe('longCorner');
   });
+  it('a restart nobody takes is reversed to the other team after the timeout (FIH 12.1 delaying; stall safeguard)', () => {
+    const h = pcAwarded();
+    const before = h.last('restart')?.restart;
+    expect(before?.kind).toBe('penaltyCorner'); expect(before?.team).toBe(0);
+    h.run(TEST_LAWS.setupTicks.penaltyCorner + TEST_LAWS.restartTimeoutTicks + 2);
+    const rev = h.last('restartReversed');
+    expect(rev?.kind === 'restartReversed' && rev.to).toBe(1);
+    expect(h.s.pcActive).toBe(false);
+    expect(h.last('restart')?.restart.team).toBe(1);
+    expect(h.last('restart')?.restart.kind).toBe('freeHit');
+  });
   it('substitutions are blocked during a PC (except the goalkeeper); allowed in open play', () => {
     const h = pcAwarded();
     expect(gateCommand(h.s, h.view(), 'substitute', 5, h.laws)).toBe(false);

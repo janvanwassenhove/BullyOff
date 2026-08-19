@@ -7,7 +7,7 @@
  */
 import { computed, onBeforeUnmount, onMounted, reactive, ref, shallowRef } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { FRAME_PLAYER_STRIDE, quarterStats, type CoachInstruction, type Frame, type MatchEvent, type MatchLog, type PcVariant, type QuarterStats, type TeamTactics } from '@bullyoff/engine';
+import { FRAME_PLAYER_STRIDE, PRESS_HEIGHT, MENTALITY_LINE, quarterStats, type CoachInstruction, type FormationId, type Frame, type MatchEvent, type MatchLog, type Mentality, type PcVariant, type PressId, type QuarterStats, type TeamTactics } from '@bullyoff/engine';
 import { createMatchView, type HudState, type MatchView, type ViewMode } from '@bullyoff/render';
 import { EngineClient } from '../engine/client';
 import type { Coaching } from '../stores/season';
@@ -49,6 +49,12 @@ const roleOf = (id: number): string => props.coaching.names[id]?.role ?? '';
 const staminaOf = (id: number): number => stamina.value[id] ?? 1;
 const fmt = (s: number): string => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 const pct = (x: number): string => `${Math.round(x * 100)} %`;
+const hex = (c: number): string => '#' + c.toString(16).padStart(6, '0');
+const FORMATION_IDS: FormationId[] = ['4-3-3', '3-4-3', '4-4-2', '5-3-2', '3-3-3-1', '4-2-3-1'];
+const PRESS_IDS: PressId[] = ['full', 'half', 'split', 'zone'];
+const MENTALITIES: Mentality[] = ['defensive', 'balanced', 'attacking'];
+const tempoWord = (x: number): 'low' | 'normal' | 'high' => (x < 0.4 ? 'low' : x > 0.65 ? 'high' : 'normal');
+const TEMPO_VALUE = { low: 0.25, normal: 0.5, high: 0.8 } as const;
 
 let pumping = false;
 let destroyed = false;
@@ -61,7 +67,7 @@ async function start(): Promise<void> {
     // first chunk so the view has frames to draw
     await pump(l, BUFFER);
     if (!canvas.value || destroyed) return;
-    const v = await createMatchView(canvas.value, l, { mode: mode.value, live: true, coachTeam: me, autoPauseOn: ['QuarterEnd'], homeColour: props.coaching.colours[0], awayColour: props.coaching.colours[1] });
+    const v = await createMatchView(canvas.value, l, { mode: mode.value, live: true, coachTeam: me, autoPauseOn: ['QuarterEnd'], homeColour: props.coaching.colours[0], awayColour: props.coaching.colours[1], homeName: props.coaching.shorts[0], awayName: props.coaching.shorts[1] });
     v.onFrame((t, h) => { playTick.value = t; hud.value = h; playing.value = v.playing; if (!v.playing && !briefing.value && h.phase === 'break') openBriefing(); });
     view.value = v;
     v.setSpeed(speed.value);
@@ -120,11 +126,19 @@ async function send(ins: CoachInstruction[]): Promise<void> {
     Object.assign(tactics, t[me]);
   } catch (e) { error.value = e instanceof Error ? e.message : String(e); }
 }
-function setTactic(k: 'pressHeight' | 'defensiveLine' | 'tempo' | 'rotateBelowStamina' | 'buildUp' | 'pcVariant', val: number | string): void {
-  const patch: Partial<TeamTactics> = k === 'buildUp' ? { buildUp: val as TeamTactics['buildUp'] } : k === 'pcVariant' ? { pcVariant: val as PcVariant } : { [k]: Number(val) };
+function setTactic(k: 'formation' | 'press' | 'mentality' | 'tempo' | 'rotateBelowStamina' | 'buildUp' | 'pcVariant', val: number | string): void {
+  const patch: Partial<TeamTactics> =
+    k === 'buildUp' ? { buildUp: val as TeamTactics['buildUp'] }
+      : k === 'pcVariant' ? { pcVariant: val as PcVariant }
+        : k === 'formation' ? { formation: val as FormationId }
+          : k === 'press' ? { press: val as PressId, pressHeight: PRESS_HEIGHT[val as PressId] }
+            : k === 'mentality' ? { mentality: val as Mentality, defensiveLine: MENTALITY_LINE[val as Mentality] }
+              : k === 'tempo' ? { tempo: TEMPO_VALUE[val as keyof typeof TEMPO_VALUE] }
+                : { rotateBelowStamina: Number(val) };
   Object.assign(tactics, patch);
   void send([{ tick: 0, team: me, kind: 'tactics', patch }]);
-  note(t('coach.noteTactic', { k: t('coach.' + (k === 'rotateBelowStamina' ? 'rotateBelow' : k)), v: typeof val === 'number' ? pct(val) : val }));
+  const shown = k === 'rotateBelowStamina' ? pct(Number(val)) : k === 'formation' ? String(val) : t(`coach.${k}.${String(val)}`);
+  note(t('coach.noteTactic', { k: t('coach.' + (k === 'rotateBelowStamina' ? 'rotateBelow' : k + 'Label')), v: shown }));
 }
 function setBattery(role: 'injector' | 'trapper' | 'striker', id: number | null): void {
   const b: NonNullable<TeamTactics['pcBattery']> = {};
@@ -163,8 +177,21 @@ onBeforeUnmount(() => { destroyed = true; view.value?.destroy(); client.destroy(
   <div class="coach">
     <div class="stage-col">
       <header class="bar">
-        <strong>{{ coaching.title }}</strong>
-        <span class="score">{{ hud.score[0] }} – {{ hud.score[1] }}</span>
+        <span class="teams">
+          <span
+            class="chip"
+            :style="{ background: hex(coaching.colours[0]) }"
+          /><strong :class="{ mine: me === 0 }">{{ coaching.clubNames[0] }}</strong>
+          <span class="score">{{ hud.score[0] }} – {{ hud.score[1] }}</span>
+          <strong :class="{ mine: me === 1 }">{{ coaching.clubNames[1] }}</strong><span
+            class="chip"
+            :style="{ background: hex(coaching.colours[1]) }"
+          />
+          <span class="us"><span
+            class="chip"
+            :style="{ background: hex(coaching.colours[me]) }"
+          />{{ t('coach.youAre') }}</span>
+        </span>
         <span class="muted">{{ hud.phase }} {{ fmt(hud.clockSeconds) }} · {{ hud.lastEvent }}</span>
         <span class="grow" />
         <span
@@ -264,35 +291,53 @@ onBeforeUnmount(() => { destroyed = true; view.value?.destroy(); client.destroy(
     <aside class="tools">
       <section class="panel">
         <h3>{{ t('coach.tactics') }}</h3>
-        <label>{{ t('coach.pressHeight') }} <span class="val">{{ pct(tactics.pressHeight) }}</span><input
-          type="range"
-          min="0.1"
-          max="0.95"
-          step="0.05"
-          :value="tactics.pressHeight"
-          @change="setTactic('pressHeight', Number(($event.target as HTMLInputElement).value))"
-        ></label>
-        <label>{{ t('coach.defensiveLine') }} <span class="val">{{ pct(tactics.defensiveLine) }}</span><input
-          type="range"
-          min="0.1"
-          max="0.9"
-          step="0.05"
-          :value="tactics.defensiveLine"
-          @change="setTactic('defensiveLine', Number(($event.target as HTMLInputElement).value))"
-        ></label>
-        <label>{{ t('coach.tempo') }} <span class="val">{{ pct(tactics.tempo) }}</span><input
-          type="range"
-          min="0.1"
-          max="0.9"
-          step="0.05"
-          :value="tactics.tempo"
-          @change="setTactic('tempo', Number(($event.target as HTMLInputElement).value))"
-        ></label>
-        <label>{{ t('coach.buildUp') }} <select
+        <label>{{ t('coach.formationLabel') }} <select
+          :value="tactics.formation"
+          @change="setTactic('formation', ($event.target as HTMLSelectElement).value)"
+        >
+          <option
+            v-for="f in FORMATION_IDS"
+            :key="f"
+            :value="f"
+          >
+            {{ f }}
+          </option>
+        </select></label>
+        <label>{{ t('coach.pressLabel') }} <select
+          :value="tactics.press"
+          @change="setTactic('press', ($event.target as HTMLSelectElement).value)"
+        >
+          <option
+            v-for="p in PRESS_IDS"
+            :key="p"
+            :value="p"
+          >
+            {{ t('coach.press.' + p) }}
+          </option>
+        </select></label>
+        <label>{{ t('coach.mentalityLabel') }} <select
+          :value="tactics.mentality"
+          @change="setTactic('mentality', ($event.target as HTMLSelectElement).value)"
+        >
+          <option
+            v-for="m in MENTALITIES"
+            :key="m"
+            :value="m"
+          >
+            {{ t('coach.mentality.' + m) }}
+          </option>
+        </select></label>
+        <label>{{ t('coach.buildUpLabel') }} <select
           :value="tactics.buildUp"
           @change="setTactic('buildUp', ($event.target as HTMLSelectElement).value as TeamTactics['buildUp'])"
         >
-          <option value="possession">{{ t('coach.possessionStyle') }}</option><option value="direct">{{ t('coach.direct') }}</option><option value="wide">{{ t('coach.wide') }}</option>
+          <option value="possession">{{ t('coach.buildUp.possession') }}</option><option value="direct">{{ t('coach.buildUp.direct') }}</option><option value="wide">{{ t('coach.buildUp.wide') }}</option>
+        </select></label>
+        <label>{{ t('coach.tempoLabel') }} <select
+          :value="tempoWord(tactics.tempo)"
+          @change="setTactic('tempo', ($event.target as HTMLSelectElement).value)"
+        >
+          <option value="low">{{ t('coach.tempo.low') }}</option><option value="normal">{{ t('coach.tempo.normal') }}</option><option value="high">{{ t('coach.tempo.high') }}</option>
         </select></label>
         <label>{{ t('coach.rotateBelow') }} <span class="val">{{ pct(tactics.rotateBelowStamina) }}</span><input
           type="range"
@@ -420,6 +465,10 @@ onBeforeUnmount(() => { destroyed = true; view.value?.destroy(); client.destroy(
 .stage-col { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: var(--space-2); min-height: 0; }
 .bar { display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; }
 .score { font-weight: 900; font-size: var(--text-lg); }
+.teams { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.teams .mine { text-decoration: underline; text-decoration-color: var(--color-turf-500); text-underline-offset: 3px; }
+.chip { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(255,255,255,0.6); vertical-align: middle; }
+.us { display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-xs); color: var(--color-fg-muted); border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 2px 6px; }
 .grow { flex: 1; }
 .stage { position: relative; min-height: 360px; background: #0e1116; border-radius: var(--radius-md); overflow: hidden; }
 .canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }

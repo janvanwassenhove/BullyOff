@@ -1,7 +1,11 @@
 {
   "app": {
     "title": "BULLY OFF",
-    "nav": { "season": "Seizoen", "viewer": "Wedstrijdkijker", "about": "Over & privacy" },
+    "nav": {
+      "season": "Seizoen",
+      "viewer": "Wedstrijdkijker",
+      "about": "Over & privacy"
+    },
     "phase": "v1.0 — coach/manager",
     "language": "Taal",
     "install": "App installeren",
@@ -66,9 +70,27 @@
     "watchLast": "Mijn laatste wedstrijd bekijken",
     "save": "Opslaan",
     "export": "Exporteren",
-    "tabs": { "table": "klassement", "squad": "kern", "fixtures": "kalender", "history": "geschiedenis" },
+    "tabs": {
+      "table": "klassement",
+      "squad": "kern",
+      "fixtures": "kalender",
+      "history": "geschiedenis"
+    },
     "tableNote": "Top 4 → play-offs om de titel · laatste → degradeert · voorlaatste → barrage tegen de nummer 2 van reeks 2. Winterstop speeldagen {a}–{b}.",
-    "cols": { "club": "club", "name": "naam", "role": "positie", "age": "leeftijd", "ovr": "alg.", "goals": "goals", "status": "status", "day": "dag", "phase": "fase", "home": "thuis", "away": "uit", "result": "uitslag" },
+    "cols": {
+      "club": "club",
+      "name": "naam",
+      "role": "positie",
+      "age": "leeftijd",
+      "ovr": "alg.",
+      "goals": "goals",
+      "status": "status",
+      "day": "dag",
+      "phase": "fase",
+      "home": "thuis",
+      "away": "uit",
+      "result": "uitslag"
+    },
     "injured": "geblesseerd ({d}d)",
     "fit": "fit",
     "noHistory": "Nog geen seizoenen afgewerkt.",
@@ -106,13 +128,16 @@
     "fullTime": "Affluiten {a} – {b}",
     "recording": "Wedstrijd wordt opgeslagen, terug naar het seizoen…",
     "tactics": "Tactiek",
-    "pressHeight": "presshoogte",
-    "defensiveLine": "verdedigende lijn",
-    "tempo": "tempo",
-    "buildUp": "opbouw",
-    "possessionStyle": "balbezit",
-    "direct": "direct",
-    "wide": "breed",
+    "tempo": {
+      "low": "laag",
+      "normal": "normaal",
+      "high": "hoog"
+    },
+    "buildUp": {
+      "possession": "door het midden",
+      "direct": "over de top / lange bal",
+      "wide": "via de flanken"
+    },
     "rotateBelow": "wissel onder",
     "pcDesigner": "Strafcorner-ontwerper",
     "variant": "variant",
@@ -134,7 +159,24 @@
     "noteCard": "{colour} kaart {name}",
     "noteTactic": "tactiek: {k} → {v}",
     "noteSubReq": "wissel gevraagd: {out} → {in}",
-    "noteSwap": "posities gewisseld: {a} ↔ {b}"
+    "noteSwap": "posities gewisseld: {a} ↔ {b}",
+    "youAre": "jij",
+    "formationLabel": "systeem",
+    "pressLabel": "press",
+    "mentalityLabel": "ingesteldheid",
+    "buildUpLabel": "opbouw",
+    "tempoLabel": "tempo",
+    "press": {
+      "full": "full-court press",
+      "half": "halfveldpress",
+      "split": "split press",
+      "zone": "zone (eigen 23)"
+    },
+    "mentality": {
+      "defensive": "defensief",
+      "balanced": "evenwichtig",
+      "attacking": "aanvallend"
+    }
   },
   "about": {
     "title": "Over BULLY OFF",

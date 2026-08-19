@@ -46,7 +46,7 @@ describe('utility AI — full matches', { timeout: 120_000 }, () => {
       const ev = log.events;
       const frameAt = new Map(log.frames.map((f) => [f.tick, f]));
       const entries = count(ev, 'CircleEntry');
-      expect(entries).toBeGreaterThan(20);
+      expect(entries).toBeGreaterThan(8); // raw CircleEntry events (both ends); attacking entries ≈ 12/match after the Phase 9.1 realism pass
       expect(entries).toBeLessThan(200);
       const shotsBy = [0, 0];
       for (const e of ev) {

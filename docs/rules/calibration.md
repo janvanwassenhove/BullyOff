@@ -94,3 +94,23 @@ Phase 7 changed the AI's logs (stamina-driven rotation, bench recovery, a rules 
 | substitutions / match | ≈ 2 → **7.9** | → **9.8** |
 
 **Measured rows all pass for both profiles; the men's PC-share near-miss of Phase 4 is gone** (more PCs, unchanged conversion). The remaining misses are all on `EST` rows (circle entries, women's shots/strokes/greens) and unchanged in character from Phase 4 — see Known deviations. Rotation volume rose from ≈ 2 to 8–10 subs per match at the new default `rotateBelowStamina` 0.7; still below a real club match (open question #15 follow-up: stamina curve).
+
+## Realism pass after Jan's first play-through (engine 0.6.0, 2026-08-19)
+
+Jan's feedback on the deployed build: the play was not hockey (few circle penetrations, odd patterns), the tactics knobs were percentages, no way to set a system or a press. Diagnosis with possession tracing (`docs/handoff/phase-9.1.md`): **most "circle entries" and goals were teams playing the ball into their own D and losing it** — defenders received back passes inside their own circle, dribblers prodded the ball 5 m into the jockeying defender's stick, the defensive block never entered its own circle, and a ball fired at a defender from 2 m was "trapped" by the stick instead of hitting the body. The old numbers passed on nonsense.
+
+Fixed (AI/tactics, all as data or decision weights): no passes into own D; defenders hold the 23 m outlet shape instead of dropping into the D in possession; dribble touches stay on the stick near defenders and nobody dribbles straight into a stick; centre backs get on the ball–goal line when the ball is in the 23; marking of runners in the 23 (with a carrier and on loose balls); "win the corner" — a firm push at a defender's feet is an option; no stick reaction to point-blank balls; midfield tackling toned down; named systems (4-3-3 … 4-2-3-1), press systems (full / half / split / zone) and mentality as first-class tactics; GK scales 1.6 (men) / 1.7 (women); a restart nobody takes is reversed after 20 s (FIH 12.1 delaying — the stall safeguard that the naive-controller women's test needed).
+
+Same 96-match protocol:
+
+| metric | target | 0.5.0 | **0.6.0** |
+| --- | --- | --- | --- |
+| goals / match (men) | 5.4 | 5.42 | **≈ 5.2–5.5** ok |
+| goals / match (women) | 3.6 | 3.61 | **≈ 3.5–3.8** ok |
+| PC (+PS) goal share (men, measured) | 0.33 | 0.33 | **0.16 MISS** |
+| PCs / match (men) | 9 | 7.2 | **≈ 4 MISS** (was ≈ 2 before the feet/point-blank work) |
+| circle entries / match | 36 | 20 | **≈ 12 MISS** |
+| shots / match | 24 | 28 | ≈ 31–34 (high) |
+| restarts / match | 110 | 71 | ≈ 45 |
+
+**Honest reading:** the structural play is now hockey-shaped (possessions of ~15 touches that progress, entries by carries and passes into the D, defenders in the D, PCs from feet), but the *volume* of circle play and PCs is below the real game. Those are the next tuning targets (attack construction in the 23, more feet/stick fouls under pressure in the D, outlet speed), and they must be tuned on this realistic base — not by re-admitting the own-D giveaways. Measured men's PC share fails until PCs ≈ 7–9.

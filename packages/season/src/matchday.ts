@@ -4,7 +4,7 @@
  * Also: squad selection, shoot-outs, injuries and per-player bookkeeping.
  */
 import { Rng, clamp, dmath } from '@bullyoff/shared';
-import { FIH_OUTDOOR_FAST } from '@bullyoff/rules';
+import { FIH_OUTDOOR_FAST, type Laws } from '@bullyoff/rules';
 import {
   aiController, getProfile, matchStats, simulateMatch, squadsFromSetup, encodeReplay,
   type MatchLog, type MatchSetup, type MatchStats, type PlayerSetup, type Role, type TeamTactics,
@@ -88,8 +88,12 @@ function toSetup(w: World, f: Fixture, keepFrames: boolean): { setup: MatchSetup
 const FORMATION_SHAPE: [number, number][] = [[42, 0], [30, -14], [32, -5], [32, 5], [30, 14], [15, -12], [18, 0], [15, 12], [4, -16], [2, 0], [4, 16]];
 
 /** The real thing: the full engine with the utility AI, both squads from the world. */
-export const engineRunner: MatchRunner = (w, f, opts) => {
+export const engineRunner: MatchRunner = (w, f, opts) => engineRunnerWith(FIH_OUTDOOR_FAST)(w, f, opts);
+
+/** The engine runner under other laws (tests use short quarters for whole-season runs). */
+export const engineRunnerWith = (laws: Laws): MatchRunner => (w, f, opts) => {
   const { setup, idMap } = toSetup(w, f, opts.keepReplay);
+  setup.laws = laws;
   const home = w.clubs[f.home], away = w.clubs[f.away];
   if (!home || !away) throw new Error(`fixture ${f.id}: unknown club`);
   const tactics: [TeamTactics, TeamTactics] = [home.tactics, away.tactics];
