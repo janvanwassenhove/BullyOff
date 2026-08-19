@@ -4,7 +4,7 @@ A field hockey game for the web: a deterministic, headless match simulation engi
 
 The point is **hockey-accurate simulation** — circle rule, penalty corners, rolling substitutions, cards, four quarters, wet vs dry turf — in a sport every existing game models as "football with different rules". It is not.
 
-> Status: **Phase 6 — manager shell** is next. Phases 0–5 are built: deterministic engine, FIH rules, utility AI, calibration against Belgian League aggregates, and a PixiJS replay viewer (`pnpm dev:manager`: simulate a match in a Web Worker and watch it; run the §6.2 scenario deck). See [`KICKOFF.md`](KICKOFF.md).
+> Status: **Phase 7 — in-match coaching** is next. Phases 0–6 are built: deterministic engine, FIH rules, utility AI, calibration against Belgian League aggregates, a PixiJS replay viewer, and a season/career shell (`pnpm dev:manager`: generate a world, pick a club, play match days through the real engine, play-offs, promotion/relegation, saves; watch your last match). See [`KICKOFF.md`](KICKOFF.md).
 
 ## Documents
 
@@ -20,7 +20,8 @@ The point is **hockey-accurate simulation** — circle rule, penalty corners, ro
 packages/shared    types, seeded RNG, deterministic math, SI units — depends on nothing
 packages/rules     FIH ruleset as data + predicates
 packages/engine    headless deterministic sim: tick(state, inputs) → state, MatchEvent[]
-packages/worldgen  fictional clubs, players, leagues, 20 seasons of history
+packages/season    season/career model: fixtures, play-offs, tables, match days, development, saves
+packages/worldgen  fictional clubs, players, leagues, 20 seasons of history (Phase 8)
 packages/render    PixiJS view layer — reads event logs only
 apps/manager       Vue 3 + Pinia — the coach/manager product
 apps/simcli        Node CLI — batch simulation for calibration

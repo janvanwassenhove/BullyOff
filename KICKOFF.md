@@ -2,27 +2,29 @@
 
 > Read this first. Then `BRIEF.md`, then `docs/adr/`, then the latest `docs/handoff/`.
 
-## Current phase: **6 — Manager shell** (Phase 5 core built and browser-verified; device/perf + coach review owed; Phase 3's coach verdict still owed)
+## Current phase: **7 — In-match coaching** (Phase 6 structural gate met by test; "feels earned" human review owed; Phase 3's coach verdict and Phase 5's device check still owed)
 
-Phase 5 (`docs/handoff/phase-5.md`): replay format decided (events + 5 Hz quantised keyframes), `packages/render` MatchView (procedural pitch in metres, interpolation, director camera, moments, HUD, playback/scrub, synth audio), manager viewer with the engine in a Web Worker (simulate a match / run a §6.2 scenario / load-export replays), and a Playwright browser test that renders frame-accurately in Chromium, Firefox and WebKit (screenshots in `docs/handoff/img/`). Owed: fps on a mid-range phone, coach panel on the scenario deck, real assets (sprites, SFX).
+Phase 6 (`docs/handoff/phase-6.md`): `packages/season` — play-offs-first fixtures (double round-robin with a real winter break, top-4 semis + final, two-leg final for the women's profile, two-leg play-down), tables with tie-breakers, match days through the **real engine** (labelled Poisson quick resolver only for structural tests), shoot-outs, injuries, development/decline/life-pressure/retirement/youth intake, amateur finances, promotion/relegation across two tiers, versioned saves with migrations. Manager app: career setup → club picker → play match day / sim to end / next season, table/squad/fixtures/history tabs, IndexedDB slots + JSON export/import, "Watch my last match" into the Phase 5 viewer. Ten seasons run clean under test; the engine plays whole match days and a short season in-test.
 
-Phases 0–4 are built (`docs/handoff/phase-{0..4}.md`). Jan waived the Phase 3 coach gate on 2026-08-19 to let calibration proceed; **the verdict is still owed** and calibration should be re-read after it. Phase 4 (`docs/handoff/phase-4.md`, `docs/rules/calibration.md`): batch runner (`pnpm simcli batch`), statistics, `tools/calibrate` with bands + chi-square, targets transcribed (measured + labelled estimates), tuning pass — **both profiles hit every measured target except men's PC share (0.23 vs ≥ 0.25)**; profile purity enforced by test; engine 0.4.0, sandbox golden `8b762ab25cd72f6d`. Known deviations ranked in calibration.md (PC awards ≈ 6.4 vs 9; defensive quality does not scale with attributes → the Pro League causality check only partly passes; restarts ≈ 65 vs 110).
+Phase 5 (`docs/handoff/phase-5.md`): replay format (events + 5 Hz keyframes), `packages/render` MatchView, manager viewer with the engine in a Web Worker, three-browser Playwright test. Owed: fps on a phone, coach panel on the scenario deck, real assets.
 
-### Phase 6 deliverables (BRIEF §8)
+Phases 0–4 are built (`docs/handoff/phase-{0..4}.md`). Jan waived the Phase 3 coach gate on 2026-08-19; **the verdict is still owed**. Phase 4: both profiles hit every measured calibration target except men's PC share (0.23 vs ≥ 0.25); engine 0.4.0, sandbox golden `8b762ab25cd72f6d`.
 
-Season structure **with play-offs built first** (regular round-robin phase → title play-off bracket + relegation play-downs; single- and two-legged ties; shoot-outs as tie-breaker), fixture generation (two modes), league tables, squad management, training focus, youth academy and progression, player development and decline, injuries, amateur-hockey pressures (studies, availability, volunteers), club finances at an honest amateur scale, the winter break as a real interval. Persistence per ADR-007 (IndexedDB + JSON + migrations).
+### Phase 7 deliverables (BRIEF §8)
 
-### Phase 6 gate
+In-match coaching: substitution rotation bar (stamina-driven), penalty-corner designer (variants + roles), quarter briefings, three view modes (director / tactical / coach), pause-and-instruct at set pieces; every instruction is a `Command` into the same deterministic engine — no side channel.
 
-Ten seasons simulate end to end without corruption, incl. play-off brackets, shoot-out resolution, and promotion/relegation between two tiers; youth players emerge, develop, plateau and retire believably; a regular-phase winner losing the play-off final must be possible and feel earned.
+### Phase 7 gate
+
+A coach can change a match's course from the bench with legal instructions only, the result stays deterministic for the same instructions, and the substitution/PC tooling reads like the touchline of a Belgian club match.
 
 ### Where to start
 
-1. Confirm the Belgian play-off format (open question #4) — from the 2024–25 pages: men top-4 semis + final, two relegated; women top-4, two-leg final, relegation play-off vs the second tier. Model both as data.
-2. A season model in a new `packages/season` (or inside `worldgen`): clubs, squads, fixtures (round-robin + bracket), tables, tie-breakers, shoot-out (engine: `laws.shootOutTicks`; a shoot-out controller/rules sub-machine is needed — 8 s one-on-ones).
-3. Match day pipeline: unwatched fixtures → worker `simulateAi` with `frameEvery: 0` → `matchStats`; the user's fixture → full log → MatchView.
-4. Player development: attributes (1–20) + hidden (`potential, lifePressure, …`) already exist; write the season-tick development/decline model with tests before any UI.
-5. Persistence: IndexedDB wrapper + versioned save + migration runner (ADR-007) with round-trip tests.
+1. **Stamina into the controller view** (open question #15) — the rotation bar and `rotateBelowStamina` need it; keep the AI's time-proxy fallback for a bit-exact golden.
+2. A **step-wise worker mode** (`step(n)`, `command(...)`) in `packages/engine/src/worker/protocol.ts` + host: the season worker hands the user's fixture to it instead of simulating in one go; the season store resumes when the match ends.
+3. PC designer: expose the five variants and battery roles from `selectSquad`; the AI's opponent read (open question #16) is a data flag first.
+4. Quarter briefings: add a per-quarter breakdown to `matchStats/aggregate` (events carry ticks; quarters are laws data) before any UI.
+5. Coach view = tactical camera + intent overlays (pass lanes, press height); reuse `MatchView` modes.
 
 ### The still-owed Phase 3 verdict
 
@@ -48,13 +50,14 @@ Owed:
 
 0. **Phase 3 verdict** (above) — waived on 2026-08-19 to proceed, still wanted.
 0b. **Phase 5 device check + coach review** — run `pnpm dev:manager` on a phone (Vite `--host`), watch a match at 1×–8×; run the scenario deck with the panel.
+0c. **Phase 6 "feels earned"** — play a career for three or four seasons (`pnpm dev:manager` → Season); judge play-off drama and development curves.
 
 Carried:
 
 1. Situational review panel — three or four coaches, for Phase 5's visual review (and useful now for text logs).
 2. Which profile (`mens`/`womens`) calibrates first in Phase 4.
 3. Arcade after v1.0 — confirmed by the stub in `apps/arcade`.
-4. Current Belgian play-off format — lookup needed for Phase 6.
+4. ~~Current Belgian play-off format~~ — modelled in Phase 6 as data (men top-4 + final; women top-4 + two-leg final; play-down vs tier 2). Confirm against the current KBHB regulations.
 5. Who does the Blender work — needed before Phase 5 pose rendering (ADR-012).
 6. Toolchain bump (ESLint 10 / TS 7 / Vitest 4)? Deferred.
 7. ~~Replay storage format~~ — decided in Phase 5: events + 5 Hz quantised keyframes (`ReplayFile` v1), gzip on export.
@@ -71,6 +74,12 @@ New from Phase 4:
 18. **PC award frequency** (6.4 vs ≈ 9 real): the AI under-fouls in the D. Coach's view wanted on *why* PCs happen at club level (feet on shots, stick tackles, deliberate over-the-line) so the AI can be steered at the right cause.
 19. **`gkSaveScale`** (women 1.6) — a provisional knob for the part of the women's goal gap not explained by shot speed. Accept until defensive organisation is modelled, or prefer a different mechanism?
 20. **Quality spread** in calibration runs (±2 levels): is that the right picture of the Belgian top division's spread (Braxgata/Gantoise vs the rest)? A per-club level table would let calibration mirror the real league.
+
+New from Phase 6:
+
+23. **Quick sim toggle** — the app runs every fixture through the engine (≈ 15–20 s per match day). Offer the labelled Poisson resolver for far-away days, or shard workers? Preference?
+24. **Play-down for the women's tier** — modelled like the men's for a two-tier world; is a straight relegation truer to the women's format?
+25. **Training focus** — which knobs would a Belgian club coach expect (technical/physical/tactical/PC battery)? The development model is ready for one input.
 
 New from Phase 5:
 

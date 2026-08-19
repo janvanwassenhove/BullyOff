@@ -17,7 +17,8 @@
     "@bullyoff/worldgen": "workspace:*",
     "pinia": "^3.0.3",
     "vue": "^3.5.17",
-    "@bullyoff/rules": "workspace:*"
+    "@bullyoff/rules": "workspace:*",
+    "@bullyoff/season": "workspace:*"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.4",

@@ -1,0 +1,23 @@
+{
+  "name": "@bullyoff/season",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Season model: clubs, squads, fixtures (round-robin + play-off brackets), tables, match days through the engine, development, injuries, finances, promotion/relegation, versioned saves.",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@bullyoff/engine": "workspace:*",
+    "@bullyoff/rules": "workspace:*",
+    "@bullyoff/shared": "workspace:*"
+  }
+}

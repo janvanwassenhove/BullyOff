@@ -58,6 +58,9 @@ importers:
       '@bullyoff/rules':
         specifier: workspace:*
         version: link:../../packages/rules
+      '@bullyoff/season':
+        specifier: workspace:*
+        version: link:../../packages/season
       '@bullyoff/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -122,6 +125,18 @@ importers:
 
   packages/rules:
     dependencies:
+      '@bullyoff/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/season:
+    dependencies:
+      '@bullyoff/engine':
+        specifier: workspace:*
+        version: link:../engine
+      '@bullyoff/rules':
+        specifier: workspace:*
+        version: link:../rules
       '@bullyoff/shared':
         specifier: workspace:*
         version: link:../shared

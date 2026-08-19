@@ -2,8 +2,10 @@
 import { computed, ref } from 'vue';
 import { useMatchStore } from './stores/match';
 import MatchViewer from './components/MatchViewer.vue';
+import SeasonView from './components/SeasonView.vue';
 
 const match = useMatchStore();
+const screen = ref<'season' | 'viewer'>('season');
 const SCENARIOS = ['outlet-under-press', 'high-press-vs-deep-block', 'baseline-entry', 'two-v-one', 'three-v-two', 'pc-dragFlick', 'pc-lowHit', 'pc-slipRight', 'pc-deflection', 'pc-one-man-down', 'last-two-minutes', 'counter-attack', 'long-corner'];
 const fileInput = ref<HTMLInputElement | null>(null);
 
@@ -39,106 +41,133 @@ const label = (e: { t: string; tick: number } & Record<string, unknown>): string
   <div class="shell">
     <header class="top">
       <h1 class="title">BULLY OFF</h1>
-      <span class="sub">Phase 5 — replay viewer</span>
+      <nav class="nav">
+        <button
+          class="navbtn"
+          :class="{ active: screen === 'season' }"
+          @click="screen = 'season'"
+        >
+          Season
+        </button>
+        <button
+          class="navbtn"
+          :class="{ active: screen === 'viewer' }"
+          @click="screen = 'viewer'"
+        >
+          Match viewer
+        </button>
+      </nav>
+      <span class="sub">Phase 6 — manager shell</span>
     </header>
 
-    <aside class="side">
-      <section class="panel">
-        <h2>Simulate</h2>
-        <label>Profile
-          <select v-model="match.profile"><option value="mens">men's</option><option value="womens">women's</option></select>
-        </label>
-        <label>Turf
-          <select v-model="match.surface"><option value="dry">dry</option><option value="watered">watered</option><option value="wet">wet</option></select>
-        </label>
-        <label>Seed <input
-          v-model.number="match.seed"
-          type="number"
-        ></label>
-        <button
-          class="btn primary"
-          :disabled="match.busy"
-          @click="match.simulate()"
-        >
-          {{ match.busy ? 'simulating…' : 'Play a match' }}
-        </button>
-      </section>
-      <section class="panel">
-        <h2>Scenario (§6.2)</h2>
-        <select v-model="match.scenarioId">
-          <option
-            v-for="s in SCENARIOS"
-            :key="s"
-            :value="s"
+    <template v-if="screen === 'season'">
+      <main class="main wide">
+        <SeasonView @watch="screen = 'viewer'" />
+      </main>
+    </template>
+    <template v-else>
+      <aside class="side">
+        <section class="panel">
+          <h2>Simulate</h2>
+          <label>Profile
+            <select v-model="match.profile"><option value="mens">men's</option><option value="womens">women's</option></select>
+          </label>
+          <label>Turf
+            <select v-model="match.surface"><option value="dry">dry</option><option value="watered">watered</option><option value="wet">wet</option></select>
+          </label>
+          <label>Seed <input
+            v-model.number="match.seed"
+            type="number"
+          ></label>
+          <button
+            class="btn primary"
+            :disabled="match.busy"
+            @click="match.simulate()"
           >
-            {{ s }}
-          </option>
-        </select>
-        <button
-          class="btn"
-          :disabled="match.busy"
-          @click="match.runScenario()"
-        >
-          Run scenario
-        </button>
-      </section>
-      <section class="panel">
-        <h2>Replay file</h2>
-        <input
-          ref="fileInput"
-          type="file"
-          accept="application/json"
-          @change="onFile"
-        >
-        <button
-          class="btn"
-          :disabled="!match.log"
-          @click="download"
-        >
-          Export .replay.json
-        </button>
-      </section>
-      <section
-        v-if="match.error"
-        class="panel error"
-      >
-        {{ match.error }}
-      </section>
-      <section
-        v-if="match.log"
-        class="panel"
-      >
-        <h2>Events</h2>
-        <p class="src">{{ match.source }}</p>
-        <ul class="events">
-          <li
-            v-for="(e, i) in recent"
-            :key="i"
+            {{ match.busy ? 'simulating…' : 'Play a match' }}
+          </button>
+        </section>
+        <section class="panel">
+          <h2>Scenario (§6.2)</h2>
+          <select v-model="match.scenarioId">
+            <option
+              v-for="s in SCENARIOS"
+              :key="s"
+              :value="s"
+            >
+              {{ s }}
+            </option>
+          </select>
+          <button
+            class="btn"
+            :disabled="match.busy"
+            @click="match.runScenario()"
           >
-            {{ label(e as never) }}
-          </li>
-        </ul>
-      </section>
-    </aside>
+            Run scenario
+          </button>
+        </section>
+        <section class="panel">
+          <h2>Replay file</h2>
+          <input
+            ref="fileInput"
+            type="file"
+            accept="application/json"
+            @change="onFile"
+          >
+          <button
+            class="btn"
+            :disabled="!match.log"
+            @click="download"
+          >
+            Export .replay.json
+          </button>
+        </section>
+        <section
+          v-if="match.error"
+          class="panel error"
+        >
+          {{ match.error }}
+        </section>
+        <section
+          v-if="match.log"
+          class="panel"
+        >
+          <h2>Events</h2>
+          <p class="src">{{ match.source }}</p>
+          <ul class="events">
+            <li
+              v-for="(e, i) in recent"
+              :key="i"
+            >
+              {{ label(e as never) }}
+            </li>
+          </ul>
+        </section>
+      </aside>
 
-    <main class="main">
-      <MatchViewer
-        v-if="match.log"
-        :log="match.log"
-      />
-      <div
-        v-else
-        class="empty"
-      >
-        <p>Simulate a match or run a scenario. The engine runs in a Web Worker; the viewer reads only the event log.</p>
-      </div>
-    </main>
+      <main class="main">
+        <MatchViewer
+          v-if="match.log"
+          :log="match.log"
+        />
+        <div
+          v-else
+          class="empty"
+        >
+          <p>Simulate a match or run a scenario. The engine runs in a Web Worker; the viewer reads only the event log.</p>
+        </div>
+      </main>
+    </template>
   </div>
 </template>
 
 <style scoped>
 .shell { display: grid; grid-template-columns: 300px minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); height: 100dvh; gap: var(--space-3); padding: var(--space-3); }
 .top { grid-column: 1 / -1; display: flex; align-items: baseline; gap: var(--space-4); }
+.nav { display: flex; gap: var(--space-2); }
+.navbtn { background: transparent; color: var(--color-fg-muted); border: 1px solid transparent; border-radius: var(--radius-sm); padding: 4px 10px; cursor: pointer; font: inherit; }
+.navbtn.active { color: var(--color-fg); border-color: var(--color-border); background: var(--color-bg-elevated); }
+.main.wide { grid-column: 1 / -1; }
 .title { font-size: var(--text-xl); letter-spacing: 0.18em; font-weight: 800; color: var(--color-turf-100); }
 .sub { color: var(--color-fg-muted); font-size: var(--text-sm); }
 .side { display: flex; flex-direction: column; gap: var(--space-3); overflow: auto; min-height: 0; }
