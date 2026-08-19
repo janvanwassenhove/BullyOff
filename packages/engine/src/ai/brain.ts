@@ -87,8 +87,36 @@ export function passSpeedFor(d: Scalar, vArr: Scalar, profile: Profile, surface:
   return Math.sqrt(Math.max(vArr * vArr, v0sq));
 }
 
+/**
+ * Coach instructions (Phase 7): tick-stamped, serialisable, applied by the AI controller of the
+ * instructed team at that tick. They are the *only* way a coach influences a match; the same list
+ * with the same setup and seed reproduces the same log.
+ */
+export type CoachInstruction =
+  /** Change tactical knobs (press, line, tempo, build-up, PC variant/battery, rotation threshold). */
+  | { tick: number; team: TeamId; kind: 'tactics'; patch: Partial<TeamTactics> }
+  /** Rolling substitution: `outId` jogs to the dugout and `inId` comes on there. Ignored if either is not eligible. */
+  | { tick: number; team: TeamId; kind: 'substitute'; outId: number; inId: number }
+  /** Swap the formation slots of two players (e.g. move a midfielder up front). */
+  | { tick: number; team: TeamId; kind: 'swapSlots'; a: number; b: number };
+
+export interface AiHandle {
+  controller: Controller;
+  /** Queue instructions; each is applied at its tick (instructions stamped in the past apply next tick). */
+  instruct(ins: readonly CoachInstruction[]): void;
+  /** Current tactics per team (read-only snapshot for UIs). */
+  tactics(team: TeamId): Readonly<TeamTactics>;
+  /** Formation slot per player id (read-only snapshot for UIs). */
+  slotOf(id: number): Slot;
+}
+
 export function aiController(seed: number, squads: [AiTeam, AiTeam], opts: AiOptions = {}): Controller {
+  return createAi(seed, squads, opts).controller;
+}
+
+export function createAi(seed: number, squads: [AiTeam, AiTeam], opts: AiOptions = {}): AiHandle {
   const rng = new Rng(seed, 11);
+  const queue: CoachInstruction[] = [];
   const profile = opts.profile ?? MENS;
   const surface = opts.surface ?? 'watered';
   const attrsMap = new Map<number, Attributes>();
@@ -102,8 +130,31 @@ export function aiController(seed: number, squads: [AiTeam, AiTeam], opts: AiOpt
   const lastTackleTick = new Map<number, number>();
   const pcRoles: PcRoles = { key: -1, injector: null, trapper: null, striker: null };
 
-  return (view: RulesView, rules: Readonly<RulesState>, tick: number): Command[] => {
+  const apply = (view: RulesView, tick: number): void => {
+    if (queue.length === 0) return;
+    const due = queue.filter((i) => i.tick <= tick).sort((a, b) => a.tick - b.tick || a.team - b.team);
+    if (due.length === 0) return;
+    for (const i of due) queue.splice(queue.indexOf(i), 1);
+    for (const i of due) {
+      const team = squads[i.team];
+      switch (i.kind) {
+        case 'tactics': Object.assign(team.tactics, i.patch); break;
+        case 'substitute': {
+          const out = view.playerById(i.outId), inn = view.playerById(i.inId);
+          if (out?.onPitch && inn && !inn.onPitch && out.team === i.team && inn.team === i.team && !leaving.has(i.outId) && !isLeavingTarget(leaving, i.inId)) leaving.set(i.outId, i.inId);
+          break;
+        }
+        case 'swapSlots': {
+          const sa = slotMap.get(i.a), sb = slotMap.get(i.b);
+          if (sa && sb) { slotMap.set(i.a, sb); slotMap.set(i.b, sa); }
+          break;
+        }
+      }
+    }
+  };
+  const controller = (view: RulesView, rules: Readonly<RulesState>, tick: number): Command[] => {
     const cmds: Command[] = [];
+    apply(view, tick);
     if (rules.phase !== 'inPlay') return cmds;
     const b = view.ball;
     const ball = { x: b.pos.x, y: b.pos.y };
@@ -125,6 +176,12 @@ export function aiController(seed: number, squads: [AiTeam, AiTeam], opts: AiOpt
       teamTick(ctx, leaving, lastTackleTick);
     }
     return cmds;
+  };
+  return {
+    controller,
+    instruct: (ins) => { queue.push(...ins); },
+    tactics: (team) => squads[team].tactics,
+    slotOf: (id) => slotMap.get(id) ?? { role: 'MID', xp: 30, y: 0 },
   };
 }
 
@@ -477,11 +534,13 @@ function pcAttack(c: Ctx, pending: boolean): void {
   const injSideNow = ball.y >= 0 ? 1 : -1;
   if (!pending && c.pcRoles.key !== key && c.pcRoles.injector !== null) c.pcRoles.key = key; // injection happened: keep the roles
   if (c.pcRoles.key !== key && pending) {
-    const inj = nearestTo(outfield, ball);
+    const want = c.team.tactics.pcBattery;
+    const pick = (id: number | undefined, from: PlayerView[]): PlayerView | undefined => (id === undefined ? undefined : from.find((p) => p.id === id));
+    const inj = pick(want?.injector, outfield) ?? nearestTo(outfield, ball);
     const trapSpot0 = { x: topX, y: injSideNow * 1.5 };
     const rest = outfield.filter((p) => p.id !== inj?.id);
-    const striker = [...rest].sort((a, b) => norm(c.attrsOf(b.id).technical.dragFlick) - norm(c.attrsOf(a.id).technical.dragFlick) || a.id - b.id)[0];
-    const trapper = nearestTo(rest.filter((p) => p.id !== striker?.id), trapSpot0);
+    const striker = pick(want?.striker, rest) ?? [...rest].sort((a, b) => norm(c.attrsOf(b.id).technical.dragFlick) - norm(c.attrsOf(a.id).technical.dragFlick) || a.id - b.id)[0];
+    const trapper = pick(want?.trapper, rest.filter((p) => p.id !== striker?.id)) ?? nearestTo(rest.filter((p) => p.id !== striker?.id), trapSpot0);
     c.pcRoles.key = key; c.pcRoles.injector = inj?.id ?? null; c.pcRoles.trapper = trapper?.id ?? null; c.pcRoles.striker = striker?.id ?? null;
     c.pcRoles.injSide = injSideNow;
   }
@@ -594,17 +653,16 @@ function substitutions(c: Ctx, leaving: Map<number, number>): void {
     if (dist(p.pos, entry) < 3) { c.cmds.push({ tick, kind: 'substitute', team: team.team, outId, inId }); }
   }
   if (tick % 100 !== team.team * 50) return;
-  // Rotation policy: stamina isn't in the view yet (Phase 7 exposes it); use minutes played as a proxy:
-  // every ~9 min of playing time rotate the most-run outfield players in the FWD/MID lines.
+  // Rotation policy (Phase 7): stamina is in the view. Rotate the most tired outfield player below the
+  // tactics threshold when a clearly fresher same-role (else any outfield) player sits on the bench.
   const outfield = mine.filter((p) => !p.isGoalkeeper && !leaving.has(p.id));
   if (bench.length === 0 || outfield.length === 0) return;
-  const q = c.rules.matchClockTicks;
-  if (q > 0 && q % (9 * 60 * 20) < 100) {
-    const candidates = outfield.filter((p) => { const s = c.slotOf(p.id); return s.role === 'FWD' || s.role === 'MID'; });
-    const out = candidates[c.rng.int(Math.max(1, candidates.length))];
-    const inn = bench.find((b) => c.slotOf(b.id).role === (out ? c.slotOf(out.id).role : 'MID')) ?? bench[0];
-    if (out && inn) leaving.set(out.id, inn.id);
-  }
+  const tired = [...outfield].filter((p) => p.stamina < team.tactics.rotateBelowStamina).sort((a, b) => a.stamina - b.stamina || a.id - b.id)[0];
+  if (!tired) return;
+  const role = c.slotOf(tired.id).role;
+  const fresh = bench.filter((p) => !p.isGoalkeeper && p.stamina > tired.stamina + 0.2).sort((a, b) => b.stamina - a.stamina || a.id - b.id);
+  const inn = fresh.find((p) => c.slotOf(p.id).role === role) ?? fresh[0];
+  if (inn) leaving.set(tired.id, inn.id);
 }
 const isLeavingTarget = (leaving: Map<number, number>, id: number): boolean => [...leaving.values()].includes(id);
 

@@ -7,7 +7,7 @@
  */
 import { expect, it } from 'vitest';
 import { FIH_OUTDOOR_FAST } from '@bullyoff/rules';
-import { aiController, simulateMatch, squadsFromSetup, MENS } from '@bullyoff/engine';
+import { aiController, simulateMatch, squadsFromSetup, MENS, DEFAULT_TACTICS, type Frame, type FromEngine } from '@bullyoff/engine';
 import { aiMatchSetup } from '@bullyoff/engine/fixtures';
 import { createMatchView } from '../src/index.js';
 
@@ -62,5 +62,43 @@ it('screenshot for the review deck (chromium)', async () => {
   await page.screenshot({ path: 'shots/matchview-director.png', element: host });
   view.setMode('tactical'); view.seek(900); view.renderFrame(); view.renderFrame(); view.renderFrame();
   await page.screenshot({ path: 'shots/matchview-tactical.png', element: host });
+  view.destroy();
+});
+
+it('live mode (Phase 7): the log grows through append(), the coach view draws numbers and stamina bars, and instructions reach the AI', async () => {
+  const setup = aiMatchSetup('mens', 'watered', FIH_OUTDOOR_FAST); setup.frameEvery = 1;
+  const { createEngineHost } = await import('@bullyoff/engine');
+  const out: FromEngine[] = [];
+  const host = createEngineHost((m) => out.push(m));
+  host.handle({ type: 'initAi', id: 1, setup, seed: 11, tactics: [{ ...DEFAULT_TACTICS }, { ...DEFAULT_TACTICS }] });
+  const ready = out[0];
+  if (ready?.type !== 'ready') throw new Error('no ready');
+  const log = { header: ready.header, events: [...ready.events], frames: [] as Frame[] };
+  const el = document.createElement('div'); el.style.width = '800px'; el.style.height = '450px'; el.style.position = 'relative';
+  const canvas = document.createElement('canvas'); el.appendChild(canvas); document.body.appendChild(el);
+  // a first chunk, then the view, then more chunks appended while "playing"
+  out.length = 0; host.handle({ type: 'advance', id: 2, ticks: 60 });
+  const c0 = out[0]; if (c0?.type !== 'events') throw new Error('no events'); log.events.push(...c0.events); log.frames.push(...c0.frames);
+  const view = await createMatchView(canvas, log, { mode: 'coach', live: true, coachTeam: 0 });
+  view.pause();
+  expect(view.lastTick).toBe(59);
+  out.length = 0; host.handle({ type: 'instruct', id: 3, instructions: [{ tick: 60, team: 0, kind: 'tactics', patch: { pressHeight: 0.9 } }] });
+  expect(out[0]?.type).toBe('instructed');
+  for (let i = 0; i < 20; i++) { out.length = 0; host.handle({ type: 'advance', id: 10 + i, ticks: 60 }); const m = out[0]; if (m?.type === 'events') view.append(m.events, m.frames); }
+  expect(view.lastTick).toBe(60 * 21 - 1);
+  out.length = 0; host.handle({ type: 'instruct', id: 99, instructions: [] });
+  const t = out[0]; expect(t?.type === 'instructed' && t.tactics[0].pressHeight).toBe(0.9);
+  view.seek(600); view.renderFrame();
+  const coach = pixels(canvas);
+  view.setMode('tactical'); view.renderFrame();
+  const tactical = pixels(canvas);
+  expect(diff(coach, tactical)).toBeGreaterThan(0.2); // overlays (numbers, stamina bars) are visible in coach mode
+  view.seek(1250); view.renderFrame();
+  expect(view.hud.clockSeconds).toBeGreaterThan(50);
+  if (navigator.userAgent.includes('Chrome')) {
+    const { page } = await import('@vitest/browser/context');
+    view.setMode('coach'); view.seek(1000); view.renderFrame(); view.renderFrame();
+    await page.screenshot({ path: 'shots/matchview-coach.png', element: el });
+  }
   view.destroy();
 });

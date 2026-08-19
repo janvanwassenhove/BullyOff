@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useMatchStore } from './stores/match';
+import { useSeasonStore } from './stores/season';
 import MatchViewer from './components/MatchViewer.vue';
 import SeasonView from './components/SeasonView.vue';
+import CoachView from './components/CoachView.vue';
+import type { MatchLog } from '@bullyoff/engine';
 
 const match = useMatchStore();
+const season = useSeasonStore();
 const screen = ref<'season' | 'viewer'>('season');
+async function onFinished(log: MatchLog): Promise<void> { await season.finishCoaching(log); screen.value = 'season'; }
 const SCENARIOS = ['outlet-under-press', 'high-press-vs-deep-block', 'baseline-entry', 'two-v-one', 'three-v-two', 'pc-dragFlick', 'pc-lowHit', 'pc-slipRight', 'pc-deflection', 'pc-one-man-down', 'last-two-minutes', 'counter-attack', 'long-corner'];
 const fileInput = ref<HTMLInputElement | null>(null);
 
@@ -57,10 +62,20 @@ const label = (e: { t: string; tick: number } & Record<string, unknown>): string
           Match viewer
         </button>
       </nav>
-      <span class="sub">Phase 6 — manager shell</span>
+      <span class="sub">Phase 7 — in-match coaching</span>
     </header>
 
-    <template v-if="screen === 'season'">
+    <template v-if="season.coaching">
+      <main class="main wide">
+        <CoachView
+          :key="season.coaching.fixtureId"
+          :coaching="season.coaching"
+          @finished="onFinished"
+          @abandon="season.abandonCoaching()"
+        />
+      </main>
+    </template>
+    <template v-else-if="screen === 'season'">
       <main class="main wide">
         <SeasonView @watch="screen = 'viewer'" />
       </main>

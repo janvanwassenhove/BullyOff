@@ -5,8 +5,8 @@
  * The engine itself knows nothing about workers.
  */
 import type { Command } from '../match/commands.js';
-import { captureFrame, createMatch, endMatch, simulate, simulateMatch, tick, type MatchState } from '../match/match.js';
-import { aiController, squadsFromSetup } from '../ai/brain.js';
+import { captureFrame, createMatch, endMatch, rulesView, simulate, simulateMatch, tick, type MatchState } from '../match/match.js';
+import { aiController, createAi, squadsFromSetup, type AiHandle } from '../ai/brain.js';
 import { aiMatchSetup } from '../sim/fixtures.js';
 import { runScenario, scenarioById } from '../sim/scenarios.js';
 import { getProfile } from '../profile.js';
@@ -21,6 +21,7 @@ export interface EngineHost {
 
 export function createEngineHost(post: (msg: FromEngine) => void): EngineHost {
   let state: MatchState | null = null;
+  let ai: AiHandle | null = null;
   const pending: Command[] = [];
 
   return {
@@ -29,8 +30,21 @@ export function createEngineHost(post: (msg: FromEngine) => void): EngineHost {
         switch (msg.type) {
           case 'init': {
             const m = createMatch(msg.setup, msg.seed);
-            state = m.state; pending.length = 0;
+            state = m.state; ai = null; pending.length = 0;
             post({ type: 'ready', id: msg.id, header: m.header, events: m.events });
+            return;
+          }
+          case 'initAi': {
+            const m = createMatch(msg.setup, msg.seed);
+            state = m.state; pending.length = 0;
+            ai = createAi(msg.seed, squadsFromSetup(msg.setup.players, msg.tactics), { profile: getProfile(msg.setup.profile), surface: msg.setup.surface });
+            post({ type: 'ready', id: msg.id, header: m.header, events: m.events });
+            return;
+          }
+          case 'instruct': {
+            if (!ai) { post({ type: 'error', id: msg.id, message: 'instruct before initAi' }); return; }
+            ai.instruct(msg.instructions);
+            post({ type: 'instructed', id: msg.id, tactics: [{ ...ai.tactics(0) }, { ...ai.tactics(1) }] });
             return;
           }
           case 'commands': {
@@ -44,8 +58,9 @@ export function createEngineHost(post: (msg: FromEngine) => void): EngineHost {
             const events: MatchEvent[] = [];
             const frames: Frame[] = [];
             for (let i = 0; i < msg.ticks && !s.ended; i++) {
-              if (s.tick % s.frameEvery === 0) frames.push(captureFrame(s));
-              events.push(...tick(s, pending));
+              if (s.frameEvery > 0 && s.tick % s.frameEvery === 0) frames.push(captureFrame(s));
+              const cmds = ai ? [...ai.controller(rulesView(s), s.rules, s.tick), ...pending] : pending;
+              events.push(...tick(s, cmds));
               // drop consumed commands (those stamped ≤ current tick − 1)
               for (let j = pending.length - 1; j >= 0; j--) if ((pending[j]?.tick ?? 0) < s.tick) pending.splice(j, 1);
             }

@@ -28,6 +28,39 @@ export interface MatchStats {
 const isShot = (e: Extract<MatchEvent, { t: 'BallStruck' }>): boolean =>
   e.x !== undefined && e.y !== undefined && inCircle({ x: e.x, y: e.y }, e.team === 0 ? 1 : -1) && !(e.kind === 'push' && e.speed < 5);
 
+/** Per-quarter briefing numbers (Phase 7): what a coach wants at the break. Possession = share of ball touches (struck + trapped). */
+export interface QuarterStats {
+  quarter: 1 | 2 | 3 | 4;
+  goals: [number, number];
+  shots: [number, number];
+  circleEntries: [number, number];
+  pcAwarded: [number, number];
+  touches: [number, number];
+  possession: [number, number];
+  tackles: [number, number];
+  cards: [number, number];
+}
+
+export function quarterStats(log: MatchLog): QuarterStats[] {
+  const teamOfId = new Map<number, number>(log.header.playerIds.map((id, i) => [id, log.header.teams[i] ?? 0]));
+  const out: QuarterStats[] = [];
+  let q: QuarterStats | null = null;
+  const start = (n: 1 | 2 | 3 | 4): QuarterStats => ({ quarter: n, goals: [0, 0], shots: [0, 0], circleEntries: [0, 0], pcAwarded: [0, 0], touches: [0, 0], possession: [0.5, 0.5], tackles: [0, 0], cards: [0, 0] });
+  for (const e of log.events) {
+    if (e.t === 'QuarterStart') { q = start(e.quarter); out.push(q); continue; }
+    if (!q) continue;
+    if (e.t === 'Goal') q.goals[e.team]++;
+    else if (e.t === 'BallStruck') { q.touches[e.team]++; if (isShot(e)) q.shots[e.team]++; }
+    else if (e.t === 'BallTrapped') q.touches[e.team]++;
+    else if (e.t === 'PenaltyCornerAwarded') q.pcAwarded[e.team]++;
+    else if (e.t === 'CircleEntry') { const lt = e.lastTouch === null ? -1 : (teamOfId.get(e.lastTouch) ?? -1); const att = e.end === 1 ? 0 : 1; if (lt === att) q.circleEntries[att]++; }
+    else if (e.t === 'Tackle') q.tackles[e.tacklerTeam]++;
+    else if (e.t === 'Card') q.cards[e.team]++;
+  }
+  for (const s of out) { const t = s.touches[0] + s.touches[1]; if (t > 0) s.possession = [s.touches[0] / t, s.touches[1] / t]; }
+  return out;
+}
+
 export function matchStats(log: MatchLog): MatchStats {
   const ev = log.events;
   const s: MatchStats = {

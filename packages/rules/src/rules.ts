@@ -220,6 +220,8 @@ export function stepRules(s: RulesState, laws: Laws, view: RulesView, sig: TickS
           break;
         }
         // Not a goal. Who put it over? Attacker from outside the circle → 15 m hit-out; defender → long corner.
+        // A PC still marked active ends here too (found by a stalled match: the battery waited forever at a long corner).
+        if (s.pcActive) endPc(s, out, 'out');
         if (view.ball.lastTouchTeam === defTeam) award(s, laws, view, 'longCorner', attTeam, longCornerSpot(gc.end, gc.y), out);
         else award(s, laws, view, 'hitOut', defTeam, hitOutSpot(gc.end, gc.y, laws), out);
         break;

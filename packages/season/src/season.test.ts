@@ -8,8 +8,8 @@
 import { describe, expect, it } from 'vitest';
 import { ENGINE_VERSION } from '@bullyoff/engine';
 import { createWorld, ageOf, clubPlayers } from './world.js';
-import { advanceDay, newSeason, playSeason, fixturesToday } from './season.js';
-import { engineRunner, quickRunner } from './matchday.js';
+import { advanceDay, newSeason, playSeason, fixturesToday, recordCoachedFixture } from './season.js';
+import { engineRunner, quickRunner, fixtureSetup } from './matchday.js';
 import { standings } from './table.js';
 import { roundRobin } from './fixtures.js';
 import { deserialize, serialize } from './save.js';
@@ -157,4 +157,27 @@ describe('saves', () => {
     expect(() => deserialize(JSON.stringify({ format: 'bullyoff-save', version: 99, world: {} }))).toThrow(/newer/);
     expect(() => deserialize('{"format":"nope"}')).toThrow();
   });
+});
+
+describe('coached fixture (Phase 7)', () => {
+  it('the user coaches their fixture live with instructions, the log is recorded like any other, and the rest of the day plays on', async () => {
+    const { simulateMatch, createAi, squadsFromSetup, getProfile } = await import('@bullyoff/engine');
+    const w = createWorld(8, 'mens', { tierSize: 4 });
+    w.userClub = 'c2';
+    const mine = fixturesToday(w).find((f) => f.home === 'c2' || f.away === 'c2')!;
+    const team = mine.home === 'c2' ? 0 : 1;
+    const { setup, tactics } = fixtureSetup(w, mine);
+    const ai = createAi(mine.seed, squadsFromSetup(setup.players, tactics), { profile: getProfile(w.profile), surface: setup.surface });
+    ai.instruct([{ tick: 600, team, kind: 'tactics', patch: { pressHeight: 0.9, tempo: 0.8 } }]);
+    const log = simulateMatch(setup, mine.seed, ai.controller);
+    const f = recordCoachedFixture(w, mine.id, log);
+    expect(f.played).toBe(true);
+    expect(f.replay?.format).toBe('bullyoff-replay-file');
+    expect(f.result?.home).toBe(f.stats?.goals[0]);
+    expect(() => recordCoachedFixture(w, mine.id, log)).toThrow(/already/);
+    const rest = advanceDay(w, { runner: quickRunner, keepReplayFor: 'c2' });
+    expect(rest.some((x) => x.id === mine.id)).toBe(false);
+    expect(fixturesToday(w).length + rest.length + 1).toBeGreaterThanOrEqual(2);
+    expect(w.season.day).toBe(1);
+  }, 120_000);
 });

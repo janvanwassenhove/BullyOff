@@ -8,6 +8,9 @@ import type { Role } from '../player/attributes.js';
 export type PcVariant = 'dragFlick' | 'lowHit' | 'slipRight' | 'slipLeft' | 'deflection';
 export type BuildUp = 'direct' | 'possession' | 'wide';
 
+/** Coach-chosen penalty-corner battery (Phase 7 PC designer). Players not on the pitch at the award are ignored and the AI picks. */
+export interface PcBattery { injector?: number; trapper?: number; striker?: number }
+
 export interface TeamTactics {
   /** 0 = deep block (press only in own 23 m), 1 = full press in the opponents' 23 m. */
   pressHeight: Scalar;
@@ -20,10 +23,12 @@ export interface TeamTactics {
   tempo: Scalar;
   /** Substitute a player whose stamina falls below this if a fresh same-role player is on the bench. */
   rotateBelowStamina: Scalar;
+  /** Preferred PC roles (ids). Optional; unset → the AI chooses by attributes. */
+  pcBattery?: PcBattery;
 }
 
 export const DEFAULT_TACTICS: TeamTactics = {
-  pressHeight: 0.55, defensiveLine: 0.45, buildUp: 'possession', pcVariant: 'dragFlick', tempo: 0.5, rotateBelowStamina: 0.45,
+  pressHeight: 0.55, defensiveLine: 0.45, buildUp: 'possession', pcVariant: 'dragFlick', tempo: 0.5, rotateBelowStamina: 0.7,
 };
 
 /** Formation slot in the team's own frame: x' metres from own goal line (0..91.4), y across. */

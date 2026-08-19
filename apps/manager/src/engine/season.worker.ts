@@ -3,14 +3,16 @@
  * day (or the rest of the season) is played through the engine, the World goes
  * back (ADR-008: state crosses the boundary as data; the UI never simulates).
  */
-import { advanceDay, engineRunner, newSeason, type World } from '@bullyoff/season';
+import { advanceDay, engineRunner, newSeason, recordCoachedFixture, type World } from '@bullyoff/season';
 import { decodeReplay } from '@bullyoff/engine';
 import type { MatchLog } from '@bullyoff/engine';
 
 export type ToSeason =
   | { type: 'day'; id: number; world: World; userClub: string | null }
   | { type: 'toEnd'; id: number; world: World; userClub: string | null }
-  | { type: 'newSeason'; id: number; world: World };
+  | { type: 'newSeason'; id: number; world: World }
+  /** Phase 7: record a match the coach played live in the engine worker (log from that worker). */
+  | { type: 'record'; id: number; world: World; fixtureId: number; log: MatchLog };
 export type FromSeason =
   | { type: 'world'; id: number; world: World; userLog: MatchLog | null; playedFixtureIds: number[] }
   | { type: 'error'; id: number; message: string };
@@ -21,6 +23,7 @@ self.onmessage = (ev): void => {
   const m = ev.data;
   try {
     if (m.type === 'newSeason') { newSeason(m.world); self.postMessage({ type: 'world', id: m.id, world: m.world, userLog: null, playedFixtureIds: [] }); return; }
+    if (m.type === 'record') { const f = recordCoachedFixture(m.world, m.fixtureId, m.log); self.postMessage({ type: 'world', id: m.id, world: m.world, userLog: m.log, playedFixtureIds: [f.id] }); return; }
     const w = m.world;
     let userLog: MatchLog | null = null;
     const played: number[] = [];

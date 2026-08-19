@@ -59,7 +59,7 @@ export function stickHead(p: PlayerState, reach: Scalar): Vec2 {
  * lives off this curve).
  */
 export function stepPlayer(p: PlayerState, dt: Scalar, params: PlayerParams = p.params): void {
-  if (!p.onPitch) return;
+  if (!p.onPitch) { p.stamina = Math.min(1, p.stamina + params.staminaRecoverIdle * 1.5 * dt); return; } // the bench recovers faster than idling on the pitch
   const fatigue = 0.6 + 0.4 * p.stamina; // 60 % of top speed when empty
   const maxSpeed = params.maxSpeed * fatigue * p.wantEffort;
 

@@ -4,7 +4,7 @@ A field hockey game for the web: a deterministic, headless match simulation engi
 
 The point is **hockey-accurate simulation** — circle rule, penalty corners, rolling substitutions, cards, four quarters, wet vs dry turf — in a sport every existing game models as "football with different rules". It is not.
 
-> Status: **Phase 7 — in-match coaching** is next. Phases 0–6 are built: deterministic engine, FIH rules, utility AI, calibration against Belgian League aggregates, a PixiJS replay viewer, and a season/career shell (`pnpm dev:manager`: generate a world, pick a club, play match days through the real engine, play-offs, promotion/relegation, saves; watch your last match). See [`KICKOFF.md`](KICKOFF.md).
+> Status: **Phase 8 — world generation** is next. Phases 0–7 are built: deterministic engine, FIH rules, utility AI, calibration against Belgian League aggregates, a PixiJS replay viewer, a season/career shell and in-match coaching (`pnpm dev:manager`: generate a world, pick a club, coach today's match from the bench — tactics, PC designer, rotation bar, quarter briefings — or sim the day; play-offs, promotion/relegation, saves). See [`KICKOFF.md`](KICKOFF.md).
 
 ## Documents
 

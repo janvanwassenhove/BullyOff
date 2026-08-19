@@ -36,7 +36,7 @@ export class Harness {
 
   view(): RulesView {
     const players: PlayerView[] = this.players.map((p) => ({
-      id: p.id, team: p.team, pos: { x: p.x, y: p.y }, vel: { x: 0, y: 0 }, heading: 0, onPitch: p.onPitch ?? true, isGoalkeeper: p.gk ?? false,
+      id: p.id, team: p.team, pos: { x: p.x, y: p.y }, vel: { x: 0, y: 0 }, heading: 0, onPitch: p.onPitch ?? true, isGoalkeeper: p.gk ?? false, stamina: 1,
     }));
     const byId = new Map(players.map((p) => [p.id, p]));
     const b = this.ball, v = this.vel;

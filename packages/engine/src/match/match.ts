@@ -132,7 +132,7 @@ export function captureFrame(s: MatchState): Frame {
 /** Read-only view for the rules (and for controllers). Built once per tick. */
 export function rulesView(s: MatchState): RulesView {
   const players: PlayerView[] = s.players.map((p) => ({
-    id: p.id, team: p.team, pos: p.pos, vel: p.vel, heading: p.heading, onPitch: p.onPitch, isGoalkeeper: s.goalkeepers.has(p.id),
+    id: p.id, team: p.team, pos: p.pos, vel: p.vel, heading: p.heading, onPitch: p.onPitch, isGoalkeeper: s.goalkeepers.has(p.id), stamina: p.stamina,
   }));
   const byId = new Map<PlayerId, PlayerView>();
   for (const p of players) byId.set(p.id, p);

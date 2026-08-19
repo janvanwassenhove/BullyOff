@@ -29,6 +29,8 @@ export interface PlayerView {
   heading: Radians;
   onPitch: boolean;
   isGoalkeeper: boolean;
+  /** 0..1 fatigue state (Phase 7: controllers rotate on it; the rules ignore it). */
+  stamina: Scalar;
 }
 
 export interface BallView {

@@ -13,12 +13,13 @@ import { Application, Container, Graphics, Text, TextStyle } from 'pixi.js';
 import {
   CIRCLE_RADIUS, GOAL_DEPTH, GOAL_HALF_WIDTH, HALF_LENGTH, HALF_WIDTH, LINE_23_X, PENALTY_SPOT_X,
 } from '@bullyoff/shared';
-import { DT, type MatchEvent, type MatchLog } from '@bullyoff/engine';
+import { DT, type Frame, type MatchEvent, type MatchLog } from '@bullyoff/engine';
 import { cameraTarget, initialCamera, punch, stepCamera, type CameraState } from './camera.js';
 import { sampleAt, type Sample } from './interp.js';
 import { AudioLayer } from './audio.js';
 
-export type ViewMode = 'director' | 'tactical';
+/** director = TV camera; tactical = whole pitch; coach = whole pitch + numbers, stamina bars and the coach's team highlighted (Phase 7). */
+export type ViewMode = 'director' | 'tactical' | 'coach';
 
 export interface MatchViewOptions {
   homeColour?: number;
@@ -26,6 +27,10 @@ export interface MatchViewOptions {
   mode?: ViewMode;
   /** Pause automatically on these event types (auto-pause triggers). */
   autoPauseOn?: MatchEvent['t'][];
+  /** Live mode (Phase 7): the log grows via `append`; reaching the last frame waits for data instead of stopping. */
+  live?: boolean;
+  /** The coach's team (0/1) for the coach view highlight. */
+  coachTeam?: 0 | 1;
 }
 
 export interface HudState { score: [number, number]; quarter: number; clockSeconds: number; phase: string; lastEvent: string }
@@ -46,6 +51,10 @@ export interface MatchView {
   onFrame(cb: (tick: number, hud: HudState) => void): void;
   /** Draw the current tick synchronously (frame-accuracy tests, screenshots, hidden tabs). */
   renderFrame(): void;
+  /** Live mode: append events/frames produced since the last append (ticks must be monotone). */
+  append(events: readonly MatchEvent[], frames: readonly Frame[]): void;
+  /** Distance (ticks) between the play head and the newest frame — how far behind live we are. */
+  readonly lag: number;
   destroy(): void;
 }
 
@@ -72,7 +81,9 @@ export async function createMatchView(canvas: HTMLCanvasElement, log: MatchLog, 
   const teams = log.header.teams;
   const gkIndex = new Set<number>();
   { const seen = new Set<number>(); teams.forEach((tm, i) => { if (!seen.has(tm)) { seen.add(tm); gkIndex.add(i); } }); }
-  const lastTick = log.frames.length ? (log.frames[log.frames.length - 1]?.tick ?? 0) : (log.events[log.events.length - 1]?.tick ?? 0);
+  let lastTick = log.frames.length ? (log.frames[log.frames.length - 1]?.tick ?? 0) : (log.events[log.events.length - 1]?.tick ?? 0);
+  const live = opts.live ?? false;
+  const coachTeam = opts.coachTeam ?? 0;
   const surface = log.header.surface;
 
   // ── layers ────────────────────────────────────────────────────────────────
@@ -86,7 +97,10 @@ export async function createMatchView(canvas: HTMLCanvasElement, log: MatchLog, 
   let pitchLw = 0.075;
   drawPitch(pitch, surface, pitchLw);
 
-  const playerG: { shadow: Graphics; body: Container; stick: Graphics; disc: Graphics }[] = [];
+  const coachStyle = new TextStyle({ fontFamily: 'system-ui, sans-serif', fontSize: 11, fill: 0xffffff, fontWeight: '700' });
+  const overlay = new Container(); // coach view: numbers + stamina bars (world space, hidden in other modes)
+  world.addChild(overlay);
+  const playerG: { shadow: Graphics; body: Container; stick: Graphics; disc: Graphics; label: Text; bar: Graphics }[] = [];
   for (let i = 0; i < nPlayers; i++) {
     const shadow = new Graphics().ellipse(0.12, 0.18, 0.5, 0.32).fill({ color: 0x000000, alpha: 0.28 });
     const body = new Container();
@@ -96,7 +110,10 @@ export async function createMatchView(canvas: HTMLCanvasElement, log: MatchLog, 
     const stick = new Graphics().moveTo(0, 0).lineTo(1.35, 0).stroke({ width: 0.09, color: 0x2b1d0e }).circle(1.35, 0, 0.09).fill(0x2b1d0e);
     body.addChild(disc, nose);
     shadows.addChild(shadow); actors.addChild(stick, body);
-    playerG.push({ shadow, body, stick, disc });
+    const label = new Text({ text: String(log.header.playerIds[i] ?? i), style: coachStyle }); label.anchor.set(0.5); label.scale.set(0.045);
+    const bar = new Graphics();
+    overlay.addChild(bar, label);
+    playerG.push({ shadow, body, stick, disc, label, bar });
   }
   const ballShadow = new Graphics().ellipse(0, 0, 0.2, 0.13).fill({ color: 0x000000, alpha: 0.35 });
   const ball = new Graphics().circle(0, 0, 0.17).fill(0xfbfaf2).stroke({ width: 0.03, color: 0x8a8a80 });
@@ -189,8 +206,9 @@ export async function createMatchView(canvas: HTMLCanvasElement, log: MatchLog, 
     // ball velocity from a short look-ahead sample (frames may be sparse)
     const s2 = sampleAt(log.frames, s.tick + 2, nPlayers) ?? s;
     const bv = { vx: (s2.ball.x - s.ball.x) / (2 * DT), vy: (s2.ball.y - s.ball.y) / (2 * DT) };
-    const target = cameraTarget({ x: s.ball.x, y: s.ball.y, ...bv }, mode, aspect);
-    cam = stepCamera(cam, target, dtWall, mode === 'tactical' ? 10 : 6 / Math.max(1, speed / 2));
+    const target = cameraTarget({ x: s.ball.x, y: s.ball.y, ...bv }, mode === 'director' ? 'director' : 'tactical', aspect);
+    cam = stepCamera(cam, target, dtWall, mode !== 'director' ? 10 : 6 / Math.max(1, speed / 2));
+    overlay.visible = mode === 'coach';
     const width = cam.width * punch(wall - punchAt);
     const scale = w / width;
     world.scale.set(scale);
@@ -208,7 +226,17 @@ export async function createMatchView(canvas: HTMLCanvasElement, log: MatchLog, 
       g.shadow.position.set(p.x, p.y); g.shadow.alpha = off ? 0 : 1;
       g.stick.position.set(p.x, p.y); g.stick.rotation = p.stick; g.stick.alpha = off ? 0.35 : 1;
       // stamina tint on the disc: fresh = full colour, tired = darker
-      g.disc.alpha = 0.7 + 0.3 * Math.max(0, Math.min(1, p.stamina));
+      const st = Math.max(0, Math.min(1, p.stamina));
+      g.disc.alpha = 0.7 + 0.3 * st;
+      if (mode === 'coach') {
+        const mineTeam = teams[i] === coachTeam;
+        g.label.position.set(p.x, p.y - 1.05); g.label.alpha = off ? 0.3 : mineTeam ? 1 : 0.55;
+        g.bar.clear();
+        if (!off) {
+          g.bar.rect(p.x - 0.7, p.y + 0.7, 1.4, 0.22).fill({ color: 0x000000, alpha: 0.5 });
+          g.bar.rect(p.x - 0.7, p.y + 0.7, 1.4 * st, 0.22).fill({ color: st > 0.6 ? 0x2ecc71 : st > 0.35 ? 0xf1c40f : 0xe74c3c, alpha: mineTeam ? 1 : 0.5 });
+        }
+      }
     }
     ball.position.set(s.ball.x, s.ball.y - s.ball.z * 0.65); // pseudo-3D lift
     ballShadow.position.set(s.ball.x + s.ball.z * 0.25, s.ball.y);
@@ -234,7 +262,7 @@ export async function createMatchView(canvas: HTMLCanvasElement, log: MatchLog, 
     if (playing) {
       const slow = wall < slowmoUntil ? 0.25 : 1;
       tick += dtWall * 20 * speed * slow;
-      if (tick >= lastTick) { tick = lastTick; playing = false; }
+      if (tick >= lastTick) { tick = lastTick; if (!live) playing = false; }
       processEvents(tick);
       // clock display advances with the tick when running (recompute cheaply every ~0.25 s)
       if (Math.floor(tick) % 5 === 0) recomputeHud(tick);
@@ -261,6 +289,12 @@ export async function createMatchView(canvas: HTMLCanvasElement, log: MatchLog, 
     get hud() { return hud; },
     onFrame: (cb) => { frameCbs.push(cb); },
     renderFrame: () => { syncSize(); const s = sampleAt(log.frames, tick, nPlayers); if (s) draw(s, 1 / 60); app.render(); },
+    append: (events, frames) => {
+      log.events.push(...events); log.frames.push(...frames);
+      const lf = log.frames[log.frames.length - 1]?.tick, le = log.events[log.events.length - 1]?.tick;
+      lastTick = Math.max(lastTick, lf ?? 0, log.frames.length ? 0 : (le ?? 0));
+    },
+    get lag() { return lastTick - tick; },
     destroy: () => { app.destroy(false, { children: true }); },
   };
 }

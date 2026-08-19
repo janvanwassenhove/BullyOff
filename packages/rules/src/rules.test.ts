@@ -347,6 +347,22 @@ describe('penalty corner', () => {
     expect(g.last('penaltyCornerEnded')?.outcome).toBe('cleared');
     expect(g.s.pcActive).toBe(false);
   });
+  it('a PC ball that crosses the goal line without an attacker touch in the circle (defender last) ends the PC and gives a long corner — never a stalled PC', () => {
+    const h = pcAwarded();
+    h.takeRestart(9, 0);
+    // trapped outside the D by an attacker, flicked from outside the circle, deflected in by a defender: circle rule says no goal
+    h.ball = { x: 30, y: 0, z: 0 };
+    h.step({ trapped: [{ playerId: 6, team: 0, at: { x: 30, y: 0 }, clean: false }], circleExits: [{ end: 1 }] });
+    expect(h.s.pcActive).toBe(true); // still within 5 m of the D: the corner is live
+    h.step({ struck: [struck(10, 0, { x: 30, y: 0 }, { kind: 'flick', speed: 28, lift: 0.2 })], circleEntries: [{ end: 1 }] });
+    h.ball = { x: 44, y: 0, z: 0.5 };
+    h.step({ trapped: [{ playerId: 12, team: 1, at: { x: 44, y: 0 }, clean: false }] });
+    const out = h.step({ goalLineCrossings: [{ end: 1, inGoal: true, y: -0.7, z: 0.7 }], circleExits: [{ end: 1 }] });
+    expect(out.some((r) => r.kind === 'goal')).toBe(false);
+    expect(h.last('penaltyCornerEnded')?.outcome).toBe('out');
+    expect(h.s.pcActive).toBe(false);
+    expect(h.last('restart')?.restart.kind).toBe('longCorner');
+  });
   it('substitutions are blocked during a PC (except the goalkeeper); allowed in open play', () => {
     const h = pcAwarded();
     expect(gateCommand(h.s, h.view(), 'substitute', 5, h.laws)).toBe(false);

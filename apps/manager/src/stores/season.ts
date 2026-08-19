@@ -1,12 +1,26 @@
 import { defineStore } from 'pinia';
-import { ENGINE_VERSION, type MatchLog } from '@bullyoff/engine';
-import { createWorld, deserialize, serialize, standings, fixturesToday, clubPlayers, ageOf, overall, type ClubId, type Fixture, type TableRow, type World, type SaveFile } from '@bullyoff/season';
+import { markRaw, toRaw } from 'vue';
+import { ENGINE_VERSION, type MatchLog, type MatchSetup, type TeamTactics } from '@bullyoff/engine';
+import { createWorld, deserialize, serialize, standings, fixturesToday, fixtureSetup, clubPlayers, ageOf, overall, type ClubId, type Fixture, type TableRow, type World, type SaveFile } from '@bullyoff/season';
 import SeasonWorker from '../engine/season.worker?worker';
 import type { FromSeason, ToSeason } from '../engine/season.worker';
 import { loadSlot, saveSlot, listSlots, persistStorage } from '../engine/persist';
 
+/** A live coached match (Phase 7): everything the CoachView needs, all plain data. */
+export interface Coaching {
+  fixtureId: number;
+  setup: MatchSetup;
+  seed: number;
+  tactics: [TeamTactics, TeamTactics];
+  coachTeam: 0 | 1;
+  /** local engine player id → display name / role */
+  names: Record<number, { name: string; role: string }>;
+  title: string;
+}
+
 interface SeasonState {
   world: World | null;
+  coaching: Coaching | null;
   busy: boolean;
   error: string;
   lastUserLog: MatchLog | null;
@@ -26,7 +40,7 @@ function ask(msg: DistributiveOmit<ToSeason, 'id'>): Promise<FromSeason> {
 }
 
 export const useSeasonStore = defineStore('season', {
-  state: (): SeasonState => ({ world: null, busy: false, error: '', lastUserLog: null, lastPlayed: [], slots: [], message: '' }),
+  state: (): SeasonState => ({ world: null, coaching: null, busy: false, error: '', lastUserLog: null, lastPlayed: [], slots: [], message: '' }),
   getters: {
     userClub: (s) => (s.world?.userClub ? s.world.clubs[s.world.userClub] ?? null : null),
     table(): TableRow[] { return this.world && this.userClub ? standings(this.world, this.userClub.tier) : []; },
@@ -43,6 +57,12 @@ export const useSeasonStore = defineStore('season', {
       return clubPlayers(w, uc, true).map((p) => ({ id: p.id, name: `${p.first} ${p.last}${p.youth ? ' (youth)' : ''}`, role: p.role, age: ageOf(p, w.year), ovr: Math.round(overall(p) * 10) / 10, injured: p.injuredDays, goals: p.goals }));
     },
     clubName(): (id: ClubId) => string { return (id) => this.world?.clubs[id]?.name ?? id; },
+    /** The user's fixture on today's match day, if any (coachable). */
+    todaysUserFixture(): Fixture | null {
+      const w = this.world; if (!w?.userClub) return null;
+      const u = w.userClub;
+      return fixturesToday(w).find((f) => f.home === u || f.away === u) ?? null;
+    },
   },
   actions: {
     newWorld(seed: number, profile: 'mens' | 'womens'): void { this.world = createWorld(seed, profile); this.lastUserLog = null; this.message = 'New world created — pick your club.'; },
@@ -51,24 +71,44 @@ export const useSeasonStore = defineStore('season', {
       if (!this.world) return;
       this.busy = true; this.error = '';
       try {
-        const r = await ask({ type: 'day', world: this.world, userClub: this.world.userClub });
-        if (r.type === 'world') { this.world = r.world; this.lastUserLog = r.userLog ?? this.lastUserLog; this.lastPlayed = r.playedFixtureIds; this.message = `Match day ${r.world.season.day} played (${r.playedFixtureIds.length} fixtures).`; }
+        const r = await ask({ type: 'day', world: toRaw(this.world), userClub: this.world.userClub });
+        if (r.type === 'world') { this.world = r.world; this.lastUserLog = r.userLog ? markRaw(r.userLog) : this.lastUserLog; this.lastPlayed = r.playedFixtureIds; this.message = `Match day ${r.world.season.day} played (${r.playedFixtureIds.length} fixtures).`; }
       } catch (e) { this.error = e instanceof Error ? e.message : String(e); } finally { this.busy = false; }
     },
     async playToEnd(): Promise<void> {
       if (!this.world) return;
       this.busy = true; this.error = '';
       try {
-        const r = await ask({ type: 'toEnd', world: this.world, userClub: this.world.userClub });
-        if (r.type === 'world') { this.world = r.world; this.lastUserLog = r.userLog ?? this.lastUserLog; this.message = `Season ${r.world.year} finished.`; }
+        const r = await ask({ type: 'toEnd', world: toRaw(this.world), userClub: this.world.userClub });
+        if (r.type === 'world') { this.world = r.world; this.lastUserLog = r.userLog ? markRaw(r.userLog) : this.lastUserLog; this.message = `Season ${r.world.year} finished.`; }
       } catch (e) { this.error = e instanceof Error ? e.message : String(e); } finally { this.busy = false; }
     },
     async nextSeason(): Promise<void> {
       if (!this.world?.season.finished) return;
       this.busy = true;
-      try { const r = await ask({ type: 'newSeason', world: this.world }); if (r.type === 'world') { this.world = r.world; this.message = `Season ${r.world.year} — new fixtures, developed squads.`; } }
+      try { const r = await ask({ type: 'newSeason', world: toRaw(this.world) }); if (r.type === 'world') { this.world = r.world; this.message = `Season ${r.world.year} — new fixtures, developed squads.`; } }
       catch (e) { this.error = e instanceof Error ? e.message : String(e); } finally { this.busy = false; }
     },
+    /** Phase 7: take today's fixture to the touchline. The CoachView drives the engine worker; `finishCoaching` records the log. */
+    startCoaching(): void {
+      const w = this.world; const f = this.todaysUserFixture;
+      if (!w?.userClub || !f) return;
+      const { setup, tactics, idMap } = fixtureSetup(toRaw(w), f);
+      const names: Record<number, { name: string; role: string }> = {};
+      for (const [local, pid] of idMap) { const p = w.persons[pid]; if (p) names[local] = { name: `${p.first} ${p.last}`, role: p.role }; }
+      const coachTeam: 0 | 1 = f.home === w.userClub ? 0 : 1;
+      this.coaching = markRaw({ fixtureId: f.id, setup, seed: f.seed, tactics, coachTeam, names, title: `${this.clubName(f.home)} v ${this.clubName(f.away)} · day ${f.day} · ${f.phase}` });
+      this.error = '';
+    },
+    async finishCoaching(log: MatchLog): Promise<void> {
+      const c = this.coaching; if (!c || !this.world) return;
+      this.busy = true;
+      try {
+        const r = await ask({ type: 'record', world: toRaw(this.world), fixtureId: c.fixtureId, log });
+        if (r.type === 'world') { this.world = r.world; this.lastUserLog = markRaw(log); this.message = 'Your match is in the books — play the rest of the day.'; }
+      } catch (e) { this.error = e instanceof Error ? e.message : String(e); } finally { this.busy = false; this.coaching = null; }
+    },
+    abandonCoaching(): void { this.coaching = null; },
     async save(slot = 'autosave'): Promise<void> {
       if (!this.world) return;
       await persistStorage();

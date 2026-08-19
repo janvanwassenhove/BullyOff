@@ -76,3 +76,21 @@ Verdict: **partially causal.** PCs and draws move the right way with quality; go
 ## Reproducibility
 
 Every batch is deterministic per seed (`seed + i`); `pnpm calibrate:run` uses seeds 42–137. Changing any engine/AI/rules constant changes the numbers and, usually, the scenario hashes (`scenarios.golden.json`) — update both deliberately and note the reason.
+
+## Re-run after Phase 7 (engine 0.5.0, 2026-08-19)
+
+Phase 7 changed the AI's logs (stamina-driven rotation, bench recovery, a rules fix that ended stalled PCs). Same 96-match protocol:
+
+| metric | men's 0.4.0 → 0.5.0 | women's 0.4.0 → 0.5.0 |
+| --- | --- | --- |
+| goals / match | 5.4 → **5.42** | 3.6 → **3.61** |
+| draw rate | → 0.10 | → 0.21 |
+| PC (+PS) goal share | 0.23 → **0.33** (now in band) | → 0.31 |
+| PCs / match | 6.4 → 7.16 | → 6.80 |
+| PC conversion | → 0.24 | → 0.16 |
+| circle entries / match | → 20.2 (MISS, est row) | → 18.4 (MISS, est row) |
+| shots / match | → 27.8 | → 32.5 (MISS high, est row) |
+| restarts / match | 65 → 71 | → 68 |
+| substitutions / match | ≈ 2 → **7.9** | → **9.8** |
+
+**Measured rows all pass for both profiles; the men's PC-share near-miss of Phase 4 is gone** (more PCs, unchanged conversion). The remaining misses are all on `EST` rows (circle entries, women's shots/strokes/greens) and unchanged in character from Phase 4 — see Known deviations. Rotation volume rose from ≈ 2 to 8–10 subs per match at the new default `rotateBelowStamina` 0.7; still below a real club match (open question #15 follow-up: stamina curve).

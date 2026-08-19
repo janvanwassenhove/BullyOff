@@ -49,6 +49,17 @@ export function selectSquad(w: World, club: ClubId, seed: number): { starters: P
   return { starters, bench };
 }
 
+/**
+ * The engine setup for a fixture (Phase 7: the manager coaches the user's fixture live in the engine worker
+ * with exactly this setup, then records the log back with `recordFixture`). Deterministic in world + fixture.
+ */
+export function fixtureSetup(w: World, f: Fixture, keepFrames = true): { setup: MatchSetup; idMap: Map<number, number>; tactics: [TeamTactics, TeamTactics] } {
+  const r = toSetup(w, f, keepFrames);
+  const home = w.clubs[f.home], away = w.clubs[f.away];
+  if (!home || !away) throw new Error(`fixture ${f.id}: unknown club`);
+  return { ...r, tactics: [{ ...home.tactics }, { ...away.tactics }] };
+}
+
 function toSetup(w: World, f: Fixture, keepFrames: boolean): { setup: MatchSetup; idMap: Map<number, number> } {
   const idMap = new Map<number, number>();
   const players: PlayerSetup[] = [];
@@ -145,7 +156,11 @@ export function applyInjuries(w: World, persons: readonly Person[], seed: number
 
 /** Play one fixture and record everything on the world. */
 export function playFixture(w: World, f: Fixture, runner: MatchRunner, keepReplay: boolean): void {
-  const out = runner(w, f, { keepReplay });
+  recordFixture(w, f, runner(w, f, { keepReplay }), keepReplay);
+}
+
+/** Record a finished match (from a runner, or a coached match played elsewhere) on the fixture and the persons. */
+export function recordFixture(w: World, f: Fixture, out: MatchOutcome, keepReplay: boolean): void {
   f.played = true;
   f.result = { home: out.home, away: out.away };
   if (out.stats) f.stats = out.stats;

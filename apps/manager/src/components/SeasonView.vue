@@ -103,11 +103,19 @@ function download(): void {
           <span class="muted">tier {{ season.userClub?.tier }} · season {{ season.world.year }} · day {{ season.world.season.day }}/{{ season.world.season.days }}{{ season.world.season.finished ? ' · finished' : '' }}</span>
           <span class="grow" />
           <button
+            v-if="season.todaysUserFixture"
+            class="btn primary"
+            :disabled="season.busy"
+            @click="season.startCoaching()"
+          >
+            Coach today's match
+          </button>
+          <button
             class="btn"
             :disabled="season.busy || season.world.season.finished"
             @click="season.playDay()"
           >
-            {{ season.busy ? 'playing…' : 'Play match day' }}
+            {{ season.busy ? 'playing…' : season.todaysUserFixture ? 'Sim match day (incl. mine)' : 'Play match day' }}
           </button>
           <button
             class="btn"

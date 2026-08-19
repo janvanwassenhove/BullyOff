@@ -2,7 +2,7 @@
  * Engine client for the UI thread (ADR-008): one Web Worker, typed messages,
  * promise per request. Match state never lives here — only logs come back.
  */
-import type { FromEngine, MatchLog, ToEngine } from '@bullyoff/engine';
+import type { CoachInstruction, Frame, FromEngine, MatchEvent, MatchLog, MatchLogHeader, MatchSetup, TeamTactics, ToEngine } from '@bullyoff/engine';
 import EngineWorker from '@bullyoff/engine/worker?worker';
 
 interface Pending { resolve: (m: FromEngine) => void; reject: (e: Error) => void }
@@ -42,6 +42,28 @@ export class EngineClient {
     const m = await this.send({ type: 'scenario', scenarioId });
     if (m.type !== 'log') throw new Error('unexpected reply');
     return { header: m.header, events: m.events, frames: m.frames };
+  }
+
+  // ── coached mode (Phase 7): the match lives in the worker; we advance it and instruct the AI ──
+  async initAi(setup: MatchSetup, seed: number, tactics: [TeamTactics, TeamTactics]): Promise<{ header: MatchLogHeader; events: MatchEvent[] }> {
+    const m = await this.send({ type: 'initAi', setup, seed, tactics });
+    if (m.type !== 'ready') throw new Error('unexpected reply');
+    return { header: m.header, events: m.events };
+  }
+  async advance(ticks: number): Promise<{ fromTick: number; toTick: number; events: MatchEvent[]; frames: Frame[] }> {
+    const m = await this.send({ type: 'advance', ticks });
+    if (m.type !== 'events') throw new Error('unexpected reply');
+    return m;
+  }
+  async instruct(instructions: CoachInstruction[]): Promise<[TeamTactics, TeamTactics]> {
+    const m = await this.send({ type: 'instruct', instructions });
+    if (m.type !== 'instructed') throw new Error('unexpected reply');
+    return m.tactics;
+  }
+  async end(): Promise<MatchEvent[]> {
+    const m = await this.send({ type: 'end' });
+    if (m.type !== 'ended') throw new Error('unexpected reply');
+    return m.events;
   }
 
   destroy(): void { this.worker.terminate(); }

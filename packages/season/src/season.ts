@@ -7,7 +7,8 @@
 import { Rng, clamp } from '@bullyoff/shared';
 import type { ClubId, Fixture, Season, SeasonSummary, Tier, World } from './model.js';
 import { generateFinal, generateFixtures, generatePlaydown, generatePlayoffs } from './fixtures.js';
-import { playFixture, resolveShootOut, type MatchRunner } from './matchday.js';
+import { fixtureSetup, playFixture, recordFixture, resolveShootOut, type MatchRunner } from './matchday.js';
+import { matchStats, type MatchLog } from '@bullyoff/engine';
 import { standings, tieAggregate } from './table.js';
 import { developSeason, recomputeClubLevels } from './develop.js';
 import { seasonFinances } from './finance.js';
@@ -160,6 +161,22 @@ function finishSeason(w: World): void {
 }
 
 /** Roll the world into the next season: tiers, finances, development, new fixtures. */
+/**
+ * Record a match the coach played live (Phase 7): the log came from the engine worker started with
+ * `fixtureSetup(w, f)`; results, stats, goals, injuries and the replay land exactly as for a simulated fixture,
+ * knock-out ties are settled, and `advanceDay` then plays the rest of the day.
+ */
+export function recordCoachedFixture(w: World, fixtureId: number, log: MatchLog): Fixture {
+  const f = w.season.fixtures.find((x) => x.id === fixtureId);
+  if (!f) throw new Error(`fixture ${fixtureId} not found`);
+  if (f.played) throw new Error(`fixture ${fixtureId} already played`);
+  const { idMap } = fixtureSetup(w, f);
+  const stats = matchStats(log);
+  recordFixture(w, f, { home: stats.goals[0], away: stats.goals[1], stats, log, idMap }, true);
+  settleKnockout(w, f);
+  return f;
+}
+
 export function newSeason(w: World): void {
   const last = w.history[w.history.length - 1];
   if (!last || !w.season.finished) throw new Error('season not finished');
