@@ -73,7 +73,7 @@ export default defineConfig(
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       '@typescript-eslint/explicit-module-boundary-types': 'error',
       '@typescript-eslint/no-non-null-assertion': 'error',
-      '@typescript-eslint/switch-exhaustiveness-check': 'error',
+      '@typescript-eslint/switch-exhaustiveness-check': ['error', { considerDefaultExhaustiveForUnions: true }],
       '@typescript-eslint/restrict-template-expressions': ['error', { allowNumber: true }],
       'no-console': ['error', { allow: ['warn', 'error'] }],
       'eqeqeq': ['error', 'always'],
@@ -120,7 +120,7 @@ export default defineConfig(
 
   // ── Browser surfaces (Vue apps, render, the engine's browser harness) ───────
   {
-    files: ['apps/manager/**/*.{ts,vue}', 'apps/arcade/**/*.{ts,vue}', 'packages/render/**/*.ts', 'packages/engine/browser/**/*.ts'],
+    files: ['apps/manager/**/*.{ts,vue}', 'apps/arcade/**/*.{ts,vue}', 'packages/render/**/*.ts', 'packages/engine/browser/**/*.ts', 'packages/render/browser/**/*.ts'],
     languageOptions: { globals: { ...globals.browser } },
   },
   ...vue.configs['flat/recommended'],

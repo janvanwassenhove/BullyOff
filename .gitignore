@@ -13,3 +13,4 @@ Thumbs.db
 # calibration outputs are regenerated, never committed
 tools/calibrate/out/
 .calib-*.json
+packages/render/browser/shots/

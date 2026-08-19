@@ -55,6 +55,9 @@ importers:
       '@bullyoff/render':
         specifier: workspace:*
         version: link:../../packages/render
+      '@bullyoff/rules':
+        specifier: workspace:*
+        version: link:../../packages/rules
       '@bullyoff/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -107,6 +110,9 @@ importers:
       '@bullyoff/engine':
         specifier: workspace:*
         version: link:../engine
+      '@bullyoff/rules':
+        specifier: workspace:*
+        version: link:../rules
       '@bullyoff/shared':
         specifier: workspace:*
         version: link:../shared

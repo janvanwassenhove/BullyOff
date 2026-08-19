@@ -16,6 +16,7 @@ export { createMatch, tick, endMatch, simulate, simulateMatch, captureFrame, rul
 export type { MatchSetup, PlayerSetup, MatchState, Controller } from './match/match.js';
 export { hashLog } from './sim/hash.js';
 export { matchStats, aggregate, type MatchStats, type Aggregate } from './sim/stats.js';
+export { encodeReplay, decodeReplay, KEYFRAME_PLAYER_STRIDE, type ReplayFile } from './replay/codec.js';
 export * from './player/attributes.js';
 export * from './ai/valueGrid.js';
 export * from './ai/tactics.js';

@@ -20,7 +20,7 @@
     "check": "pnpm typecheck && pnpm lint && pnpm test",
     "dev:manager": "pnpm --filter @bullyoff/manager dev",
     "simcli": "pnpm --filter @bullyoff/simcli start",
-    "test:browsers": "pnpm --filter @bullyoff/engine test:browsers",
+    "test:browsers": "pnpm --filter @bullyoff/engine test:browsers && pnpm --filter @bullyoff/render test:browsers",
     "browsers:install": "playwright install --with-deps chromium firefox webkit",
     "calibrate": "tsx tools/calibrate/src/main.ts",
     "calibrate:run": "pnpm --silent simcli batch --matches 96 --spread 2 --profile mens --out .calib-mens.json && pnpm calibrate .calib-mens.json; pnpm --silent simcli batch --matches 96 --spread 2 --profile womens --out .calib-womens.json && pnpm calibrate .calib-womens.json"

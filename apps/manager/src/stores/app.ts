@@ -7,7 +7,7 @@ import { defineStore } from 'pinia';
  */
 export const useAppStore = defineStore('app', {
   state: () => ({
-    phase: 0,
-    phaseTitle: 'Foundation and decisions',
+    phase: 5,
+    phaseTitle: 'Renderer',
   }),
 });

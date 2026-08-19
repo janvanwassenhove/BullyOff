@@ -5,7 +5,12 @@
  * The engine itself knows nothing about workers.
  */
 import type { Command } from '../match/commands.js';
-import { captureFrame, createMatch, endMatch, simulate, tick, type MatchState } from '../match/match.js';
+import { captureFrame, createMatch, endMatch, simulate, simulateMatch, tick, type MatchState } from '../match/match.js';
+import { aiController, squadsFromSetup } from '../ai/brain.js';
+import { aiMatchSetup } from '../sim/fixtures.js';
+import { runScenario, scenarioById } from '../sim/scenarios.js';
+import { getProfile } from '../profile.js';
+import { FIH_OUTDOOR_FAST } from '@bullyoff/rules';
 import type { Frame, MatchEvent } from '../events/events.js';
 import { hashLog } from '../sim/hash.js';
 import type { FromEngine, ToEngine } from './protocol.js';
@@ -54,6 +59,20 @@ export function createEngineHost(post: (msg: FromEngine) => void): EngineHost {
           }
           case 'simulate': {
             const log = simulate(msg.setup, msg.seed, msg.script, msg.ticks);
+            post({ type: 'log', id: msg.id, header: log.header, events: log.events, frames: log.frames, hash: hashLog(log) });
+            return;
+          }
+          case 'simulateAi': {
+            const setup = aiMatchSetup(msg.profile, msg.surface, FIH_OUTDOOR_FAST, msg.level ?? 12);
+            setup.frameEvery = msg.frameEvery ?? 1;
+            const log = simulateMatch(setup, msg.seed, aiController(msg.seed, squadsFromSetup(setup.players), { profile: getProfile(msg.profile), surface: msg.surface }), msg.maxTicks ?? 200_000);
+            post({ type: 'log', id: msg.id, header: log.header, events: log.events, frames: log.frames, hash: hashLog(log) });
+            return;
+          }
+          case 'scenario': {
+            const sc = scenarioById(msg.scenarioId);
+            if (!sc) { post({ type: 'error', id: msg.id, message: `unknown scenario ${msg.scenarioId}` }); return; }
+            const log = runScenario({ ...sc, setup: { ...sc.setup, frameEvery: 1 } });
             post({ type: 'log', id: msg.id, header: log.header, events: log.events, frames: log.frames, hash: hashLog(log) });
             return;
           }

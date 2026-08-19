@@ -1,0 +1,6 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "manager", "runtimeExecutable": "pnpm", "runtimeArgs": ["--filter", "@bullyoff/manager", "exec", "vite", "--port", "5199", "--strictPort"], "port": 5199 }
+  ]
+}
