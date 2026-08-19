@@ -209,6 +209,15 @@ describe('fouls from physics', () => {
     expect(g.log.slice(n).some((r) => r.kind === 'foul')).toBe(false);
   });
 
+  it('negative: a raised shot at the goalkeeper is not dangerous play (keepers are protected)', () => {
+    const g = live();
+    g.players.find((p) => p.id === 12)!.x = 44; g.players.find((p) => p.id === 12)!.y = 0.1; // away GK
+    g.ball = { x: 40, y: 0, z: 0.01 }; g.vel = { x: 20, y: 0, z: 5 };
+    const n = g.log.length;
+    g.step({ struck: [struck(10, 0, { x: 40, y: 0 }, { kind: 'flick', lift: 0.25, speed: 22 })] });
+    expect(g.log.slice(n).some((r) => r.kind === 'foul')).toBe(false);
+  });
+
   it('back-stick: playing with the round side → foul; flat side → play on', () => {
     const h = live();
     h.step({ struck: [struck(10, 0, { x: 5, y: 5 }, { face: 'round' })] });

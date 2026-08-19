@@ -34,7 +34,8 @@ export interface BallParams {
 }
 
 export interface PlayerParams {
-  radius: Scalar;          // body capsule radius for ball collision, m
+  /** Effective body radius for ball collision, m — legs, feet and a lunging stick, not just the torso (Phase 4 calibrated). */
+  radius: Scalar;
   height: Scalar;          // above this the ball passes over a player, m
   maxSpeed: Scalar;        // m/s, elite sprint
   accel: Scalar;           // m/s²
@@ -59,12 +60,27 @@ export interface StrikeParams {
   trapRetain: Scalar;
 }
 
+/**
+ * Phase 4 calibration knobs — profile-level scalars for effects the model does not
+ * yet derive from first principles. Each is PROVISIONAL and documented in
+ * docs/rules/calibration.md with the reason it exists; the goal is to retire them.
+ */
+export interface CalibrationParams {
+  /**
+   * Multiplier on the goalkeeper's save probability. 1.0 for the men's game. The women's
+   * game concedes ~⅓ fewer goals per shot on target than shot speed alone explains
+   * (keeper reach vs goal size, shot placement); until Phase 5/6 model that, this carries it.
+   */
+  gkSaveScale: Scalar;
+}
+
 export interface Profile {
   id: ProfileId;
   ball: BallParams;
   surfaces: Record<SurfaceState, SurfaceParams>;
   player: PlayerParams;
   strike: StrikeParams;
+  calibration: CalibrationParams;
 }
 
 const BALL: BallParams = { mass: 0.16, radius: 0.036, airDrag: 0.008, gravity: 9.81 };
@@ -84,13 +100,14 @@ export const MENS: Profile = {
   ball: BALL,
   surfaces: SURFACES,
   player: {
-    radius: 0.35, height: 1.85, maxSpeed: 8.6, accel: 4.5, decel: 7.0, turnRate: 6.0, reach: 1.6,
+    radius: 0.5, height: 1.85, maxSpeed: 8.6, accel: 4.5, decel: 7.0, turnRate: 6.0, reach: 1.6,
     staminaDrainAtMax: 0.006, staminaRecoverIdle: 0.004,
   },
   strike: {
-    pushSpeed: 14, slapSpeed: 24, hitSpeed: 36.1, flickSpeed: 31, flickLiftAngle: 0.20,
+    pushSpeed: 14, slapSpeed: 24, hitSpeed: 36.1, flickSpeed: 33, flickLiftAngle: 0.20,
     hitLiftAngle: 0.02, aerialSpeed: 22, aerialLiftAngle: 0.70, trapRetain: 0.05,
   },
+  calibration: { gkSaveScale: 1.0 },
 };
 
 export const WOMENS: Profile = {
@@ -98,13 +115,14 @@ export const WOMENS: Profile = {
   ball: BALL,
   surfaces: SURFACES,
   player: {
-    radius: 0.33, height: 1.72, maxSpeed: 7.8, accel: 4.2, decel: 6.5, turnRate: 6.2, reach: 1.5,
+    radius: 0.47, height: 1.72, maxSpeed: 7.8, accel: 4.2, decel: 6.5, turnRate: 6.2, reach: 1.5,
     staminaDrainAtMax: 0.006, staminaRecoverIdle: 0.004,
   },
   strike: {
     pushSpeed: 12.5, slapSpeed: 21, hitSpeed: 30.5, flickSpeed: 26, flickLiftAngle: 0.20,
     hitLiftAngle: 0.02, aerialSpeed: 19, aerialLiftAngle: 0.70, trapRetain: 0.05,
   },
+  calibration: { gkSaveScale: 1.6 },
 };
 
 export const PROFILES: Record<ProfileId, Profile> = { mens: MENS, womens: WOMENS };

@@ -18,7 +18,7 @@ import { createBall, launchBall, stepBall, type BallState } from '../ball/ball.j
 import { sweepBall, type BodyCollider } from '../ball/collide.js';
 import { FRAME_PLAYER_STRIDE, type Frame, type MatchEvent, type MatchLog, type MatchLogHeader, type PlayerId, type TeamId } from '../events/events.js';
 import { createPlayer, stepPlayer, stickHead, type PlayerState } from '../player/player.js';
-import { gkReach, gkSaveChance, strikeErrorSd, strikeSpeedFactor, tackleOdds, trapSuccess, type Attributes, type Role } from '../player/attributes.js';
+import { gkReach, gkSaveChance, gkStrokeSaveChance, strikeErrorSd, strikeSpeedFactor, tackleOdds, trapSuccess, type Attributes, type Role } from '../player/attributes.js';
 import { getProfile, type Profile, type ProfileId, type SurfaceState } from '../profile.js';
 import type { Command } from './commands.js';
 
@@ -213,7 +213,7 @@ export function tick(s: MatchState, commands: readonly Command[]): MatchEvent[] 
         launchBall(ball, angle, speed, lift);
         ball.lastTouch = p.id; ball.inNet = false; s.lastTouchTeam = p.team;
         struckBy = p.id;
-        events.push({ t: 'BallStruck', tick: t, playerId: p.id, team: p.team, kind: c.strike, speed, lift });
+        events.push({ t: 'BallStruck', tick: t, playerId: p.id, team: p.team, kind: c.strike, speed, lift, x: ball.pos.x, y: ball.pos.y });
         sig.struck.push({ playerId: p.id, team: p.team, kind: c.strike, face: c.face ?? 'flat', speed, lift, at: { x: ball.pos.x, y: ball.pos.y } });
         break;
       }
@@ -221,12 +221,15 @@ export function tick(s: MatchState, commands: readonly Command[]): MatchEvent[] 
         const p = playerOf(s, c.playerId); if (!p) break;
         if (!s.sandbox && !gateCommand(s.rules, view0, 'trap', p.id, laws)) break;
         const isGk = s.goalkeepers.has(p.id);
+        if (t < p.trapCooldownUntil) break; // beaten a moment ago: no second bite at the same ball
         if (!ballInReach(s, p, isGk ? gkReach(p.attrs) : undefined, isGk ? 2.0 : undefined)) break;
         const incoming = Math.sqrt(ball.vel.x ** 2 + ball.vel.y ** 2 + ball.vel.z ** 2);
         let clean = true;
         if (!s.sandbox) {
           const dxb = ball.pos.x - p.pos.x, dyb = ball.pos.y - p.pos.y;
-          const pClean = isGk ? gkSaveChance(p.attrs, incoming, Math.sqrt(dxb * dxb + dyb * dyb)) : trapSuccess(p.attrs, incoming, ball.pos.z);
+          const pClean = isGk
+            ? (s.rules.psActive && s.rules.restart === null ? gkStrokeSaveChance(p.attrs) : Math.min(0.97, profile.calibration.gkSaveScale * gkSaveChance(p.attrs, incoming, Math.sqrt(dxb * dxb + dyb * dyb))))
+            : trapSuccess(p.attrs, incoming, ball.pos.z);
           clean = s.rng.chance(pClean);
         }
         if (clean) {
@@ -234,12 +237,14 @@ export function tick(s: MatchState, commands: readonly Command[]): MatchEvent[] 
           ball.vel = { x: ball.vel.x * keep, y: ball.vel.y * keep, z: 0 };
           ball.pos = { ...ball.pos, z: 0 }; ball.grounded = true;
         } else if (isGk) {
+          p.trapCooldownUntil = t + 10;
           // beaten: the ball is barely touched — it carries on with most of its speed, slightly deflected (a fingertip, a pad edge)
           const a0 = dmath.atan2(ball.vel.y, ball.vel.x);
           const a = a0 + s.rng.gaussian(0, 0.12);
           const vh = Math.sqrt(ball.vel.x ** 2 + ball.vel.y ** 2) * s.rng.range(0.7, 0.95);
           ball.vel = { x: vh * dmath.cos(a), y: vh * dmath.sin(a), z: ball.vel.z * 0.8 };
         } else {
+          p.trapCooldownUntil = t + 6;
           // miscontrol: the ball skids off the stick face and carries on roughly onward (±70°) at reduced speed
           const a0 = incoming > 0.5 ? dmath.atan2(ball.vel.y, ball.vel.x) : p.heading;
           const a = a0 + s.rng.range(-1.2, 1.2);
@@ -250,7 +255,7 @@ export function tick(s: MatchState, commands: readonly Command[]): MatchEvent[] 
         ball.lastTouch = p.id; s.lastTouchTeam = p.team;
         struckBy = p.id;
         events.push({ t: 'BallTrapped', tick: t, playerId: p.id, team: p.team, clean });
-        sig.trapped.push({ playerId: p.id, team: p.team, at: { x: ball.pos.x, y: ball.pos.y } });
+        sig.trapped.push({ playerId: p.id, team: p.team, at: { x: ball.pos.x, y: ball.pos.y }, clean });
         break;
       }
       case 'tackle': {

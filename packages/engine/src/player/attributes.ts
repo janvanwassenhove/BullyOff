@@ -66,7 +66,7 @@ export function strikeSpeedFactor(a: Attributes, kind: 'push' | 'slap' | 'hit' |
 export function strikeErrorSd(a: Attributes, kind: 'push' | 'slap' | 'hit' | 'flick' | 'aerial', stamina: Scalar): Scalar {
   const attr = kind === 'push' ? a.technical.push : kind === 'slap' ? a.technical.slap : kind === 'hit' ? a.technical.hit
     : kind === 'flick' ? a.technical.dragFlick : a.technical.skills3d;
-  const base = 0.157 - 0.131 * norm(attr); // 9° → 1.5°
+  const base = 0.135 - 0.085 * norm(attr); // 7.7° → 2.9° (elite players are accurate, not lasers)
   const composure = 1.15 - 0.3 * norm(a.mental.composure);
   const fatigue = 1 + (1 - stamina) * 0.8;
   // A push is the accurate pass (the ball never leaves the stick); a hit is a swing; an aerial is a scoop.
@@ -106,7 +106,12 @@ export const gkReach = (a: Attributes): Scalar => 1.1 + 0.9 * (0.6 * norm(a.goal
 /** GK save probability given a shot at speed `v` arriving within reach; positioning narrows angles elsewhere. */
 export function gkSaveChance(a: Attributes, shotSpeed: Scalar, distanceFromBody: Scalar): Scalar {
   const reflex = norm(a.goalkeeper.reflexes);
-  const speedPenalty = clamp((shotSpeed - 15) / 40, 0, 0.55);
-  const reachPenalty = clamp(distanceFromBody / gkReach(a), 0, 1) * 0.5;
-  return clamp(0.85 + 0.15 * reflex - speedPenalty - reachPenalty, 0.05, 0.98);
+  const speedPenalty = clamp((shotSpeed - 12) / 45, 0, 0.5);
+  const reachPenalty = clamp(distanceFromBody / gkReach(a), 0, 1) * 0.45;
+  // Calibrated so an average keeper stops ≈ 50–55 % of on-target shots incl. touches (Phase 4: goals ≈ 22 % of all shots).
+  return clamp(0.44 + 0.75 * reflex - speedPenalty - reachPenalty, 0.05, 0.95);
+}
+/** A penalty stroke gives the keeper ~0.25 s from 6.4 m: reflex-dominated, low. Elite conversion ≈ 75 %. */
+export function gkStrokeSaveChance(a: Attributes): Scalar {
+  return clamp(0.15 + 0.2 * norm(a.goalkeeper.reflexes) + 0.1 * norm(a.goalkeeper.oneOnOne), 0.05, 0.5);
 }

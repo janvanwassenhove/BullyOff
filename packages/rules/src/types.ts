@@ -50,7 +50,7 @@ export interface RulesView {
 /** Physics signals for this tick, in temporal order, already resolved by the engine. */
 export interface TickSignals {
   struck: { playerId: PlayerId; team: TeamId; kind: StrikeKind; face: StickFace; speed: Scalar; lift: Scalar; at: Vec2 }[];
-  trapped: { playerId: PlayerId; team: TeamId; at: Vec2 }[];
+  trapped: { playerId: PlayerId; team: TeamId; at: Vec2; clean?: boolean }[];
   bodyContacts: { playerId: PlayerId; team: TeamId; at: Vec3; ballSpeed: Scalar; ballHeight: Scalar }[];
   circleEntries: { end: End }[];
   circleExits: { end: End }[];

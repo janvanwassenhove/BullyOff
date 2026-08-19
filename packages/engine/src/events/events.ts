@@ -22,7 +22,7 @@ export type MatchEvent =
   | { t: 'MatchStart'; tick: number; seed: number; profile: ProfileId; surface: SurfaceState }
   | { t: 'MatchEnd'; tick: number }
   /** A player's stick imparted velocity to the ball. */
-  | { t: 'BallStruck'; tick: number; playerId: PlayerId; team: TeamId; kind: StrikeKind; speed: Scalar; lift: Scalar }
+  | { t: 'BallStruck'; tick: number; playerId: PlayerId; team: TeamId; kind: StrikeKind; speed: Scalar; lift: Scalar; x?: Scalar; y?: Scalar }
   /** A player controlled/stopped the ball. */
   | { t: 'BallTrapped'; tick: number; playerId: PlayerId; team: TeamId; clean?: boolean }
   /** A tackle contest was resolved (Phase 3). */

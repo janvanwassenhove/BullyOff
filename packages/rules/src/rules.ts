@@ -174,10 +174,13 @@ export function stepRules(s: RulesState, laws: Laws, view: RulesView, sig: TickS
     // Goalkeepers may use their body/pads inside their own circle. FIH 10.2.
     if (p.isGoalkeeper && inOwnCircle) continue;
     // If the ball was raised dangerously *at* this player, the offence is the striker's, not the victim's — already awarded above.
-    if (bc.ballHeight > laws.dangerHeight && bc.ballSpeed > 8) continue;
+    // PROVISIONAL: a ball that hits a defender above mid-thigh at pace was raised at them (attacker's risk); below that
+    // it is feet even if slightly lifted — umpires give the PC. Threshold laws.dangerHeight + 0.3 m.
+    if (bc.ballHeight > laws.dangerHeight + 0.3 && bc.ballSpeed > 8) continue;
     // Feet/body. Advantage is an umpiring judgement; PROVISIONAL: any body contact by an outfield player is an offence.
     // If a defender's body stops a ball that was going into the goal → penalty stroke (FIH 12.4: intentional/prevents probable goal — PROVISIONAL "would have crossed the goal line inside the goal" heuristic).
-    const stroke = inOwnCircle && !p.isGoalkeeper && ballWasGoalBound(sig, bc.at, ownEnd) && bc.ballSpeed > 3;
+    // Stroke only for a genuine goal-bound shot stopped by a body close to the line (PROVISIONAL: within 5 m, > 8 m/s); other body stops in the D are PCs.
+    const stroke = inOwnCircle && !p.isGoalkeeper && ballWasGoalBound(sig, bc.at, ownEnd) && bc.ballSpeed > 8 && Math.abs(HALF_LENGTH - Math.abs(bc.at.x)) < 5;
     foul('feet', bc.playerId, p.team, { x: bc.at.x, y: bc.at.y }, stroke ? { stroke, card: 'yellow' } : { stroke });
   }
 
@@ -253,7 +256,8 @@ export function stepRules(s: RulesState, laws: Laws, view: RulesView, sig: TickS
   // ── penalty stroke over without a goal: saved, stopped, or dead (FIH 13.10) → 15 m hit-out to the defence ─
   if (s.psActive && ballLive(s) && s.psShotTick !== null && s.psTeam !== null && !flag.fouled) {
     const defTeam = otherTeam(s.psTeam);
-    const savedByDef = [...sig.trapped, ...sig.bodyContacts].some((x) => x.team === defTeam);
+    // a keeper who gets a touch but is beaten (clean === false) has not saved it — the ball is still going in
+    const savedByDef = sig.trapped.some((x) => x.team === defTeam && x.clean !== false) || sig.bodyContacts.some((x) => x.team === defTeam);
     const stopped = sig.stopped || (view.ball.speed < 0.3 && t - s.psShotTick > 10);
     if (savedByDef || stopped || t - s.psShotTick > 60) {
       const e = attackingEnd(s.psTeam);
@@ -465,6 +469,8 @@ function opponentInLine(view: RulesView, striker: PlayerId, team: TeamId, from: 
   let best: { id: PlayerId; dist: Scalar } | null = null;
   for (const p of view.players) {
     if (!p.onPitch || p.team === team || p.id === striker) continue;
+    // A raised ball at the goalkeeper is a shot, not dangerous play: keepers wear full protective equipment (FIH 9.8 note).
+    if (p.isGoalkeeper) continue;
     const dx = p.pos.x - from.x, dy = p.pos.y - from.y;
     const d = Math.sqrt(dx * dx + dy * dy);
     if (d > range || d < 0.3) continue;

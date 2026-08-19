@@ -4,7 +4,7 @@ A field hockey game for the web: a deterministic, headless match simulation engi
 
 The point is **hockey-accurate simulation** — circle rule, penalty corners, rolling substitutions, cards, four quarters, wet vs dry turf — in a sport every existing game models as "football with different rules". It is not.
 
-> Status: **Phase 3 — players and AI — built, gate awaiting the coach's verdict.** Done: deterministic 2.5D engine with swept collisions (Phase 1); the full FIH rules layer (Phase 2); attributes, the circle-warped value function, a utility AI with goalkeeper, tackles, a penalty-corner battery and rolling subs, plus the §6.2 scenario fixtures (Phase 3). `pnpm simcli match --matches 5` plays five AI matches in ~7 s. See [`KICKOFF.md`](KICKOFF.md).
+> Status: **Phase 5 — renderer** is next; Phases 0–4 are built. The engine plays deterministic AI matches under the FIH laws and is calibrated against Belgian League aggregates for men's and women's profiles (`pnpm calibrate:run`); see [`docs/rules/calibration.md`](docs/rules/calibration.md) for achieved values and known gaps, and [`KICKOFF.md`](KICKOFF.md) for the current phase.
 
 ## Documents
 
@@ -40,7 +40,7 @@ pnpm install
 pnpm check
 ```
 
-`pnpm check` = typecheck + lint + test, and must be green before any phase handoff. Other scripts: `pnpm build`, `pnpm dev:manager`, `pnpm simcli match --matches N` (AI matches), `pnpm simcli scenario list|<id>` (§6.2 fixtures as text logs), `pnpm test:watch`, `pnpm test:browsers` (cross-browser determinism; run `pnpm browsers:install` once).
+`pnpm check` = typecheck + lint + test, and must be green before any phase handoff. Other scripts: `pnpm build`, `pnpm dev:manager`, `pnpm simcli match --matches N` (AI matches), `pnpm simcli scenario list|<id>` (§6.2 fixtures as text logs), `pnpm simcli batch --matches N --spread 2 --out agg.json` + `pnpm calibrate agg.json` (or `pnpm calibrate:run` for both profiles), `pnpm test:watch`, `pnpm test:browsers` (cross-browser determinism; run `pnpm browsers:install` once).
 
 ## Ground rules (short)
 

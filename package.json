@@ -21,7 +21,9 @@
     "dev:manager": "pnpm --filter @bullyoff/manager dev",
     "simcli": "pnpm --filter @bullyoff/simcli start",
     "test:browsers": "pnpm --filter @bullyoff/engine test:browsers",
-    "browsers:install": "playwright install --with-deps chromium firefox webkit"
+    "browsers:install": "playwright install --with-deps chromium firefox webkit",
+    "calibrate": "tsx tools/calibrate/src/main.ts",
+    "calibrate:run": "pnpm --silent simcli batch --matches 96 --spread 2 --profile mens --out .calib-mens.json && pnpm calibrate .calib-mens.json; pnpm --silent simcli batch --matches 96 --spread 2 --profile womens --out .calib-womens.json && pnpm calibrate .calib-womens.json"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
@@ -36,6 +38,7 @@
     "eslint-plugin-vue": "^10.2.0",
     "globals": "^16.2.0",
     "playwright": "^1.62.1",
+    "tsx": "^4.23.12",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.35.0",
     "vitest": "^3.2.4",

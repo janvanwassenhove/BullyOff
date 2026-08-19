@@ -159,7 +159,7 @@ function teamTick(c: Ctx, leaving: Map<number, number>, lastTackleTick: Map<numb
         c.cmds.push({ tick, kind: 'move', playerId: nearestMine.id, dx: ball.x - nearestMine.pos.x, dy: ball.y - nearestMine.pos.y, effort: 0.6 });
         if (dist(nearestMine.pos, ball) < 1.3) {
           const corner = c.rng.chance(0.5) ? 1 : -1;
-          const aim = dmath.atan2(corner * (GOAL_HALF_WIDTH - 0.35) - ball.y, gx - ball.x);
+          const aim = dmath.atan2(corner * (GOAL_HALF_WIDTH - 0.75) - ball.y, gx - ball.x);
           c.cmds.push({ tick, kind: 'strike', playerId: nearestMine.id, strike: 'flick', angle: aim, power: 0.9 });
         }
       }
@@ -239,7 +239,7 @@ function bestOption(c: Ctx, me: PlayerView, restart: boolean): Option {
     const strike = dGoal < 7 ? 'push' : flickPref > 0.1 && dGoal < 12 ? 'flick' : 'hit';
     // Shoot when the chance is decent; from a poor angle prefer to work the ball (carry/pass) unless pressed.
     // Hockey reason: a shot from the edge of the D at 30° is a turnover; the spot strip is where goals come from.
-    const u = 0.1 + 1.4 * q + 0.25 * pressure * norm(a.mental.composure) - 0.15 * (1 - team.tactics.tempo) + c.rng.gaussian(0, noise);
+    const u = 0.2 + 1.4 * q + 0.25 * pressure * norm(a.mental.composure) - 0.15 * (1 - team.tactics.tempo) + c.rng.gaussian(0, noise);
     options.push({ kind: 'shoot', angle, strike, power: strike === 'push' ? 0.9 : 1, u });
   }
 
@@ -257,7 +257,9 @@ function bestOption(c: Ctx, me: PlayerView, restart: boolean): Option {
     // backwards passes are fine when pressed, poor otherwise
     const backwards = end * (lead.x - ball.x) < -5 ? (pressure > 0.5 ? 0 : 0.12) : 0;
     const vision = 0.15 * norm(a.mental.vision);
-    let u = 0.15 + 1.2 * gain + 0.35 * open - 1.4 * risk - lengthPen + intoD - backwards + vision + c.rng.gaussian(0, noise);
+    // Inside the attacking D a "risky" lane past a defender is a chance to hit a foot and win a PC — attackers take it.
+    const riskW = inD ? 0.6 : 1.4;
+    let u = 0.15 + 1.2 * gain + 0.35 * open - riskW * risk - lengthPen + intoD - backwards + vision + c.rng.gaussian(0, noise);
     if (restart) u += 0.2; // restarts want to be taken
     const angle = dmath.atan2(lead.y - ball.y, lead.x - ball.x);
     // arrive at a trappable ~6 m/s (a bit quicker when the receiver is pressed and needs it early)
@@ -368,19 +370,31 @@ function defend(c: Ctx, carrier: PlayerView, ballXp: Scalar, ballY: Scalar, last
   const pressLine = 22 + team.tactics.pressHeight * 55;
   const engage = ballXp < pressLine || in23(ball, -end as End);
   const byDist = [...outfield].sort((a, b) => dist(a.pos, ball) - dist(b.pos, ball));
-  const first = byDist[0], second = byDist[1];
+  const first = byDist[0], second = byDist[1], third = byDist[2];
+  const inOwnDNow = inCircle(ball, -end as End);
   for (const p of outfield) {
-    if (engage && (p.id === first?.id || p.id === second?.id)) {
+    if (engage && (p.id === first?.id || p.id === second?.id || (inOwnDNow && p.id === third?.id))) {
       // close down: run at the ball, tackle when in reach; second man covers the pass inside
-      // jockey 2 m goal-side (stick reach is 1.6 m; you tackle from there, you don't stand on the ball)
-      const goalSide = { x: ball.x - end * 2.0, y: ball.y + (p.pos.y > ball.y ? 0.5 : -0.5) };
-      const target = p.id === first?.id ? goalSide : { x: ball.x - end * 5, y: ball.y + (ball.y > 0 ? -4 : 4) };
-      moveTo(c, p, target, 1);
+      // jockey 2 m goal-side (stick reach is 1.6 m; you tackle from there, you don't stand on the ball).
+      // In our own circle the first defender gets ON the ball–goal line to block the shot with stick and body —
+      // that is where most penalty corners come from (feet), and it is what real defenders do.
+      const inOwnD = inCircle(ball, -end as End);
+      const ownGoal = { x: -end * HALF_LENGTH, y: 0 };
+      const gvx = ownGoal.x - ball.x, gvy = ownGoal.y - ball.y; const gl = Math.sqrt(gvx * gvx + gvy * gvy) || 1;
+      const goalSide = inOwnD
+        ? { x: ball.x + (gvx / gl) * 1.7, y: ball.y + (gvy / gl) * 1.7 }
+        : { x: ball.x - end * 2.0, y: ball.y + (p.pos.y > ball.y ? 0.5 : -0.5) };
+      // second and third defenders stack the line towards goal, slightly staggered — a real D is crowded
+      const cover = inOwnD ? { x: ball.x + (gvx / gl) * 3.2, y: ball.y + (gvy / gl) * 3.2 + (ball.y > 0 ? -1.0 : 1.0) } : { x: ball.x - end * 5, y: ball.y + (ball.y > 0 ? -4 : 4) };
+      const cover3 = { x: ball.x + (gvx / gl) * 4.6, y: ball.y + (gvy / gl) * 4.6 + (ball.y > 0 ? 1.0 : -1.0) };
+      const target = p.id === first?.id ? goalSide : p.id === second?.id ? cover : cover3;
+      if (inOwnD) c.cmds.push({ tick, kind: 'move', playerId: p.id, dx: target.x - p.pos.x, dy: target.y - p.pos.y, effort: dist(p.pos, target) < 0.4 ? 0 : 1 });
+      else moveTo(c, p, target, 1);
       const d = dist(p.pos, ball);
       // Tackle: pick the moment (not every tick), and a beaten tackler is out of it for ~2 s — a lunge that misses
       // leaves you behind the play; that is what makes elimination skills matter.
       if (p.id === first?.id && d < 1.9 && tick - (lastTackleTick.get(p.id) ?? -99) >= 40) {
-        const aggr = 0.12 + 0.28 * norm(c.attrsOf(p.id).technical.tackling) + 0.15 * (in23(ball, -end as End) ? 1 : 0);
+        const aggr = 0.08 + 0.2 * norm(c.attrsOf(p.id).technical.tackling) + 0.2 * (in23(ball, -end as End) ? 1 : 0) + 0.2 * (inOwnD ? 1 : 0);
         if (c.rng.chance(aggr)) { c.cmds.push({ tick, kind: 'tackle', playerId: p.id, targetId: carrier.id }); lastTackleTick.set(p.id, tick); }
       }
     } else {

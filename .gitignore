@@ -12,3 +12,4 @@ Thumbs.db
 !.env.example
 # calibration outputs are regenerated, never committed
 tools/calibrate/out/
+.calib-*.json

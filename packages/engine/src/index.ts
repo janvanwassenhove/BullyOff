@@ -15,6 +15,7 @@ export * from './match/commands.js';
 export { createMatch, tick, endMatch, simulate, simulateMatch, captureFrame, rulesView, dugout } from './match/match.js';
 export type { MatchSetup, PlayerSetup, MatchState, Controller } from './match/match.js';
 export { hashLog } from './sim/hash.js';
+export { matchStats, aggregate, type MatchStats, type Aggregate } from './sim/stats.js';
 export * from './player/attributes.js';
 export * from './ai/valueGrid.js';
 export * from './ai/tactics.js';

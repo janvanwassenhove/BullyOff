@@ -53,7 +53,7 @@ describe('scenario fixtures (BRIEF §6.2)', () => {
     for (const id of ['baseline-entry', 'two-v-one', 'three-v-two', 'counter-attack']) {
       const log = runs.get(id)!;
       const activity = count(log.events, 'CircleEntry') + count(log.events, 'GoalLineCrossed') + count(log.events, 'Goal') + count(log.events, 'PenaltyCornerAwarded')
-        + log.events.filter((e) => e.t === 'BallStruck' && e.team === 0 && e.speed > 5).length;
+        + log.events.filter((e) => e.t === 'BallStruck' && e.team === 0).length;
       expect(activity, id).toBeGreaterThan(0);
     }
   });

@@ -55,3 +55,7 @@ Coordinates: home (team 0) attacks +x / the east goal (`end = +1`); away attacks
 9. **PC "cleared"**: ended once the ball is >5 m outside the circle. Real rule: the PC is over when the ball travels >5 m outside the circle *or* … (several conditions). Simplified.
 10. **Stroke over**: saved/stopped/dead → 15 m hit-out. Also ends after 3 s of play if nothing else resolved it (safeguard).
 11. **Second card while suspended**: extends the suspension (implemented) vs. red (common practice) — decide.
+12. **Raised ball at the goalkeeper** is never dangerous play (keepers are protected) — implemented; confirm.
+13. **Feet on a lifted ball**: called up to mid-thigh (dangerHeight + 0.3 m); above that the raised ball is the attacker's offence — implemented (Phase 4); confirm.
+14. **Penalty stroke heuristic** tightened: a genuine goal-bound shot (> 8 m/s) stopped by an outfield body within 5 m of the goal line; other body stops in the D → PC.
+15. **A beaten keeper's touch** does not end a stroke; only a clean save/stop, the ball dead, or the ball out does.

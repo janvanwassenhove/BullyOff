@@ -27,6 +27,8 @@ export interface PlayerState {
   onPitch: boolean;
   role: Role;
   attrs: Attributes;
+  /** After a failed trap/save the player is beaten: no new attempt until this tick. */
+  trapCooldownUntil: number;
   /** Per-player kinematic params: profile × attribute factors. Computed once. */
   params: PlayerParams;
 }
@@ -41,7 +43,7 @@ export function createPlayer(id: PlayerId, team: TeamId, x: Scalar, y: Scalar, h
   };
   return {
     id, team, pos: { x, y }, vel: { x: 0, y: 0 }, heading, stickAngle: heading, stamina: 1,
-    wantDir: { x: 0, y: 0 }, wantEffort: 0, onPitch: true, role, attrs: a, params,
+    wantDir: { x: 0, y: 0 }, wantEffort: 0, onPitch: true, role, attrs: a, params, trapCooldownUntil: -1,
   };
 }
 
