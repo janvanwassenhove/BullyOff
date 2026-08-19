@@ -62,7 +62,9 @@ const LINE = 0xf4f4f0;
 
 export async function createMatchView(canvas: HTMLCanvasElement, log: MatchLog, opts: MatchViewOptions = {}): Promise<MatchView> {
   const app = new Application();
-  await app.init({ canvas, antialias: true, background: 0x0e1116, resolution: Math.min(2, globalThis.devicePixelRatio || 1), autoDensity: true, width: Math.max(1, canvas.parentElement?.clientWidth ?? 800), height: Math.max(1, canvas.parentElement?.clientHeight ?? 450) });
+  // Phone budget (Phase 9): cap the render resolution at 1.5 and skip MSAA on coarse-pointer devices — lines are re-drawn per zoom so they stay crisp anyway.
+  const phone = typeof globalThis.matchMedia === 'function' && globalThis.matchMedia('(pointer: coarse)').matches;
+  await app.init({ canvas, antialias: !phone, background: 0x0e1116, resolution: Math.min(phone ? 1.5 : 2, globalThis.devicePixelRatio || 1), autoDensity: true, width: Math.max(1, canvas.parentElement?.clientWidth ?? 800), height: Math.max(1, canvas.parentElement?.clientHeight ?? 450) });
 
   // Pixi's resizeTo only reacts to window resizes; the stage element itself can change (layout, sidebars).
   // Checked once per ticker frame (an observer risks resize feedback loops).

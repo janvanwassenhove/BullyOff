@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useSeasonStore } from '../stores/season';
 import { useMatchStore } from '../stores/match';
 
 const emit = defineEmits<{ watch: [] }>();
+const { t } = useI18n();
 const season = useSeasonStore();
 const match = useMatchStore();
 const seed = ref(2026);
@@ -43,11 +45,11 @@ function download(): void {
       v-if="!season.world"
       class="panel setup"
     >
-      <h2>New career</h2>
-      <label>Competition <select v-model="profile"><option value="mens">men's</option><option value="womens">women's</option></select></label>
-      <label>Region flavour <select v-model="flavour"><option value="mixed">mixed (nl/fr)</option><option value="vlaanderen">Vlaanderen</option><option value="wallonie">Wallonie</option><option value="bruxelles">Bruxelles/Brussel</option></select></label>
-      <label>History <select v-model.number="historyYears"><option :value="0">none (fresh world)</option><option :value="10">10 seasons</option><option :value="20">20 seasons</option></select></label>
-      <label>World seed <input
+      <h2>{{ t('season.newCareer') }}</h2>
+      <label>{{ t('season.competition') }} <select v-model="profile"><option value="mens">{{ t('viewer.mens') }}</option><option value="womens">{{ t('viewer.womens') }}</option></select></label>
+      <label>{{ t('season.flavour') }} <select v-model="flavour"><option value="mixed">{{ t('season.flavourMixed') }}</option><option value="vlaanderen">{{ t('season.flavourVl') }}</option><option value="wallonie">{{ t('season.flavourWa') }}</option><option value="bruxelles">{{ t('season.flavourBxl') }}</option></select></label>
+      <label>{{ t('season.history') }} <select v-model.number="historyYears"><option :value="0">{{ t('season.historyNone') }}</option><option :value="10">{{ t('season.historyN', { n: 10 }) }}</option><option :value="20">{{ t('season.historyN', { n: 20 }) }}</option></select></label>
+      <label>{{ t('season.worldSeed') }} <input
         v-model.number="seed"
         type="number"
       ></label>
@@ -56,13 +58,13 @@ function download(): void {
         :disabled="season.busy"
         @click="season.newWorld(seed, profile, flavour, historyYears)"
       >
-        {{ season.busy ? season.message : 'Generate world' }}
+        {{ season.busy ? season.message : t('season.generate') }}
       </button>
       <div
         v-if="season.slots.length"
         class="slots"
       >
-        <span>Saved careers:</span>
+        <span>{{ t('season.savedCareers') }}</span>
         <button
           v-for="s in season.slots"
           :key="s"
@@ -72,7 +74,7 @@ function download(): void {
           {{ s }}
         </button>
       </div>
-      <label class="file">Import save <input
+      <label class="file">{{ t('season.importSave') }} <input
         type="file"
         accept="application/json"
         @change="onImport"
@@ -84,7 +86,7 @@ function download(): void {
         v-if="!season.world.userClub"
         class="panel"
       >
-        <h2>Pick your club</h2>
+        <h2>{{ t('season.pickClub') }}</h2>
         <div class="clubs">
           <button
             v-for="c in clubs"
@@ -97,8 +99,8 @@ function download(): void {
               :style="{ background: '#' + c.colours[0].toString(16).padStart(6, '0') }"
             />
             <span class="name">{{ c.name }}</span>
-            <span class="meta">{{ c.town }} · est. {{ c.founded }}{{ c.nickname ? ' · "' + c.nickname + '"' : '' }}</span>
-            <span class="meta">tier {{ c.tier }} · level {{ c.level.toFixed(1) }} · facilities {{ c.facilities }}/5{{ c.honours.titles.length ? ' · ' + c.honours.titles.length + ' title' + (c.honours.titles.length > 1 ? 's' : '') + ' (last ' + c.honours.titles[c.honours.titles.length - 1] + ')' : '' }}</span>
+            <span class="meta">{{ c.town }} · {{ t('season.est', { year: c.founded }) }}{{ c.nickname ? ' · "' + c.nickname + '"' : '' }}</span>
+            <span class="meta">{{ t('season.tier', { n: c.tier }) }} · {{ t('season.level', { n: c.level.toFixed(1) }) }} · {{ t('season.facilities', { n: c.facilities }) }}{{ c.honours.titles.length ? ' · ' + t('season.titles', { n: c.honours.titles.length }, c.honours.titles.length) + ' (' + t('season.lastTitle', { year: c.honours.titles[c.honours.titles.length - 1] }) + ')' : '' }}</span>
           </button>
         </div>
       </section>
@@ -106,7 +108,7 @@ function download(): void {
       <template v-else>
         <header class="bar">
           <strong>{{ season.userClub?.name }}</strong>
-          <span class="muted">tier {{ season.userClub?.tier }} · season {{ season.world.year }} · day {{ season.world.season.day }}/{{ season.world.season.days }}{{ season.world.season.finished ? ' · finished' : '' }}</span>
+          <span class="muted">{{ t('season.tier', { n: season.userClub?.tier }) }} · {{ t('season.seasonYear', { year: season.world.year }) }} · {{ t('season.day', { d: season.world.season.day, n: season.world.season.days }) }}{{ season.world.season.finished ? ' · ' + t('season.finished') : '' }}</span>
           <span class="grow" />
           <button
             v-if="season.todaysUserFixture"
@@ -114,21 +116,21 @@ function download(): void {
             :disabled="season.busy"
             @click="season.startCoaching()"
           >
-            Coach today's match
+            {{ t('season.coachToday') }}
           </button>
           <button
             class="btn"
             :disabled="season.busy || season.world.season.finished"
             @click="season.playDay()"
           >
-            {{ season.busy ? 'playing…' : season.todaysUserFixture ? 'Sim match day (incl. mine)' : 'Play match day' }}
+            {{ season.busy ? t('season.playing') : season.todaysUserFixture ? t('season.simDayInclMine') : t('season.playDay') }}
           </button>
           <button
             class="btn"
             :disabled="season.busy || season.world.season.finished"
             @click="season.playToEnd()"
           >
-            Sim to season end
+            {{ season.busy && season.progress ? `${season.progress.label} · ${Math.round(100 * season.progress.done / season.progress.total)} %` : t('season.simToEnd') }}
           </button>
           <button
             v-if="season.world.season.finished"
@@ -136,26 +138,26 @@ function download(): void {
             :disabled="season.busy"
             @click="season.nextSeason()"
           >
-            Next season →
+            {{ t('season.nextSeason') }}
           </button>
           <button
             class="btn"
             :disabled="!season.lastUserLog"
             @click="watchLast"
           >
-            Watch my last match
+            {{ t('season.watchLast') }}
           </button>
           <button
             class="btn small"
             @click="season.save()"
           >
-            Save
+            {{ t('season.save') }}
           </button>
           <button
             class="btn small"
             @click="download"
           >
-            Export
+            {{ t('season.export') }}
           </button>
         </header>
         <p
@@ -172,13 +174,13 @@ function download(): void {
         </p>
         <nav class="tabs">
           <button
-            v-for="t in ['table', 'squad', 'fixtures', 'history'] as const"
-            :key="t"
+            v-for="tab_ in ['table', 'squad', 'fixtures', 'history'] as const"
+            :key="tab_"
             class="btn small"
-            :class="{ active: tab === t }"
-            @click="tab = t"
+            :class="{ active: tab === tab_ }"
+            @click="tab = tab_"
           >
-            {{ t }}
+            {{ t('season.tabs.' + tab_) }}
           </button>
         </nav>
 
@@ -187,7 +189,7 @@ function download(): void {
           class="panel"
         >
           <table class="grid">
-            <thead><tr><th>#</th><th>club</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>Pts</th></tr></thead>
+            <thead><tr><th>#</th><th>{{ t('season.cols.club') }}</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>Pts</th></tr></thead>
             <tbody>
               <tr
                 v-for="(r, i) in season.table"
@@ -199,7 +201,7 @@ function download(): void {
             </tbody>
           </table>
           <p class="muted small">
-            Top 4 → title play-offs · bottom → relegated · second-last → play-down vs tier-2 runner-up. Winter break days {{ season.world.season.winterBreak[0] }}–{{ season.world.season.winterBreak[1] }}.
+            {{ t('season.tableNote', { a: season.world.season.winterBreak[0], b: season.world.season.winterBreak[1] }) }}
           </p>
         </section>
 
@@ -208,13 +210,13 @@ function download(): void {
           class="panel"
         >
           <table class="grid">
-            <thead><tr><th>name</th><th>role</th><th>age</th><th>ovr</th><th>goals</th><th>status</th></tr></thead>
+            <thead><tr><th>{{ t('season.cols.name') }}</th><th>{{ t('season.cols.role') }}</th><th>{{ t('season.cols.age') }}</th><th>{{ t('season.cols.ovr') }}</th><th>{{ t('season.cols.goals') }}</th><th>{{ t('season.cols.status') }}</th></tr></thead>
             <tbody>
               <tr
                 v-for="p in season.squad"
                 :key="p.id"
               >
-                <td>{{ p.name }}</td><td>{{ p.role }}</td><td>{{ p.age }}</td><td>{{ p.ovr }}</td><td>{{ p.goals }}</td><td>{{ p.injured ? `injured (${p.injured}d)` : 'fit' }}</td>
+                <td>{{ p.name }}</td><td>{{ p.role }}</td><td>{{ p.age }}</td><td>{{ p.ovr }}</td><td>{{ p.goals }}</td><td>{{ p.injured ? t('season.injured', { d: p.injured }) : t('season.fit') }}</td>
               </tr>
             </tbody>
           </table>
@@ -225,7 +227,7 @@ function download(): void {
           class="panel"
         >
           <table class="grid">
-            <thead><tr><th>day</th><th>phase</th><th>home</th><th>away</th><th>result</th></tr></thead>
+            <thead><tr><th>{{ t('season.cols.day') }}</th><th>{{ t('season.cols.phase') }}</th><th>{{ t('season.cols.home') }}</th><th>{{ t('season.cols.away') }}</th><th>{{ t('season.cols.result') }}</th></tr></thead>
             <tbody>
               <tr
                 v-for="f in myFixtures"
@@ -246,14 +248,14 @@ function download(): void {
             v-if="!season.world.history.length"
             class="muted"
           >
-            No seasons completed yet.
+            {{ t('season.noHistory') }}
           </p>
           <ul class="hist">
             <li
               v-for="h in season.world.history"
               :key="h.year"
             >
-              <b>{{ h.year }}</b> — champion <b>{{ season.clubName(h.champion) }}</b> (regular winner {{ season.clubName(h.regularWinner) }}) · final: {{ h.playoffFinal[2] }} · up: {{ h.promoted.map(season.clubName).join(', ') }} · down: {{ h.relegated.map(season.clubName).join(', ') }}
+              <b>{{ h.year }}</b> — {{ t('season.histLine', { champion: season.clubName(h.champion), regular: season.clubName(h.regularWinner), final: h.playoffFinal[2], up: h.promoted.map(season.clubName).join(', '), down: h.relegated.map(season.clubName).join(', ') }) }}
             </li>
           </ul>
         </section>

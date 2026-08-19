@@ -6,6 +6,8 @@ import type { RegionFlavour } from '@bullyoff/worldgen';
 import SeasonWorker from '../engine/season.worker?worker';
 import type { FromSeason, ToSeason } from '../engine/season.worker';
 import { loadSlot, saveSlot, listSlots, persistStorage } from '../engine/persist';
+import { i18n } from '../i18n';
+const tr = (key: string, params: Record<string, unknown> = {}): string => i18n.global.t(key, params);
 
 /** A live coached match (Phase 7): everything the CoachView needs, all plain data. */
 export interface Coaching {
@@ -31,20 +33,23 @@ interface SeasonState {
   lastPlayed: number[];
   slots: string[];
   message: string;
+  /** Progress of the running worker request (0..1) or null. */
+  progress: { done: number; total: number; label: string } | null;
 }
 
 let worker: Worker | null = null;
 let nextId = 1;
+let onProgress: ((p: { done: number; total: number; label: string }) => void) | null = null;
 const pending = new Map<number, { resolve: (m: FromSeason) => void; reject: (e: Error) => void }>();
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
 function ask(msg: DistributiveOmit<ToSeason, 'id'>): Promise<FromSeason> {
-  worker ??= (() => { const w = new SeasonWorker(); w.onmessage = (ev: MessageEvent<FromSeason>) => { const p = pending.get(ev.data.id); if (!p) return; pending.delete(ev.data.id); if (ev.data.type === 'error') p.reject(new Error(ev.data.message)); else p.resolve(ev.data); }; return w; })();
+  worker ??= (() => { const w = new SeasonWorker(); w.onmessage = (ev: MessageEvent<FromSeason>) => { if (ev.data.type === 'progress') { onProgress?.(ev.data); return; } const p = pending.get(ev.data.id); if (!p) return; pending.delete(ev.data.id); if (ev.data.type === 'error') p.reject(new Error(ev.data.message)); else p.resolve(ev.data); }; return w; })();
   const id = nextId++;
   return new Promise((resolve, reject) => { pending.set(id, { resolve, reject }); worker?.postMessage({ ...msg, id }); });
 }
 
 export const useSeasonStore = defineStore('season', {
-  state: (): SeasonState => ({ world: null, coaching: null, busy: false, error: '', lastUserLog: null, lastUserColours: null, lastPlayed: [], slots: [], message: '' }),
+  state: (): SeasonState => ({ world: null, coaching: null, busy: false, error: '', lastUserLog: null, lastUserColours: null, lastPlayed: [], slots: [], message: '', progress: null }),
   getters: {
     userClub: (s) => (s.world?.userClub ? s.world.clubs[s.world.userClub] ?? null : null),
     table(): TableRow[] { return this.world && this.userClub ? standings(this.world, this.userClub.tier) : []; },
@@ -70,10 +75,10 @@ export const useSeasonStore = defineStore('season', {
   },
   actions: {
     async newWorld(seed: number, profile: 'mens' | 'womens', flavour: RegionFlavour = 'mixed', historyYears = 20): Promise<void> {
-      this.busy = true; this.error = ''; this.message = historyYears > 0 ? `Writing ${historyYears} seasons of history…` : 'Generating world…';
+      this.busy = true; this.error = ''; this.message = historyYears > 0 ? tr('season.msgWriting', { n: historyYears }) : tr('season.msgGenerating');
       try {
         const r = await ask({ type: 'create', seed, profile, opts: { flavour, historyYears } });
-        if (r.type === 'world') { this.world = r.world; this.lastUserLog = null; this.message = `New world (${r.world.history.length} seasons of history) — pick your club.`; }
+        if (r.type === 'world') { this.world = r.world; this.lastUserLog = null; this.message = tr('season.msgNewWorld', { n: r.world.history.length }); }
       } catch (e) { this.error = e instanceof Error ? e.message : String(e); } finally { this.busy = false; }
     },
     pickClub(id: ClubId): void { if (this.world) this.world.userClub = id; },
@@ -82,21 +87,22 @@ export const useSeasonStore = defineStore('season', {
       this.busy = true; this.error = '';
       try {
         const r = await ask({ type: 'day', world: toRaw(this.world), userClub: this.world.userClub });
-        if (r.type === 'world') { this.world = r.world; if (r.userLog) { this.lastUserLog = markRaw(r.userLog); this.lastUserColours = this.coloursFor(r.playedFixtureIds); } this.lastPlayed = r.playedFixtureIds; this.message = `Match day ${r.world.season.day} played (${r.playedFixtureIds.length} fixtures).`; }
+        if (r.type === 'world') { this.world = r.world; if (r.userLog) { this.lastUserLog = markRaw(r.userLog); this.lastUserColours = this.coloursFor(r.playedFixtureIds); } this.lastPlayed = r.playedFixtureIds; this.message = tr('season.msgDayPlayed', { day: r.world.season.day, n: r.playedFixtureIds.length }); }
       } catch (e) { this.error = e instanceof Error ? e.message : String(e); } finally { this.busy = false; }
     },
     async playToEnd(): Promise<void> {
       if (!this.world) return;
       this.busy = true; this.error = '';
+      onProgress = (p) => { this.progress = p; };
       try {
         const r = await ask({ type: 'toEnd', world: toRaw(this.world), userClub: this.world.userClub });
-        if (r.type === 'world') { this.world = r.world; if (r.userLog) { this.lastUserLog = markRaw(r.userLog); this.lastUserColours = this.coloursFor(r.playedFixtureIds); } this.message = `Season ${r.world.year} finished.`; }
-      } catch (e) { this.error = e instanceof Error ? e.message : String(e); } finally { this.busy = false; }
+        if (r.type === 'world') { this.world = r.world; if (r.userLog) { this.lastUserLog = markRaw(r.userLog); this.lastUserColours = this.coloursFor(r.playedFixtureIds); } this.message = tr('season.msgSeasonFinished', { year: r.world.year }); }
+      } catch (e) { this.error = e instanceof Error ? e.message : String(e); } finally { this.busy = false; this.progress = null; onProgress = null; }
     },
     async nextSeason(): Promise<void> {
       if (!this.world?.season.finished) return;
       this.busy = true;
-      try { const r = await ask({ type: 'newSeason', world: toRaw(this.world) }); if (r.type === 'world') { this.world = r.world; this.message = `Season ${r.world.year} — new fixtures, developed squads.`; } }
+      try { const r = await ask({ type: 'newSeason', world: toRaw(this.world) }); if (r.type === 'world') { this.world = r.world; this.message = tr('season.msgNewSeason', { year: r.world.year }); } }
       catch (e) { this.error = e instanceof Error ? e.message : String(e); } finally { this.busy = false; }
     },
     /** Phase 7: take today's fixture to the touchline. The CoachView drives the engine worker; `finishCoaching` records the log. */
@@ -116,7 +122,7 @@ export const useSeasonStore = defineStore('season', {
       this.busy = true;
       try {
         const r = await ask({ type: 'record', world: toRaw(this.world), fixtureId: c.fixtureId, log });
-        if (r.type === 'world') { this.world = r.world; this.lastUserLog = markRaw(log); this.lastUserColours = c.colours; this.message = 'Your match is in the books — play the rest of the day.'; }
+        if (r.type === 'world') { this.world = r.world; this.lastUserLog = markRaw(log); this.lastUserColours = c.colours; this.message = tr('season.msgRecorded'); }
       } catch (e) { this.error = e instanceof Error ? e.message : String(e); } finally { this.busy = false; this.coaching = null; }
     },
     abandonCoaching(): void { this.coaching = null; },
@@ -130,15 +136,15 @@ export const useSeasonStore = defineStore('season', {
       if (!this.world) return;
       await persistStorage();
       const doc: SaveFile = serialize(this.world, ENGINE_VERSION, new Date().toISOString());
-      await saveSlot(slot, doc); this.slots = await listSlots(); this.message = `Saved to "${slot}".`;
+      await saveSlot(slot, doc); this.slots = await listSlots(); this.message = tr('season.msgSaved', { slot });
     },
     async load(slot = 'autosave'): Promise<void> {
       const doc = await loadSlot(slot);
-      if (!doc) { this.error = `no save "${slot}"`; return; }
-      this.world = deserialize(doc); this.message = `Loaded "${slot}" (season ${this.world.year}).`;
+      if (!doc) { this.error = tr('season.errNoSave', { slot }); return; }
+      this.world = deserialize(doc); this.message = tr('season.msgLoaded', { slot, year: this.world.year });
     },
     async refreshSlots(): Promise<void> { try { this.slots = await listSlots(); } catch { this.slots = []; } },
     exportJson(): string | null { return this.world ? JSON.stringify(serialize(this.world, ENGINE_VERSION, new Date().toISOString())) : null; },
-    importJson(text: string): void { try { this.world = deserialize(text); this.message = 'Save imported.'; } catch (e) { this.error = e instanceof Error ? e.message : String(e); } },
+    importJson(text: string): void { try { this.world = deserialize(text); this.message = tr('season.msgImported'); } catch (e) { this.error = e instanceof Error ? e.message : String(e); } },
   },
 });

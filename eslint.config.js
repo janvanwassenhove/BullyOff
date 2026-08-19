@@ -50,6 +50,7 @@ export default defineConfig(
     ignores: [
       '**/node_modules/**',
       '**/dist/**',
+      'tools/icons/**',
       '**/coverage/**',
       '**/*.d.ts',
       'pnpm-lock.yaml',

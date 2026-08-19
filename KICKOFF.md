@@ -2,27 +2,22 @@
 
 > Read this first. Then `BRIEF.md`, then `docs/adr/`, then the latest `docs/handoff/`.
 
-## Current phase: **9 — Ship** (Phase 8 testable gate met; name-pool review owed; Phase 3/5/6/7 human reviews still owed)
+## Current phase: **v1.0 candidate built — ship when the device pass is done** (all nine phases built; human/device reviews owed)
 
-Phase 8 (`docs/handoff/phase-8.md`): `packages/worldgen` — real-club blocklist incl. towns (token + substring match, tested on every entry and on 2 000 generated identities), gendered nationality-weighted name pools with a Belgian nl/fr region flavour, invented towns from place-name morphology, club-name patterns, kit palette, badge seeds, founding years; `packages/season` builds worlds from it and **generates 20 seasons of history through the real season loop** (quick resolver, labelled) in ≈ 0.6 s — which exposed and fixed the long-horizon bugs in the career model (squad bloat, level inflation, rich-club drift, keeperless clubs): squad regulator, growth capped at potential, relative rating scale with tier anchors, rebalanced finances. Save version 2 (+ migration). Manager: world creation in the worker with flavour/history options; club colours in the coach view and viewer.
+Phase 9 (`docs/handoff/phase-9.md`): PWA (precached app shell + engine/season workers, prompt-style updates, install button, generated icons), i18n **NL / EN / FR** for every UI string (names and rules stay data), About & privacy page (ADR-006 statement), first-run onboarding, phone render cap, season-end progress, GitHub Pages deploy workflow on push to `main`, `docs/release.md` checklist. `pnpm check` 151 tests green; `pnpm test:browsers` green.
 
-Phase 7 (`docs/handoff/phase-7.md`): in-match coaching (CoachInstruction, stamina rotation, PC designer, coached worker mode, quarter briefings, coach view). Phase 6: season/career shell. Phase 5: renderer + replay. Phases 0–4: engine, rules, AI, calibration. Jan waived the Phase 3 coach gate on 2026-08-19 — **the verdict is still owed**.
+Earlier phases: 8 worldgen + 20-season history (`phase-8.md`), 7 in-match coaching (`phase-7.md`), 6 season/career shell (`phase-6.md`), 5 renderer/replay (`phase-5.md`), 0–4 engine/rules/AI/calibration (`phase-{0..4}.md`). Engine **0.5.0**, sandbox golden `51e34b89dcb71850`, save format **v2**.
 
-### Phase 9 deliverables (BRIEF §8)
+### What remains before tagging v1.0.0
 
-Ship v1.0 of the manager: PWA (installable, offline after first load, the engine and worlds entirely local), i18n **NL / EN / FR** for the UI (name pools untouched), privacy statement (ADR-006), onboarding that sells the fictional world in ten minutes, performance budget on a mid-range phone (renderer fps, world generation, match day), save/export polish, accessibility basics, a deploy pipeline (static hosting) and a release checklist. Arcade stays v1.x.
+1. **Enable GitHub Pages** in the repo settings (Source: GitHub Actions); the first push to `main` after that publishes `https://janvanwassenhove.github.io/BullyOff/`.
+2. **The phone pass** — `docs/release.md` § On a phone.
+3. **The owed reviews** (0–0e below) — none blocks the build; all shape v1.1.
+4. Tag `v1.0.0` (commands in `docs/release.md`).
 
-### Phase 9 gate
+### After v1.0 (BRIEF v1.x)
 
-A fresh phone installs the PWA, generates a world offline, plays a coached match at 60 fps and a season without a stall, saves survive a reload and an app update (migrations), the UI reads in all three languages, and the privacy statement is true.
-
-### Where to start
-
-1. PWA: `vite-plugin-pwa` in `apps/manager` (precache app shell + engine worker + season worker chunks; runtime cache nothing external — there is nothing external), manifest, icons from the wordmark placeholder.
-2. i18n: `vue-i18n` with `nl.json / en.json / fr.json`; extract the strings in `SeasonView/CoachView/MatchViewer/App`; Belgian French and Flemish Dutch as the voice, not Parisian/Hollands.
-3. Performance pass on a phone: renderer resolution cap (≤ 1.5 on mobile), `frameEvery` for the user's fixture (1 for coaching, 4 for "watch later"), sharded match days, progress messages from the season worker.
-4. Privacy statement page + first-run onboarding (three screens: your club, your squad, your first match day).
-5. Deploy: static build to GitHub Pages (or Cloudflare Pages) from CI on tags; release checklist in `docs/release.md`.
+Arcade front-end on the same engine worker (`apps/arcade` stub; reuse `CoachInstruction`/`Command`), club mode (ADR-006 option D, local-only), replay v2 with the instruction list, records view, quick-sim toggle, stamina-curve tuning + re-calibration, PC read-and-counter AI, real art assets (ADR-012).
 
 ### The still-owed Phase 3 verdict
 

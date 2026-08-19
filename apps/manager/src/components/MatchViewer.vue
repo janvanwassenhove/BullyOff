@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { MatchLog } from '@bullyoff/engine';
 import { createMatchView, type HudState, type MatchView, type ViewMode } from '@bullyoff/render';
 
 const props = defineProps<{ log: MatchLog; colours?: [number, number] | null }>();
+const { t } = useI18n();
 
 const canvas = ref<HTMLCanvasElement | null>(null);
 const view = ref<MatchView | null>(null);
@@ -33,7 +35,7 @@ onBeforeUnmount(() => { view.value?.destroy(); });
 
 function seek(ev: Event): void { view.value?.seek(Number((ev.target as HTMLInputElement).value)); }
 function setSpeed(x: number): void { speed.value = x; view.value?.setSpeed(x); }
-function toggleMode(): void { mode.value = mode.value === 'director' ? 'tactical' : 'director'; view.value?.setMode(mode.value); }
+function toggleMode(): void { mode.value = mode.value === 'director' ? 'tactical' : mode.value === 'tactical' ? 'coach' : 'director'; view.value?.setMode(mode.value); }
 function toggleSound(): void { sound.value = !sound.value; if (sound.value) view.value?.enableAudio(); }
 const fmt = (s: number): string => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 </script>
@@ -78,7 +80,7 @@ const fmt = (s: number): string => `${String(Math.floor(s / 60)).padStart(2, '0'
         class="btn small"
         @click="toggleMode"
       >
-        {{ mode === 'director' ? 'director' : 'tactical' }}
+        {{ t('viewer.' + mode) }}
       </button>
       <button
         class="btn small"

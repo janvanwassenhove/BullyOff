@@ -6,6 +6,7 @@
  * breaks auto-pause for a briefing. Nothing here simulates; the log grows from the worker.
  */
 import { computed, onBeforeUnmount, onMounted, reactive, ref, shallowRef } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { FRAME_PLAYER_STRIDE, quarterStats, type CoachInstruction, type Frame, type MatchEvent, type MatchLog, type PcVariant, type QuarterStats, type TeamTactics } from '@bullyoff/engine';
 import { createMatchView, type HudState, type MatchView, type ViewMode } from '@bullyoff/render';
 import { EngineClient } from '../engine/client';
@@ -13,6 +14,7 @@ import type { Coaching } from '../stores/season';
 
 const props = defineProps<{ coaching: Coaching }>();
 const emit = defineEmits<{ finished: [log: MatchLog]; abandon: [] }>();
+const { t } = useI18n();
 
 const canvas = ref<HTMLCanvasElement | null>(null);
 const view = shallowRef<MatchView | null>(null);
@@ -89,10 +91,10 @@ function absorb(events: readonly MatchEvent[], frames: readonly Frame[]): void {
     stamina.value = st;
   }
   for (const e of events) {
-    if (e.t === 'Substitution') { onPitch.value = { ...onPitch.value, [e.outId]: false, [e.inId]: true }; if (e.team === me) note(`↔ ${nameOf(e.outId)} off, ${nameOf(e.inId)} on`); }
-    else if (e.t === 'Goal') note(`⚽ ${e.team === me ? 'GOAL for us' : 'goal against'} ${e.score[0]}–${e.score[1]}`);
-    else if (e.t === 'PenaltyCornerAwarded') note(`PC ${e.team === me ? 'for us' : 'against'}`);
-    else if (e.t === 'Card') note(`${e.colour} card ${nameOf(e.playerId)}`);
+    if (e.t === 'Substitution') { onPitch.value = { ...onPitch.value, [e.outId]: false, [e.inId]: true }; if (e.team === me) note(t('coach.noteSub', { out: nameOf(e.outId), in: nameOf(e.inId) })); }
+    else if (e.t === 'Goal') note(t(e.team === me ? 'coach.noteGoalUs' : 'coach.noteGoalThem', { a: e.score[0], b: e.score[1] }));
+    else if (e.t === 'PenaltyCornerAwarded') note(t(e.team === me ? 'coach.notePcUs' : 'coach.notePcThem'));
+    else if (e.t === 'Card') note(t('coach.noteCard', { colour: e.colour, name: nameOf(e.playerId) }));
   }
 }
 function note(s: string): void { log$.value = [`${fmt(hud.value.clockSeconds)} ${s}`, ...log$.value].slice(0, 12); }
@@ -122,7 +124,7 @@ function setTactic(k: 'pressHeight' | 'defensiveLine' | 'tempo' | 'rotateBelowSt
   const patch: Partial<TeamTactics> = k === 'buildUp' ? { buildUp: val as TeamTactics['buildUp'] } : k === 'pcVariant' ? { pcVariant: val as PcVariant } : { [k]: Number(val) };
   Object.assign(tactics, patch);
   void send([{ tick: 0, team: me, kind: 'tactics', patch }]);
-  note(`tactics: ${k} → ${typeof val === 'number' ? pct(val) : val}`);
+  note(t('coach.noteTactic', { k: t('coach.' + (k === 'rotateBelowStamina' ? 'rotateBelow' : k)), v: typeof val === 'number' ? pct(val) : val }));
 }
 function setBattery(role: 'injector' | 'trapper' | 'striker', id: number | null): void {
   const b: NonNullable<TeamTactics['pcBattery']> = {};
@@ -133,13 +135,13 @@ function setBattery(role: 'injector' | 'trapper' | 'striker', id: number | null)
 function substitute(): void {
   if (subOut.value === null || subIn.value === null) return;
   void send([{ tick: 0, team: me, kind: 'substitute', outId: subOut.value, inId: subIn.value }]);
-  note(`sub requested: ${nameOf(subOut.value)} → ${nameOf(subIn.value)}`);
+  note(t('coach.noteSubReq', { out: nameOf(subOut.value), in: nameOf(subIn.value) }));
   subOut.value = null; subIn.value = null;
 }
 function swap(): void {
   if (swapA.value === null || swapB.value === null || swapA.value === swapB.value) return;
   void send([{ tick: 0, team: me, kind: 'swapSlots', a: swapA.value, b: swapB.value }]);
-  note(`positions swapped: ${nameOf(swapA.value)} ↔ ${nameOf(swapB.value)}`);
+  note(t('coach.noteSwap', { a: nameOf(swapA.value), b: nameOf(swapB.value) }));
 }
 function setMode(m: ViewMode): void { mode.value = m; view.value?.setMode(m); }
 function setSpeed(x: number): void { speed.value = x; view.value?.setSpeed(x); }
@@ -174,7 +176,7 @@ onBeforeUnmount(() => { destroyed = true; view.value?.destroy(); client.destroy(
           :disabled="ended"
           @click="view?.toggle()"
         >
-          {{ playing ? '⏸ pause' : '▶ play' }}
+          {{ playing ? t('coach.pause') : t('coach.play') }}
         </button>
         <button
           v-for="x in [1, 2, 4]"
@@ -192,20 +194,20 @@ onBeforeUnmount(() => { destroyed = true; view.value?.destroy(); client.destroy(
           :class="{ active: mode === m }"
           @click="setMode(m)"
         >
-          {{ m }}
+          {{ t('viewer.' + m) }}
         </button>
         <button
           class="btn small"
           :disabled="ended"
           @click="skipToEnd"
         >
-          sim to full time
+          {{ t('coach.simToFullTime') }}
         </button>
         <button
           class="btn small"
           @click="emit('abandon')"
         >
-          leave (not recorded)
+          {{ t('coach.leave') }}
         </button>
       </header>
       <div class="stage">
@@ -217,35 +219,35 @@ onBeforeUnmount(() => { destroyed = true; view.value?.destroy(); client.destroy(
           v-if="briefing"
           class="briefing"
         >
-          <h3>Quarter {{ briefing.quarter }} briefing</h3>
+          <h3>{{ t('coach.briefing', { q: briefing.quarter }) }}</h3>
           <table class="grid">
-            <thead><tr><th /><th>{{ me === 0 ? 'us' : 'them' }}</th><th>{{ me === 0 ? 'them' : 'us' }}</th></tr></thead>
+            <thead><tr><th /><th>{{ me === 0 ? t('coach.us') : t('coach.them') }}</th><th>{{ me === 0 ? t('coach.them') : t('coach.us') }}</th></tr></thead>
             <tbody>
-              <tr><td>goals</td><td>{{ briefing.goals[0] }}</td><td>{{ briefing.goals[1] }}</td></tr>
-              <tr><td>shots</td><td>{{ briefing.shots[0] }}</td><td>{{ briefing.shots[1] }}</td></tr>
-              <tr><td>circle entries</td><td>{{ briefing.circleEntries[0] }}</td><td>{{ briefing.circleEntries[1] }}</td></tr>
-              <tr><td>penalty corners</td><td>{{ briefing.pcAwarded[0] }}</td><td>{{ briefing.pcAwarded[1] }}</td></tr>
-              <tr><td>possession</td><td>{{ pct(briefing.possession[0]) }}</td><td>{{ pct(briefing.possession[1]) }}</td></tr>
-              <tr><td>tackles</td><td>{{ briefing.tackles[0] }}</td><td>{{ briefing.tackles[1] }}</td></tr>
+              <tr><td>{{ t('coach.goals') }}</td><td>{{ briefing.goals[0] }}</td><td>{{ briefing.goals[1] }}</td></tr>
+              <tr><td>{{ t('coach.shots') }}</td><td>{{ briefing.shots[0] }}</td><td>{{ briefing.shots[1] }}</td></tr>
+              <tr><td>{{ t('coach.circleEntries') }}</td><td>{{ briefing.circleEntries[0] }}</td><td>{{ briefing.circleEntries[1] }}</td></tr>
+              <tr><td>{{ t('coach.pcs') }}</td><td>{{ briefing.pcAwarded[0] }}</td><td>{{ briefing.pcAwarded[1] }}</td></tr>
+              <tr><td>{{ t('coach.possession') }}</td><td>{{ pct(briefing.possession[0]) }}</td><td>{{ pct(briefing.possession[1]) }}</td></tr>
+              <tr><td>{{ t('coach.tackles') }}</td><td>{{ briefing.tackles[0] }}</td><td>{{ briefing.tackles[1] }}</td></tr>
             </tbody>
           </table>
           <p class="muted small">
-            Adjust tactics and rotation on the right, then resume. Tired: {{ myOn.filter((p) => staminaOf(p.id) < 0.6).map((p) => nameOf(p.id)).join(', ') || 'nobody' }}.
+            {{ t('coach.briefingHint', { names: myOn.filter((p) => staminaOf(p.id) < 0.6).map((p) => nameOf(p.id)).join(', ') || t('coach.nobody') }) }}
           </p>
           <button
             class="btn primary"
             @click="resume"
           >
-            Resume →
+            {{ t('coach.resume') }}
           </button>
         </div>
         <div
           v-if="ended"
           class="briefing"
         >
-          <h3>Full time {{ hud.score[0] }} – {{ hud.score[1] }}</h3>
+          <h3>{{ t('coach.fullTime', { a: hud.score[0], b: hud.score[1] }) }}</h3>
           <p class="muted small">
-            Recording the match and returning to the season…
+            {{ t('coach.recording') }}
           </p>
         </div>
       </div>
@@ -261,8 +263,8 @@ onBeforeUnmount(() => { destroyed = true; view.value?.destroy(); client.destroy(
 
     <aside class="tools">
       <section class="panel">
-        <h3>Tactics</h3>
-        <label>press height <span class="val">{{ pct(tactics.pressHeight) }}</span><input
+        <h3>{{ t('coach.tactics') }}</h3>
+        <label>{{ t('coach.pressHeight') }} <span class="val">{{ pct(tactics.pressHeight) }}</span><input
           type="range"
           min="0.1"
           max="0.95"
@@ -270,7 +272,7 @@ onBeforeUnmount(() => { destroyed = true; view.value?.destroy(); client.destroy(
           :value="tactics.pressHeight"
           @change="setTactic('pressHeight', Number(($event.target as HTMLInputElement).value))"
         ></label>
-        <label>defensive line <span class="val">{{ pct(tactics.defensiveLine) }}</span><input
+        <label>{{ t('coach.defensiveLine') }} <span class="val">{{ pct(tactics.defensiveLine) }}</span><input
           type="range"
           min="0.1"
           max="0.9"
@@ -278,7 +280,7 @@ onBeforeUnmount(() => { destroyed = true; view.value?.destroy(); client.destroy(
           :value="tactics.defensiveLine"
           @change="setTactic('defensiveLine', Number(($event.target as HTMLInputElement).value))"
         ></label>
-        <label>tempo <span class="val">{{ pct(tactics.tempo) }}</span><input
+        <label>{{ t('coach.tempo') }} <span class="val">{{ pct(tactics.tempo) }}</span><input
           type="range"
           min="0.1"
           max="0.9"
@@ -286,13 +288,13 @@ onBeforeUnmount(() => { destroyed = true; view.value?.destroy(); client.destroy(
           :value="tactics.tempo"
           @change="setTactic('tempo', Number(($event.target as HTMLInputElement).value))"
         ></label>
-        <label>build-up <select
+        <label>{{ t('coach.buildUp') }} <select
           :value="tactics.buildUp"
           @change="setTactic('buildUp', ($event.target as HTMLSelectElement).value as TeamTactics['buildUp'])"
         >
-          <option value="possession">possession</option><option value="direct">direct</option><option value="wide">wide</option>
+          <option value="possession">{{ t('coach.possessionStyle') }}</option><option value="direct">{{ t('coach.direct') }}</option><option value="wide">{{ t('coach.wide') }}</option>
         </select></label>
-        <label>rotate below <span class="val">{{ pct(tactics.rotateBelowStamina) }}</span><input
+        <label>{{ t('coach.rotateBelow') }} <span class="val">{{ pct(tactics.rotateBelowStamina) }}</span><input
           type="range"
           min="0.3"
           max="0.9"
@@ -303,8 +305,8 @@ onBeforeUnmount(() => { destroyed = true; view.value?.destroy(); client.destroy(
       </section>
 
       <section class="panel">
-        <h3>Penalty-corner designer</h3>
-        <label>variant <select
+        <h3>{{ t('coach.pcDesigner') }}</h3>
+        <label>{{ t('coach.variant') }} <select
           :value="tactics.pcVariant"
           @change="setTactic('pcVariant', ($event.target as HTMLSelectElement).value as PcVariant)"
         >
@@ -319,12 +321,12 @@ onBeforeUnmount(() => { destroyed = true; view.value?.destroy(); client.destroy(
         <label
           v-for="r in (['injector', 'trapper', 'striker'] as const)"
           :key="r"
-        >{{ r }} <select
+        >{{ t('coach.' + r) }} <select
           :value="tactics.pcBattery?.[r] ?? ''"
           @change="setBattery(r, ($event.target as HTMLSelectElement).value === '' ? null : Number(($event.target as HTMLSelectElement).value))"
         >
           <option value="">
-            AI picks
+            {{ t('coach.aiPicks') }}
           </option>
           <option
             v-for="p in myOutfield"
@@ -337,7 +339,7 @@ onBeforeUnmount(() => { destroyed = true; view.value?.destroy(); client.destroy(
       </section>
 
       <section class="panel">
-        <h3>Rotation bar</h3>
+        <h3>{{ t('coach.rotation') }}</h3>
         <ul class="roster">
           <li
             v-for="p in myOn"
@@ -353,7 +355,7 @@ onBeforeUnmount(() => { destroyed = true; view.value?.destroy(); client.destroy(
           </li>
         </ul>
         <p class="muted small">
-          bench
+          {{ t('coach.bench') }}
         </p>
         <ul class="roster bench">
           <li
@@ -374,12 +376,12 @@ onBeforeUnmount(() => { destroyed = true; view.value?.destroy(); client.destroy(
           :disabled="subOut === null || subIn === null"
           @click="substitute"
         >
-          Substitute {{ subOut !== null ? nameOf(subOut) : '…' }} → {{ subIn !== null ? nameOf(subIn) : '…' }}
+          {{ t('coach.substitute', { out: subOut !== null ? nameOf(subOut) : '…', in: subIn !== null ? nameOf(subIn) : '…' }) }}
         </button>
         <div class="swap">
           <select v-model="swapA">
             <option :value="null">
-              swap…
+              {{ t('coach.swapWith') }}
             </option>
             <option
               v-for="p in myOutfield"
@@ -391,7 +393,7 @@ onBeforeUnmount(() => { destroyed = true; view.value?.destroy(); client.destroy(
           </select>
           <select v-model="swapB">
             <option :value="null">
-              with…
+              {{ t('coach.with') }}
             </option>
             <option
               v-for="p in myOutfield"
@@ -405,7 +407,7 @@ onBeforeUnmount(() => { destroyed = true; view.value?.destroy(); client.destroy(
             class="btn small"
             @click="swap"
           >
-            swap positions
+            {{ t('coach.swapPositions') }}
           </button>
         </div>
       </section>

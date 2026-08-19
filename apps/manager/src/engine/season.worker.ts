@@ -17,6 +17,8 @@ export type ToSeason =
   | { type: 'record'; id: number; world: World; fixtureId: number; log: MatchLog };
 export type FromSeason =
   | { type: 'world'; id: number; world: World; userLog: MatchLog | null; playedFixtureIds: number[] }
+  /** Progress while a long request runs (match days played so far / days left in the season). */
+  | { type: 'progress'; id: number; done: number; total: number; label: string }
   | { type: 'error'; id: number; message: string };
 
 declare const self: { postMessage(m: FromSeason): void; onmessage: ((ev: { data: ToSeason }) => void) | null };
@@ -30,8 +32,12 @@ self.onmessage = (ev): void => {
     const w = m.world;
     let userLog: MatchLog | null = null;
     const played: number[] = [];
+    const total = Math.max(1, w.season.days - w.season.day);
+    let days = 0;
     const runDay = (): void => {
       const fx = advanceDay(w, { runner: engineRunner, keepReplayFor: m.userClub });
+      days++;
+      self.postMessage({ type: 'progress', id: m.id, done: days, total, label: `day ${w.season.day}/${w.season.days}` });
       for (const f of fx) { played.push(f.id); if (m.userClub && (f.home === m.userClub || f.away === m.userClub) && f.replay) userLog = decodeReplay(f.replay); }
     };
     if (m.type === 'day') { let guard = 0; do { runDay(); guard++; } while (!w.season.finished && played.length === 0 && guard < 10); }
