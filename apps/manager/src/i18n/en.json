@@ -1,7 +1,17 @@
 {
   "app": {
     "title": "BULLY OFF",
-    "nav": { "season": "Season", "squad": "Squad", "tactics": "Tactics", "club": "Club", "rulebook": "Rulebook", "viewer": "Match viewer", "about": "About & privacy", "settings": "Settings" },
+    "nav": {
+      "season": "Season",
+      "squad": "Squad",
+      "tactics": "Tactics",
+      "club": "Club",
+      "rulebook": "Rulebook",
+      "viewer": "Match viewer",
+      "about": "About & privacy",
+      "settings": "Settings",
+      "academy": "Academy"
+    },
     "language": "Language",
     "install": "Install app",
     "offlineReady": "Ready to play offline.",
@@ -14,7 +24,12 @@
     "import": "Import save",
     "back": "Back",
     "menu": "Menu",
-    "version": { "engine": "ENGINE {v}", "save": "SAVE v{v}", "offline": "OFFLINE READY", "langs": "NL · EN · FR" }
+    "version": {
+      "engine": "ENGINE {v}",
+      "save": "SAVE v{v}",
+      "offline": "OFFLINE READY",
+      "langs": "NL · EN · FR"
+    }
   },
   "intro": {
     "eyebrow": "FIELD HOCKEY, MODELLED HONESTLY",
@@ -35,22 +50,43 @@
     "film": "INTRO FILM — 45 s LOOP, MUTED AUTOPLAY",
     "filmSub": "floodlit warm-up, ball on watered turf, bench chatter",
     "steps": [
-      { "title": "Generate a world", "body": "Two tiers, twenty seasons of invented history. Takes eight seconds." },
-      { "title": "Pick your club", "body": "Crest, kit, honours, a squad with real problems. Yours from the first whistle." },
-      { "title": "Coach Saturday", "body": "Tactics, the PC battery, rotation on legs — then the report that teaches." }
+      {
+        "title": "Generate a world",
+        "body": "Two tiers, twenty seasons of invented history. Takes eight seconds."
+      },
+      {
+        "title": "Pick your club",
+        "body": "Crest, kit, honours, a squad with real problems. Yours from the first whistle."
+      },
+      {
+        "title": "Coach Saturday",
+        "body": "Tactics, the PC battery, rotation on legs — then the report that teaches."
+      }
     ],
-    "trust": { "offline": "OFFLINE · NO ACCOUNTS", "noReal": "NO REAL CLUBS OR PEOPLE", "langs": "NL · EN · FR" }
+    "trust": {
+      "offline": "OFFLINE · NO ACCOUNTS",
+      "noReal": "NO REAL CLUBS OR PEOPLE",
+      "langs": "NL · EN · FR"
+    }
   },
   "title": {
     "eyebrow": "DETERMINISTIC FIELD HOCKEY",
     "body": "A season the engine actually simulates — circle rule, rolling subs, watered turf. Learn the sport while you win it.",
     "keyArt": "key art — goalkeeper, floodlit, watered turf",
     "menu": {
-      "continue": "CONTINUE", "continueMeta": "{club} · season {year} · day {day}", "noSave": "no saved career yet",
-      "newCareer": "NEW CAREER", "newCareerMeta": "generate a world",
-      "viewer": "MATCH VIEWER", "viewerMeta": "replays and scenarios",
-      "rulebook": "THE RULEBOOK", "rulebookMeta": "FIH rules, illustrated",
-      "settings": "SETTINGS", "settingsMeta": "offline · no accounts · privacy"
+      "continue": "CONTINUE",
+      "continueMeta": "{club} · season {year} · day {day}",
+      "noSave": "no saved career yet",
+      "newCareer": "NEW CAREER",
+      "newCareerMeta": "generate a world",
+      "viewer": "MATCH VIEWER",
+      "viewerMeta": "replays and scenarios",
+      "rulebook": "THE RULEBOOK",
+      "rulebookMeta": "FIH rules, illustrated",
+      "settings": "SETTINGS",
+      "settingsMeta": "offline · no accounts · privacy",
+      "academy": "ACADEMY",
+      "academyMeta": "corners, building out, pressing, into the circle"
     }
   },
   "onboarding": {
@@ -60,7 +96,11 @@
     "s2": "Play the match days or simulate them. Watch the table, the play-offs and the play-down; give youth minutes; keep the treatment room short.",
     "s3Title": "Coach from the touchline",
     "s3": "Tactics, the penalty-corner battery, rotation on legs. Every instruction is legal hockey, and after full time the game shows you why it worked.",
-    "art": ["world map — invented towns", "season calendar", "bench, floodlights"],
+    "art": [
+      "world map — invented towns",
+      "season calendar",
+      "bench, floodlights"
+    ],
     "skip": "SKIP",
     "next": "NEXT",
     "start": "LET'S GO"
@@ -69,59 +109,187 @@
     "eyebrow": "NEW CAREER",
     "step": "STEP {n} OF 2",
     "hero": "Two tiers, twenty years\nof history, no real clubs.",
-    "competition": "COMPETITION", "competitionHint": "rules and physics differ", "mens": "MEN'S", "womens": "WOMEN'S",
-    "flavour": "REGION FLAVOUR", "flavourHint": "name and town pools", "mixed": "MIXED", "vlaanderen": "VLAANDEREN", "wallonie": "WALLONIE", "bruxelles": "BRUXELLES",
-    "history": "HISTORY", "historyHint": "champions, promotions, honours", "none": "NONE", "seasons10": "10 SEASONS", "seasons20": "20 SEASONS",
-    "turf": "TURF", "turfHint": "watered turf is a faster game", "watered": "WATERED", "dry": "DRY", "wet": "WET",
-    "seed": "WORLD SEED", "reroll": "RE-ROLL", "seedNote": "same seed, same world — always",
+    "competition": "COMPETITION",
+    "competitionHint": "rules and physics differ",
+    "mens": "MEN'S",
+    "womens": "WOMEN'S",
+    "flavour": "REGION FLAVOUR",
+    "flavourHint": "name and town pools",
+    "mixed": "MIXED",
+    "vlaanderen": "VLAANDEREN",
+    "wallonie": "WALLONIE",
+    "bruxelles": "BRUXELLES",
+    "history": "HISTORY",
+    "historyHint": "champions, promotions, honours",
+    "none": "NONE",
+    "seasons10": "10 SEASONS",
+    "seasons20": "20 SEASONS",
+    "turf": "TURF",
+    "turfHint": "watered turf is a faster game",
+    "watered": "WATERED",
+    "dry": "DRY",
+    "wet": "WET",
+    "seed": "WORLD SEED",
+    "reroll": "RE-ROLL",
+    "seedNote": "same seed, same world — always",
     "generate": "GENERATE WORLD",
-    "generating": "GENERATING", "idle": "READY", "writing": "Writing {n} seasons of history…", "writingNone": "Generating the world…", "done": "World ready — pick your club.",
-    "clubs": "CLUBS", "players": "PLAYERS", "seasonsLabel": "SEASONS", "realNames": "REAL NAMES",
-    "ledger": "HISTORY LEDGER", "ledgerEmpty": "The history will appear here as it is written.",
+    "generating": "GENERATING",
+    "idle": "READY",
+    "writing": "Writing {n} seasons of history…",
+    "writingNone": "Generating the world…",
+    "done": "World ready — pick your club.",
+    "clubs": "CLUBS",
+    "players": "PLAYERS",
+    "seasonsLabel": "SEASONS",
+    "realNames": "REAL NAMES",
+    "ledger": "HISTORY LEDGER",
+    "ledgerEmpty": "The history will appear here as it is written.",
     "ledgerRegular": "{champion} — regular winner {regular}",
     "ledgerDouble": "{champion} — regular winner too",
     "pickTitle": "Pick the club you'll coach",
     "pickSub": "{n} clubs · tier 1 & tier 2 · the harder the club, the more the engine teaches you",
-    "tier": "TIER {n}", "level": "LVL {n}", "est": "est. {year}", "champions": "champions", "rebuilding": "rebuilding",
-    "titles": "TITLES", "squadLevel": "SQUAD LEVEL", "facilities": "FACILITIES",
+    "tier": "TIER {n}",
+    "level": "LVL {n}",
+    "est": "est. {year}",
+    "champions": "champions",
+    "rebuilding": "rebuilding",
+    "titles": "TITLES",
+    "squadLevel": "SQUAD LEVEL",
+    "facilities": "FACILITIES",
     "blurbTitles": "{n} title, last in {last}. | {n} titles, the last in {last}.",
     "blurbNoTitles": "No title in the generated record — a club that has always watched the play-offs from the stand.",
     "blurbSquad": "A squad of {squad} with {youth} youth players coming through; level {level} in a tier that averages {tierLevel}.",
     "blurbBoardT1": "The board wants play-offs; the volunteers want the clubhouse roof fixed.",
     "blurbBoardT2": "The board wants promotion; the volunteers want a second pitch.",
-    "kit": "KIT", "kitNote": "applied as sprite tint in match",
+    "kit": "KIT",
+    "kitNote": "applied as sprite tint in match",
     "takeJob": "TAKE THE JOB",
-    "saved": "Saved careers", "load": "Load", "importFile": "Import a save file"
+    "saved": "Saved careers",
+    "load": "Load",
+    "importFile": "Import a save file"
   },
   "hub": {
-    "tier": "TIER {n}", "season": "SEASON {year}", "day": "DAY {d} / {n}", "pos": "{pos}", "finished": "SEASON OVER",
-    "nextHome": "NEXT — DAY {day}, HOME", "nextAway": "NEXT — DAY {day}, AWAY", "nextNone": "NO FIXTURE LEFT",
+    "tier": "TIER {n}",
+    "season": "SEASON {year}",
+    "day": "DAY {d} / {n}",
+    "pos": "{pos}",
+    "finished": "SEASON OVER",
+    "nextHome": "NEXT — DAY {day}, HOME",
+    "nextAway": "NEXT — DAY {day}, AWAY",
+    "nextNone": "NO FIXTURE LEFT",
     "scout": "{club} · {goals} scored, {conceded} conceded in {played}",
     "scoutNone": "{club} · first meeting of the season",
-    "coach": "COACH THE MATCH", "simDay": "SIM DAY", "simToEnd": "SIM TO END", "nextSeason": "NEXT SEASON", "report": "LAST REPORT", "watch": "WATCH REPLAY",
-    "tabs": { "table": "TABLE", "fixtures": "FIXTURES", "results": "RESULTS", "history": "HISTORY" },
-    "cols": { "pos": "#", "club": "CLUB", "p": "P", "w": "W", "d": "D", "l": "L", "gf": "GF", "ga": "GA", "pts": "PTS", "day": "DAY", "phase": "PHASE", "home": "HOME", "away": "AWAY", "result": "RESULT", "year": "YEAR", "champion": "CHAMPION", "final": "FINAL", "up": "UP", "down": "DOWN" },
-    "legend": { "playoffs": "title play-offs", "playdown": "play-down", "relegated": "relegated", "winter": "winter break days {a}–{b}" },
-    "phase": { "regular": "regular", "playoff-semi": "semi", "playoff-final": "final", "playdown": "play-down" },
-    "form": "FORM · LAST FIVE", "formNote": "{gf} goals / match at home", "formEmpty": "no result yet",
-    "staff": "FROM THE COACHING STAFF", "staffEmpty": "Nothing to flag before the first match day.",
-    "treatment": "TREATMENT ROOM", "treatmentEmpty": "everybody fit", "daysOut": "{d} d", "light": "fit — light",
-    "noResults": "No results yet.", "noHistory": "No seasons completed yet.",
+    "coach": "COACH THE MATCH",
+    "simDay": "SIM DAY",
+    "simToEnd": "SIM TO END",
+    "nextSeason": "NEXT SEASON",
+    "report": "LAST REPORT",
+    "watch": "WATCH REPLAY",
+    "tabs": {
+      "table": "TABLE",
+      "fixtures": "FIXTURES",
+      "results": "RESULTS",
+      "history": "HISTORY"
+    },
+    "cols": {
+      "pos": "#",
+      "club": "CLUB",
+      "p": "P",
+      "w": "W",
+      "d": "D",
+      "l": "L",
+      "gf": "GF",
+      "ga": "GA",
+      "pts": "PTS",
+      "day": "DAY",
+      "phase": "PHASE",
+      "home": "HOME",
+      "away": "AWAY",
+      "result": "RESULT",
+      "year": "YEAR",
+      "champion": "CHAMPION",
+      "final": "FINAL",
+      "up": "UP",
+      "down": "DOWN"
+    },
+    "legend": {
+      "playoffs": "title play-offs",
+      "playdown": "play-down",
+      "relegated": "relegated",
+      "winter": "winter break days {a}–{b}"
+    },
+    "phase": {
+      "regular": "regular",
+      "playoff-semi": "semi",
+      "playoff-final": "final",
+      "playdown": "play-down"
+    },
+    "form": "FORM · LAST FIVE",
+    "formNote": "{gf} goals / match at home",
+    "formEmpty": "no result yet",
+    "staff": "FROM THE COACHING STAFF",
+    "staffEmpty": "Nothing to flag before the first match day.",
+    "treatment": "TREATMENT ROOM",
+    "treatmentEmpty": "everybody fit",
+    "daysOut": "{d} d",
+    "light": "fit — light",
+    "noResults": "No results yet.",
+    "noHistory": "No seasons completed yet.",
     "histLine": "champion {champion} (regular winner {regular}) · final: {final} · up: {up} · down: {down}",
-    "so": "SO {a}–{b}", "resultVs": "{home} {hg}–{ag} {away}",
+    "so": "SO {a}–{b}",
+    "resultVs": "{home} {hg}–{ag} {away}",
     "seasonOver": "Season {year} is over — {champion} are champions. Roll into the next one when you are ready."
   },
   "squad": {
     "title": "Squad",
     "sub": "{n} players · {youth} youth · wage bill {pct} % of a volunteer budget",
-    "cols": { "n": "#", "name": "NAME", "role": "ROLE", "age": "AGE", "ovr": "OVR", "minutes": "MINUTES", "goals": "GOALS", "status": "STATUS" },
-    "youth": "YOUTH", "captain": "(C)", "fit": "FIT", "tired": "TIRED", "out": "{d} D",
-    "hand": { "right": "RIGHT-HANDED", "left": "LEFT-HANDED" },
-    "role": { "GK": "GOALKEEPER", "DEF": "DEFENDER", "MID": "MIDFIELDER", "FWD": "FORWARD" },
-    "ovr": "OVR {n}", "goals": "{n} GOALS", "contract": "CONTRACT {year}", "potential": "POT {n}",
+    "cols": {
+      "n": "#",
+      "name": "NAME",
+      "role": "ROLE",
+      "age": "AGE",
+      "ovr": "OVR",
+      "minutes": "MINUTES",
+      "goals": "GOALS",
+      "status": "STATUS"
+    },
+    "youth": "YOUTH",
+    "captain": "(C)",
+    "fit": "FIT",
+    "tired": "TIRED",
+    "out": "{d} D",
+    "hand": {
+      "right": "RIGHT-HANDED",
+      "left": "LEFT-HANDED"
+    },
+    "role": {
+      "GK": "GOALKEEPER",
+      "DEF": "DEFENDER",
+      "MID": "MIDFIELDER",
+      "FWD": "FORWARD"
+    },
+    "ovr": "OVR {n}",
+    "goals": "{n} GOALS",
+    "contract": "CONTRACT {year}",
+    "potential": "POT {n}",
     "attributes": "ATTRIBUTES",
-    "attr": { "acceleration": "acceleration", "topSpeed": "top speed", "stickSkill": "stick skill", "hit": "hit", "aerial": "aerial", "workRate": "work rate", "dragFlick": "drag flick", "reflexes": "reflexes", "positioning": "positioning", "oneOnOne": "one-on-one", "pace": "pace", "composure": "composure", "decisions": "decisions" },
-    "howToUseM": "HOW TO USE HIM", "howToUseW": "HOW TO USE HER",
+    "attr": {
+      "acceleration": "acceleration",
+      "topSpeed": "top speed",
+      "stickSkill": "stick skill",
+      "hit": "hit",
+      "aerial": "aerial",
+      "workRate": "work rate",
+      "dragFlick": "drag flick",
+      "reflexes": "reflexes",
+      "positioning": "positioning",
+      "oneOnOne": "one-on-one",
+      "pace": "pace",
+      "composure": "composure",
+      "decisions": "decisions"
+    },
+    "howToUseM": "HOW TO USE HIM",
+    "howToUseW": "HOW TO USE HER",
     "portrait": "PLAYER PORTRAIT",
     "pick": "Pick a player to read the coaching note."
   },
@@ -139,131 +307,538 @@
     "defStopper": "A stopper (tackling {tackle}): the marker for their best runner in the D. Ask for the channel tackle, not the lunge.",
     "defOutlet": "An outlet defender (push {push}): plays the first pass from the 23. Width on the outlet, never the back pass into the D."
   },
-  "suggest": { "buildUpWide": "SUGGEST: BUILD-UP → FLANKS", "buildUpMiddle": "SUGGEST: BUILD-UP → MIDDLE", "buildUpDirect": "SUGGEST: BUILD-UP → OVER THE TOP", "pressFull": "SUGGEST: FULL-COURT PRESS", "rotateLater": "SUGGEST: ROTATE BELOW 55 %", "pcStriker": "SUGGEST: PC STRIKER", "markRunner": "SUGGEST: MARK THEIR RUNNER" },
-  "drill": { "baseline2v1": "DRILL: 2v1 BASELINE", "topOfD": "DRILL: TOP OF THE D", "leadRuns": "DRILL: LEAD RUNS", "outletPatterns": "DRILL: OUTLET PATTERNS", "aerialReceive": "DRILL: AERIAL RECEIVE", "pressTriggers": "DRILL: PRESS TRIGGERS", "dragFlick": "DRILL: DRAG FLICK", "channelTackle": "DRILL: CHANNEL TACKLE", "gkFlicks": "DRILL: FLICKS HIGH RIGHT" },
+  "suggest": {
+    "buildUpWide": "SUGGEST: BUILD-UP → FLANKS",
+    "buildUpMiddle": "SUGGEST: BUILD-UP → MIDDLE",
+    "buildUpDirect": "SUGGEST: BUILD-UP → OVER THE TOP",
+    "pressFull": "SUGGEST: FULL-COURT PRESS",
+    "rotateLater": "SUGGEST: ROTATE BELOW 55 %",
+    "pcStriker": "SUGGEST: PC STRIKER",
+    "markRunner": "SUGGEST: MARK THEIR RUNNER"
+  },
+  "drill": {
+    "baseline2v1": "DRILL: 2v1 BASELINE",
+    "topOfD": "DRILL: TOP OF THE D",
+    "leadRuns": "DRILL: LEAD RUNS",
+    "outletPatterns": "DRILL: OUTLET PATTERNS",
+    "aerialReceive": "DRILL: AERIAL RECEIVE",
+    "pressTriggers": "DRILL: PRESS TRIGGERS",
+    "dragFlick": "DRILL: DRAG FLICK",
+    "channelTackle": "DRILL: CHANNEL TACKLE",
+    "gkFlicks": "DRILL: FLICKS HIGH RIGHT"
+  },
   "advice": {
-    "youthMinutes": { "title": "Give {name} the minutes", "body": "{age} and developing fastest of the intake — {minutes} minutes so far. Two starts before the break are worth more than any signing." },
-    "pressLegs": { "title": "Your press is costing you legs", "body": "Full-court with a squad of {squad} runs out of players in the third quarter. Half-court after the break." },
-    "nextOpponent": { "title": "Next: {club}", "body": "{goals} scored and {conceded} conceded in {played} matches. Take the circle entries; they convert few." },
-    "nextOpponentPc": { "title": "Next: {club} — their PCs", "body": "They score {rate} % of their penalty corners. Concede fewer free hits inside your 23 and the fixture is yours." },
-    "treatmentRoom": { "title": "Treatment room is full", "body": "{n} players out. Rotate below 55 % and keep the youth on the bench warm." }
+    "youthMinutes": {
+      "title": "Give {name} the minutes",
+      "body": "{age} and developing fastest of the intake — {minutes} minutes so far. Two starts before the break are worth more than any signing."
+    },
+    "pressLegs": {
+      "title": "Your press is costing you legs",
+      "body": "Full-court with a squad of {squad} runs out of players in the third quarter. Half-court after the break."
+    },
+    "nextOpponent": {
+      "title": "Next: {club}",
+      "body": "{goals} scored and {conceded} conceded in {played} matches. Take the circle entries; they convert few."
+    },
+    "nextOpponentPc": {
+      "title": "Next: {club} — their PCs",
+      "body": "They score {rate} % of their penalty corners. Concede fewer free hits inside your 23 and the fixture is yours."
+    },
+    "treatmentRoom": {
+      "title": "Treatment room is full",
+      "body": "{n} players out. Rotate below 55 % and keep the youth on the bench warm."
+    }
   },
   "coach": {
-    "pause": "⏸", "play": "▶", "simToFullTime": "SIM TO FT", "leave": "LEAVE (NOT RECORDED)",
-    "shape": "SHAPE", "live": "LIVE", "matchLog": "MATCH LOG", "decision": "DECISION · {s}s", "decisionIdle": "NEXT DECISION", "decisionWaiting": "The next set piece is your call. Until then the bench reads the play.",
-    "dials": { "press": "press height", "mentality": "mentality", "tempo": "tempo", "rotate": "rotate below" },
-    "stats": { "possession": "possession", "circleEntries": "circle entries", "shots": "shots", "pcs": "PCs", "tacklesWon": "tackles won", "stamina": "avg stamina" },
-    "pcCall": "PC for us. Drag flick or the slip right? They defend {style}.", "pcLow": "low", "pcHigh": "high",
-    "flick": "FLICK", "slip": "SLIP", "goWide": "GO WIDE", "holdShape": "HOLD SHAPE", "rotate": "ROTATE {n}", "legs": "LEGS",
-    "coachRead": "COACH READ", "yourCall": "YOUR CALL",
-    "briefing": "Quarter {q} briefing", "us": "us", "them": "them", "goals": "goals", "shots": "shots", "circleEntries": "circle entries", "pcs": "penalty corners", "possession": "possession", "tackles": "tackles",
-    "briefingHint": "Adjust tactics and rotation on the left, then resume. Tired: {names}.", "nobody": "nobody", "resume": "RESUME →",
-    "fullTime": "Full time {a} – {b}", "recording": "Recording the match and writing the report…",
-    "tactics": "TACTICS", "formationLabel": "system", "pressLabel": "press", "mentalityLabel": "mentality", "buildUpLabel": "build-up", "tempoLabel": "tempo", "rotateBelow": "rotate below",
-    "press": { "full": "full-court press", "half": "half-court press", "split": "split press", "zone": "zonal block (own 23)" },
-    "pressShort": { "full": "FULL", "half": "HALF", "split": "SPLIT", "zone": "ZONE" },
-    "mentality": { "defensive": "defensive", "balanced": "balanced", "attacking": "attacking" },
-    "mentalityShort": { "defensive": "DEF", "balanced": "BAL", "attacking": "ATT" },
-    "buildUp": { "possession": "through the middle", "direct": "over the top / long ball", "wide": "via the flanks" },
-    "tempo": { "low": "low", "normal": "normal", "high": "high" },
-    "tempoShort": { "low": "LOW", "normal": "NORM", "high": "HIGH" },
-    "pcDesigner": "PENALTY-CORNER BATTERY", "variant": "variant", "aiPicks": "AI picks", "injector": "injector", "trapper": "trapper", "striker": "striker",
-    "pc": { "dragFlick": "drag flick", "lowHit": "low hit", "slipRight": "slip right", "slipLeft": "slip left", "deflection": "deflection" },
-    "rotation": "ROTATION", "bench": "bench", "substitute": "SUB {out} → {in}", "swapWith": "swap…", "with": "with…", "swapPositions": "swap positions",
-    "noteSub": "Rolling sub: {in} on for {out}.", "noteGoalUs": "GOAL {scorer}. {a}–{b}.", "noteGoalThem": "Goal against — {scorer}. {a}–{b}.", "notePcUs": "Penalty corner — ours.", "notePcThem": "Penalty corner against.",
-    "noteCard": "{colour} card, {name}.", "noteTactic": "You switched {k} to {v}.", "noteSubReq": "Sub requested: {out} → {in}.", "noteSwap": "Positions swapped: {a} ↔ {b}.", "noteQuarter": "Quarter {q} begins.", "noteFullTime": "Full time.",
-    "modes": { "director": "DIR", "tactical": "TAC", "coach": "COACH" },
+    "pause": "⏸",
+    "play": "▶",
+    "simToFullTime": "SIM TO FT",
+    "leave": "LEAVE (NOT RECORDED)",
+    "shape": "SHAPE",
+    "live": "LIVE",
+    "matchLog": "MATCH LOG",
+    "decision": "DECISION · {s}s",
+    "decisionIdle": "NEXT DECISION",
+    "decisionWaiting": "The next set piece is your call. Until then the bench reads the play.",
+    "dials": {
+      "press": "press height",
+      "mentality": "mentality",
+      "tempo": "tempo",
+      "rotate": "rotate below"
+    },
+    "stats": {
+      "possession": "possession",
+      "circleEntries": "circle entries",
+      "shots": "shots",
+      "pcs": "PCs",
+      "tacklesWon": "tackles won",
+      "stamina": "avg stamina"
+    },
+    "pcCall": "PC for us. Drag flick or the slip right? They defend {style}.",
+    "pcLow": "low",
+    "pcHigh": "high",
+    "flick": "FLICK",
+    "slip": "SLIP",
+    "goWide": "GO WIDE",
+    "holdShape": "HOLD SHAPE",
+    "rotate": "ROTATE {n}",
+    "legs": "LEGS",
+    "coachRead": "COACH READ",
+    "yourCall": "YOUR CALL",
+    "briefing": "Quarter {q} briefing",
+    "us": "us",
+    "them": "them",
+    "goals": "goals",
+    "shots": "shots",
+    "circleEntries": "circle entries",
+    "pcs": "penalty corners",
+    "possession": "possession",
+    "tackles": "tackles",
+    "briefingHint": "Adjust tactics and rotation on the left, then resume. Tired: {names}.",
+    "nobody": "nobody",
+    "resume": "RESUME →",
+    "fullTime": "Full time {a} – {b}",
+    "recording": "Recording the match and writing the report…",
+    "tactics": "TACTICS",
+    "formationLabel": "system",
+    "pressLabel": "press",
+    "mentalityLabel": "mentality",
+    "buildUpLabel": "build-up",
+    "tempoLabel": "tempo",
+    "rotateBelow": "rotate below",
+    "press": {
+      "full": "full-court press",
+      "half": "half-court press",
+      "split": "split press",
+      "zone": "zonal block (own 23)"
+    },
+    "pressShort": {
+      "full": "FULL",
+      "half": "HALF",
+      "split": "SPLIT",
+      "zone": "ZONE"
+    },
+    "mentality": {
+      "defensive": "defensive",
+      "balanced": "balanced",
+      "attacking": "attacking"
+    },
+    "mentalityShort": {
+      "defensive": "DEF",
+      "balanced": "BAL",
+      "attacking": "ATT"
+    },
+    "buildUp": {
+      "possession": "through the middle",
+      "direct": "over the top / long ball",
+      "wide": "via the flanks"
+    },
+    "tempo": {
+      "low": "low",
+      "normal": "normal",
+      "high": "high"
+    },
+    "tempoShort": {
+      "low": "LOW",
+      "normal": "NORM",
+      "high": "HIGH"
+    },
+    "pcDesigner": "PENALTY-CORNER BATTERY",
+    "variant": "variant",
+    "aiPicks": "AI picks",
+    "injector": "injector",
+    "trapper": "trapper",
+    "striker": "striker",
+    "pc": {
+      "dragFlick": "drag flick",
+      "lowHit": "low hit",
+      "slipRight": "slip right",
+      "slipLeft": "slip left",
+      "deflection": "deflection"
+    },
+    "rotation": "ROTATION",
+    "bench": "bench",
+    "substitute": "SUB {out} → {in}",
+    "swapWith": "swap…",
+    "with": "with…",
+    "swapPositions": "swap positions",
+    "noteSub": "Rolling sub: {in} on for {out}.",
+    "noteGoalUs": "GOAL {scorer}. {a}–{b}.",
+    "noteGoalThem": "Goal against — {scorer}. {a}–{b}.",
+    "notePcUs": "Penalty corner — ours.",
+    "notePcThem": "Penalty corner against.",
+    "noteCard": "{colour} card, {name}.",
+    "noteTactic": "You switched {k} to {v}.",
+    "noteSubReq": "Sub requested: {out} → {in}.",
+    "noteSwap": "Positions swapped: {a} ↔ {b}.",
+    "noteQuarter": "Quarter {q} begins.",
+    "noteFullTime": "Full time.",
+    "modes": {
+      "director": "DIR",
+      "tactical": "TAC",
+      "coach": "COACH"
+    },
     "youAre": "you"
   },
   "sim": {
     "title": "Match viewer",
-    "phase": "PHASE OF PLAY", "inputs": "ENGINE INPUTS", "deterministic": "DETERMINISTIC",
+    "phase": "PHASE OF PLAY",
+    "inputs": "ENGINE INPUTS",
+    "deterministic": "DETERMINISTIC",
     "deterministicBody": "Same seed, same inputs, byte-identical log. Export this match and anyone can replay the exact 70 minutes.",
-    "inputKeys": { "profile": "profile", "turf": "turf", "formation": "formation", "press": "press", "mentality": "mentality", "tempo": "tempo", "rotate": "rotate below", "tickRate": "tick rate" },
-    "live": "LIVE", "eventLog": "EVENT LOG", "learn": "LEARN THIS PHASE", "openRulebook": "OPEN THE RULEBOOK →",
-    "tick": "TICK {n}", "seed": "SEED {seed} · {turf}", "play": "PLAY", "paused": "PAUSED", "clockOf": "{a} / {b}",
-    "overlays": { "none": "TACTICAL", "press": "PRESS LINE", "channels": "CHANNELS", "circle": "CIRCLE" },
+    "inputKeys": {
+      "profile": "profile",
+      "turf": "turf",
+      "formation": "formation",
+      "press": "press",
+      "mentality": "mentality",
+      "tempo": "tempo",
+      "rotate": "rotate below",
+      "tickRate": "tick rate"
+    },
+    "live": "LIVE",
+    "eventLog": "EVENT LOG",
+    "learn": "LEARN THIS PHASE",
+    "openRulebook": "OPEN THE RULEBOOK →",
+    "tick": "TICK {n}",
+    "seed": "SEED {seed} · {turf}",
+    "play": "PLAY",
+    "paused": "PAUSED",
+    "clockOf": "{a} / {b}",
+    "overlays": {
+      "none": "TACTICAL",
+      "press": "PRESS LINE",
+      "channels": "CHANNELS",
+      "circle": "CIRCLE"
+    },
     "cameraLabel": "CAMERA · 91.4 × 55 m",
-    "cams": { "full": "FULL", "broadcast": "BROADCAST", "circle": "CIRCLE", "goalmouth": "GOAL", "behindGoal": "BEHIND", "lowAngle": "LOW", "cornerCam": "CORNER", "half": "HALF", "director": "DIRECTOR" },
-    "legend": { "ourGoal": "OUR GOAL", "theirs": "THEIRS", "pc": "PC", "cardSub": "CARD / SUB" },
-    "speeds": { "x1": "1×", "x2": "2×", "x4": "4×", "ft": "SIM TO FT" },
+    "cams": {
+      "full": "FULL",
+      "broadcast": "BROADCAST",
+      "circle": "CIRCLE",
+      "goalmouth": "GOAL",
+      "behindGoal": "BEHIND",
+      "lowAngle": "LOW",
+      "cornerCam": "CORNER",
+      "half": "HALF",
+      "director": "DIRECTOR"
+    },
+    "legend": {
+      "ourGoal": "OUR GOAL",
+      "theirs": "THEIRS",
+      "pc": "PC",
+      "cardSub": "CARD / SUB"
+    },
+    "speeds": {
+      "x1": "1×",
+      "x2": "2×",
+      "x4": "4×",
+      "ft": "SIM TO FT"
+    },
     "empty": "No replay loaded. Coach a match, watch your last one, or simulate a quick match.",
-    "simulate": "SIMULATE A MATCH", "scenario": "RUN SCENARIO", "load": "LOAD REPLAY", "export": "EXPORT REPLAY", "source": "SOURCE",
-    "profile": "PROFILE", "turf": "TURF", "seedLabel": "SEED",
-    "card": { "green": "Green", "yellow": "Yellow", "red": "Red" },
-    "ev": { "Goal": "GOAL {team}. {score}.", "PenaltyCornerAwarded": "Penalty corner {team}.", "PenaltyStrokeAwarded": "Penalty stroke {team}.", "Card": "{colour} card, {team} {id}.", "Substitution": "Rolling sub, {team}.", "QuarterStart": "Quarter {q} begins.", "QuarterEnd": "End of quarter {q}.", "FullTime": "Full time.", "Foul": "Free hit {team} — {foul}.", "Tackle": "Tackle {outcome}, {team}.", "home": "home", "away": "away" }
+    "simulate": "SIMULATE A MATCH",
+    "scenario": "RUN SCENARIO",
+    "load": "LOAD REPLAY",
+    "export": "EXPORT REPLAY",
+    "source": "SOURCE",
+    "profile": "PROFILE",
+    "turf": "TURF",
+    "seedLabel": "SEED",
+    "card": {
+      "green": "Green",
+      "yellow": "Yellow",
+      "red": "Red"
+    },
+    "ev": {
+      "Goal": "GOAL {team}. {score}.",
+      "PenaltyCornerAwarded": "Penalty corner {team}.",
+      "PenaltyStrokeAwarded": "Penalty stroke {team}.",
+      "Card": "{colour} card, {team} {id}.",
+      "Substitution": "Rolling sub, {team}.",
+      "QuarterStart": "Quarter {q} begins.",
+      "QuarterEnd": "End of quarter {q}.",
+      "FullTime": "Full time.",
+      "Foul": "Free hit {team} — {foul}.",
+      "Tackle": "Tackle {outcome}, {team}.",
+      "home": "home",
+      "away": "away"
+    }
   },
   "report": {
-    "fullTime": "FULL TIME · DAY {day} · {turf}", "tierLine": "TIER {tier} · {before} → {after}",
-    "watch": "WATCH HIGHLIGHTS", "export": "EXPORT REPLAY", "back": "BACK TO SEASON",
-    "sheet": "MATCH SHEET", "momentum": "MOMENTUM", "momentumSub": "circle entries per five minutes, ours above the line",
-    "keyMoments": "KEY MOMENTS", "noMoments": "A quiet one — no decisive moment the analyser is sure about.",
-    "didWell": "WHAT YOU DID WELL", "didWellNone": "Nothing stood out as a clear win this time — the log shows an even match.",
-    "workOn": "TO WORK ON", "workOnNone": "No clear lesson from this log. Keep the same plan and watch the third quarter.",
-    "ruleOfMatch": "RULE OF THE MATCH", "readRule": "READ THE RULE →", "ruleNone": "A clean match — no rule to read up on.",
-    "rows": { "goals": "goals", "shots": "shots", "circleEntries": "circle entries", "penaltyCorners": "penalty corners", "possession": "possession", "tacklesWon": "tackles won", "cards": "cards", "fouls": "free hits conceded" },
-    "thumb": "replay {clock}"
+    "fullTime": "FULL TIME · DAY {day} · {turf}",
+    "tierLine": "TIER {tier} · {before} → {after}",
+    "watch": "WATCH HIGHLIGHTS",
+    "export": "EXPORT REPLAY",
+    "back": "BACK TO SEASON",
+    "sheet": "MATCH SHEET",
+    "momentum": "MOMENTUM",
+    "momentumSub": "circle entries per five minutes, ours above the line",
+    "keyMoments": "KEY MOMENTS",
+    "noMoments": "A quiet one — no decisive moment the analyser is sure about.",
+    "didWell": "WHAT YOU DID WELL",
+    "didWellNone": "Nothing stood out as a clear win this time — the log shows an even match.",
+    "workOn": "TO WORK ON",
+    "workOnNone": "No clear lesson from this log. Keep the same plan and watch the third quarter.",
+    "ruleOfMatch": "RULE OF THE MATCH",
+    "readRule": "READ THE RULE →",
+    "ruleNone": "A clean match — no rule to read up on.",
+    "rows": {
+      "goals": "goals",
+      "shots": "shots",
+      "circleEntries": "circle entries",
+      "penaltyCorners": "penalty corners",
+      "possession": "possession",
+      "tacklesWon": "tackles won",
+      "cards": "cards",
+      "fouls": "free hits conceded"
+    },
+    "thumb": "replay {clock}",
+    "hints": "Coach hints"
   },
   "insight": {
-    "switchWorked": { "title": "Switching to {what} at {clock} turned the match.", "body": "Before the change: {entriesBefore} circle entries and {shotsBefore} shots per minute. After: {entriesAfter} entries, {shotsAfter} shots, {goals} goals. Against a block that never adjusted its outside backs, width beats tempo." },
-    "switchFailed": { "title": "The switch to {what} at {clock} did not pay.", "body": "Before: {entriesBefore} circle entries and {shotsBefore} shots per minute. After: {entriesAfter} and {shotsAfter}. Change one thing at a time and give it ten minutes." },
-    "ownFreeHits": { "title": "Free hits inside your own 23", "body": "{n} conceded, {pcs} became penalty corners. Under pressure inside your 23 the outlet is the sideline, not the centre." },
-    "thirdQuarterLegs": { "title": "Third-quarter legs", "body": "{n} of your starters dropped below 40 % stamina before the last break. Rotate at 55 %, not 45 %." },
-    "aerialsLost": { "title": "Aerials", "body": "You lost {lost} of {n} aerial receptions. On {surface} turf the flat ball is faster anyway." },
-    "pcBattery": { "title": "The battery needs work", "body": "{n} penalty corners, no goal. Change the variant when the keeper has read the flick." },
-    "pcBatteryGood": { "title": "The battery paid", "body": "{goals} goals from {n} penalty corners — keep the injector and trapper together." },
-    "momentGoal": { "title": "{scorer} — {score}", "body": "Open play. Entry, pull-back, finish: the pattern this squad can repeat." },
-    "momentGoalPc": { "title": "{scorer}, penalty corner — {score}", "body": "The battery worked: injection, trap at the top, strike." },
-    "momentGoalPs": { "title": "{scorer}, penalty stroke — {score}", "body": "A stroke is a keeper's guess. It went the other way." },
-    "momentConceded": { "title": "Goal against — {score}", "body": "An open-play goal. Check the shape in the ten seconds before it: who was goal-side of the runner?" },
-    "momentConcededFoul": { "title": "Their goal came from your own free hit", "body": "A {foul} inside your 23 gave them the restart. Under pressure the outlet is the sideline, not the centre." },
-    "momentConcededTackle": { "title": "Their goal came from a lost tackle", "body": "A lunge that missed left the lane open. Jockey, channel, then commit." },
-    "momentConcededPc": { "title": "Their penalty corner — {score}", "body": "The runner was late or the post was open. Review the PC defence." },
-    "momentPcWon": { "title": "Penalty corner won at {clock}", "body": "Feet in the circle — the attacker's reward for going at the defender." },
-    "momentCard": { "title": "{colour} card, {player}", "body": "{reason}. Ten minutes short-handed changes the press; drop to half-court while they are off." },
-    "rule": { "title": "The match turned on {foul} — {n} times" },
-    "readNoShots": { "title": "You're arriving without width.", "body": "{n} circle entries in four minutes and no shot. Push the left half to the sideline and take the flanks." },
-    "readUnderSiege": { "title": "They have the ball in your 23.", "body": "{n} entries against in four minutes. Drop the line, mark the runner on the spot, clear to the sideline." },
-    "readPc": { "title": "Penalty corner — your call.", "body": "Drag flick if the keeper stays low; slip right if they rush the flicker." },
+    "switchWorked": {
+      "title": "Switching to {what} at {clock} turned the match.",
+      "body": "Before the change: {entriesBefore} circle entries and {shotsBefore} shots per minute. After: {entriesAfter} entries, {shotsAfter} shots, {goals} goals. Against a block that never adjusted its outside backs, width beats tempo.",
+      "hint": "The switch worked — leave it alone."
+    },
+    "switchFailed": {
+      "title": "The switch to {what} at {clock} did not pay.",
+      "body": "Before: {entriesBefore} circle entries and {shotsBefore} shots per minute. After: {entriesAfter} and {shotsAfter}. Change one thing at a time and give it ten minutes.",
+      "hint": "Change one thing at a time and give it ten minutes."
+    },
+    "ownFreeHits": {
+      "title": "Free hits inside your own 23",
+      "body": "{n} conceded, {pcs} became penalty corners. Under pressure inside your 23 the outlet is the sideline, not the centre.",
+      "hint": "Pressed in your own 23: outlet down the line, not through the middle."
+    },
+    "thirdQuarterLegs": {
+      "title": "Third-quarter legs",
+      "body": "{n} of your starters dropped below 40 % stamina before the last break. Rotate at 55 %, not 45 %.",
+      "hint": "Rotate at 55 % stamina, not at 45 %."
+    },
+    "aerialsLost": {
+      "title": "Aerials",
+      "body": "You lost {lost} of {n} aerial receptions. On {surface} turf the flat ball is faster anyway.",
+      "hint": "Too many aerials lost — keep it flat along the ground."
+    },
+    "pcBattery": {
+      "title": "The battery needs work",
+      "body": "{n} penalty corners, no goal. Change the variant when the keeper has read the flick.",
+      "hint": "Change the corner variant as soon as they have read it."
+    },
+    "pcBatteryGood": {
+      "title": "The battery paid",
+      "body": "{goals} goals from {n} penalty corners — keep the injector and trapper together.",
+      "hint": "Keep injector and trapper together — that timing is your corner."
+    },
+    "momentGoal": {
+      "title": "{scorer} — {score}",
+      "body": "Open play. Entry, pull-back, finish: the pattern this squad can repeat."
+    },
+    "momentGoalPc": {
+      "title": "{scorer}, penalty corner — {score}",
+      "body": "The battery worked: injection, trap at the top, strike."
+    },
+    "momentGoalPs": {
+      "title": "{scorer}, penalty stroke — {score}",
+      "body": "A stroke is a keeper's guess. It went the other way."
+    },
+    "momentConceded": {
+      "title": "Goal against — {score}",
+      "body": "An open-play goal. Check the shape in the ten seconds before it: who was goal-side of the runner?"
+    },
+    "momentConcededFoul": {
+      "title": "Their goal came from your own free hit",
+      "body": "A {foul} inside your 23 gave them the restart. Under pressure the outlet is the sideline, not the centre."
+    },
+    "momentConcededTackle": {
+      "title": "Their goal came from a lost tackle",
+      "body": "A lunge that missed left the lane open. Jockey, channel, then commit."
+    },
+    "momentConcededPc": {
+      "title": "Their penalty corner — {score}",
+      "body": "The runner was late or the post was open. Review the PC defence."
+    },
+    "momentPcWon": {
+      "title": "Penalty corner won at {clock}",
+      "body": "Feet in the circle — the attacker's reward for going at the defender."
+    },
+    "momentCard": {
+      "title": "{colour} card, {player}",
+      "body": "{reason}. Ten minutes short-handed changes the press; drop to half-court while they are off."
+    },
+    "rule": {
+      "title": "The match turned on {foul} — {n} times"
+    },
+    "readNoShots": {
+      "title": "You're arriving without width.",
+      "body": "{n} circle entries in four minutes and no shot. Push the left half to the sideline and take the flanks.",
+      "hint": "Possession but no shots. Get to the backline and pull it back."
+    },
+    "readUnderSiege": {
+      "title": "They have the ball in your 23.",
+      "body": "{n} entries against in four minutes. Drop the line, mark the runner on the spot, clear to the sideline.",
+      "hint": "You are pinned back. Drop into a block and keep two forwards high."
+    },
+    "readPc": {
+      "title": "Penalty corner — your call.",
+      "body": "Drag flick if the keeper stays low; slip right if they rush the flicker.",
+      "hint": "They have read your corner. Run a different variant."
+    },
     "phase": {
-      "attack23": { "title": "Ball in their 23", "body": "{metres} m from their backline, {possession} % possession this quarter. Entries need a runner on the spot; a pass into the D is worth more than a carry." },
-      "middle": { "title": "Midfield, building", "body": "{metres} m up the pitch, {possession} % possession this quarter. The press line decides whether the ball goes wide or through the middle." },
-      "defend23": { "title": "Defending your 23", "body": "{metres} m from your own goal line, {possession} % possession this quarter. Channel to the sideline; a foul here is a penalty corner." }
+      "attack23": {
+        "title": "Ball in their 23",
+        "body": "{metres} m from their backline, {possession} % possession this quarter. Entries need a runner on the spot; a pass into the D is worth more than a carry."
+      },
+      "middle": {
+        "title": "Midfield, building",
+        "body": "{metres} m up the pitch, {possession} % possession this quarter. The press line decides whether the ball goes wide or through the middle."
+      },
+      "defend23": {
+        "title": "Defending your 23",
+        "body": "{metres} m from your own goal line, {possession} % possession this quarter. Channel to the sideline; a foul here is a penalty corner."
+      }
     },
     "what": {
-      "buildUp": { "possession": "the middle", "direct": "over the top", "wide": "the flanks" },
-      "press": { "full": "a full-court press", "half": "a half-court press", "split": "a split press", "zone": "a zonal block" },
-      "formation": { "4-3-3": "4-3-3", "3-4-3": "3-4-3", "4-4-2": "4-4-2", "5-3-2": "5-3-2", "3-3-3-1": "3-3-3-1", "4-2-3-1": "4-2-3-1" },
-      "mentality": { "defensive": "a defensive mentality", "balanced": "a balanced mentality", "attacking": "an attacking mentality" }
+      "buildUp": {
+        "possession": "the middle",
+        "direct": "over the top",
+        "wide": "the flanks"
+      },
+      "press": {
+        "full": "a full-court press",
+        "half": "a half-court press",
+        "split": "a split press",
+        "zone": "a zonal block"
+      },
+      "formation": {
+        "4-3-3": "4-3-3",
+        "3-4-3": "3-4-3",
+        "4-4-2": "4-4-2",
+        "5-3-2": "5-3-2",
+        "3-3-3-1": "3-3-3-1",
+        "4-2-3-1": "4-2-3-1"
+      },
+      "mentality": {
+        "defensive": "a defensive mentality",
+        "balanced": "a balanced mentality",
+        "attacking": "an attacking mentality"
+      }
     },
-    "foul": { "feet": "feet", "dangerous": "dangerous play", "backStick": "back-stick", "obstruction": "obstruction", "stickTackle": "stick tackle", "freeHitDistance": "the five metres at a free hit", "freeHit23Circle": "the self-pass into the circle", "pcBreach": "breaking early at a corner", "pcHighFirstHit": "the high first hit", "earlyStroke": "the early stroke" }
+    "foul": {
+      "feet": "feet",
+      "dangerous": "dangerous play",
+      "backStick": "back-stick",
+      "obstruction": "obstruction",
+      "stickTackle": "stick tackle",
+      "freeHitDistance": "the five metres at a free hit",
+      "freeHit23Circle": "the self-pass into the circle",
+      "pcBreach": "breaking early at a corner",
+      "pcHighFirstHit": "the high first hit",
+      "earlyStroke": "the early stroke"
+    }
   },
-  "club": { "budget": "BUDGET", "membership": "membership", "sponsor": "sponsors", "facilities": "facilities", "coaching": "coaching", "travel": "travel", "balance": "balance" },
+  "club": {
+    "budget": "BUDGET",
+    "membership": "membership",
+    "sponsor": "sponsors",
+    "facilities": "facilities",
+    "coaching": "coaching",
+    "travel": "travel",
+    "balance": "balance"
+  },
   "rules": {
     "title": "The rulebook",
     "sub": "FIH rules as the engine applies them — each one is data in packages/rules, not prose.",
-    "feet": { "title": "Feet in the circle", "body": "A ball that hits a defender's foot or body inside the circle is a penalty corner; outside the circle it is a free hit. The attacker who plays the ball at feet is within the rules — the defender must keep the body out of the line." },
-    "dangerous": { "title": "Dangerous play", "body": "A ball raised at an opponent within five metres above knee height is dangerous play: free hit against the striker, and a penalty corner or stroke if it happens in the circle." },
-    "backStick": { "title": "Back-stick", "body": "Only the flat face of the stick may play the ball. The rounded side is a free hit." },
-    "obstruction": { "title": "Obstruction", "body": "Shielding the ball with the body, backing into an opponent or running across a player going for the ball is obstruction — a free hit." },
-    "stickTackle": { "title": "Stick tackle", "body": "Hitting, hooking or holding an opponent's stick is a free hit; inside the circle a penalty corner." },
-    "freeHitDistance": { "title": "Five metres at a free hit", "body": "Opponents must be five metres from the ball at a free hit. Standing closer — or rushing the restart — is a free hit to the other side." },
-    "selfPass23": { "title": "Self-pass after a free hit inside the 23", "body": "The attacker may self-pass, but from a free hit inside the attacking 23 the ball must travel five metres or be touched by a defender before it enters the circle. Closing the five metres is how the defence kills it." },
-    "pcBreach": { "title": "Breaking early at a penalty corner", "body": "Defenders behind the backline and attackers outside the circle must wait for the injection. A defender who breaks early is sent to the halfway line; an attacker who breaks early concedes a free hit." },
-    "pcFirstHit": { "title": "The first hit at a penalty corner", "body": "The first shot at goal at a penalty corner, if it is a hit, must cross the goal line below 460 mm. A drag flick or a push may go at any height." },
-    "stroke": { "title": "Penalty stroke", "body": "A stroke is awarded for an offence that prevents a probable goal or a deliberate foul in the circle. One push or flick from 6.4 m, the keeper on the line; the taker may not take it before the whistle." },
-    "circle": { "title": "The circle rule", "body": "A goal counts only if the ball was touched by an attacker inside the circle before crossing the goal line. Nothing scores from outside the D — which is why the whole game lives there." },
-    "pc": { "title": "Penalty corner", "body": "Injected from the backline ten metres from the post; five defenders plus the keeper behind the line, everybody else beyond the halfway line; the ball must leave the circle before a shot unless trapped at the top. Awarded for a foul by a defender in the circle or a deliberate one inside the 23." },
-    "cards": { "title": "Cards", "body": "Green: two minutes off. Yellow: five or ten minutes off. Red: the rest of the match. Persistent fouling escalates." },
-    "subs": { "title": "Rolling substitutions", "body": "Any number of substitutions at any time through the dugout gate — except during a penalty corner, when only the keeper may be replaced." },
-    "aerial": { "title": "The aerial", "body": "A raised ball is legal when it is safe: not towards an opponent within five metres, and received by one player with opponents five metres away until it is controlled." }
+    "feet": {
+      "title": "Feet in the circle",
+      "body": "A ball that hits a defender's foot or body inside the circle is a penalty corner; outside the circle it is a free hit. The attacker who plays the ball at feet is within the rules — the defender must keep the body out of the line."
+    },
+    "dangerous": {
+      "title": "Dangerous play",
+      "body": "A ball raised at an opponent within five metres above knee height is dangerous play: free hit against the striker, and a penalty corner or stroke if it happens in the circle."
+    },
+    "backStick": {
+      "title": "Back-stick",
+      "body": "Only the flat face of the stick may play the ball. The rounded side is a free hit."
+    },
+    "obstruction": {
+      "title": "Obstruction",
+      "body": "Shielding the ball with the body, backing into an opponent or running across a player going for the ball is obstruction — a free hit."
+    },
+    "stickTackle": {
+      "title": "Stick tackle",
+      "body": "Hitting, hooking or holding an opponent's stick is a free hit; inside the circle a penalty corner."
+    },
+    "freeHitDistance": {
+      "title": "Five metres at a free hit",
+      "body": "Opponents must be five metres from the ball at a free hit. Standing closer — or rushing the restart — is a free hit to the other side."
+    },
+    "selfPass23": {
+      "title": "Self-pass after a free hit inside the 23",
+      "body": "The attacker may self-pass, but from a free hit inside the attacking 23 the ball must travel five metres or be touched by a defender before it enters the circle. Closing the five metres is how the defence kills it."
+    },
+    "pcBreach": {
+      "title": "Breaking early at a penalty corner",
+      "body": "Defenders behind the backline and attackers outside the circle must wait for the injection. A defender who breaks early is sent to the halfway line; an attacker who breaks early concedes a free hit."
+    },
+    "pcFirstHit": {
+      "title": "The first hit at a penalty corner",
+      "body": "The first shot at goal at a penalty corner, if it is a hit, must cross the goal line below 460 mm. A drag flick or a push may go at any height."
+    },
+    "stroke": {
+      "title": "Penalty stroke",
+      "body": "A stroke is awarded for an offence that prevents a probable goal or a deliberate foul in the circle. One push or flick from 6.4 m, the keeper on the line; the taker may not take it before the whistle."
+    },
+    "circle": {
+      "title": "The circle rule",
+      "body": "A goal counts only if the ball was touched by an attacker inside the circle before crossing the goal line. Nothing scores from outside the D — which is why the whole game lives there."
+    },
+    "pc": {
+      "title": "Penalty corner",
+      "body": "Injected from the backline ten metres from the post; five defenders plus the keeper behind the line, everybody else beyond the halfway line; the ball must leave the circle before a shot unless trapped at the top. Awarded for a foul by a defender in the circle or a deliberate one inside the 23."
+    },
+    "cards": {
+      "title": "Cards",
+      "body": "Green: two minutes off. Yellow: five or ten minutes off. Red: the rest of the match. Persistent fouling escalates."
+    },
+    "subs": {
+      "title": "Rolling substitutions",
+      "body": "Any number of substitutions at any time through the dugout gate — except during a penalty corner, when only the keeper may be replaced."
+    },
+    "aerial": {
+      "title": "The aerial",
+      "body": "A raised ball is legal when it is safe: not towards an opponent within five metres, and received by one player with opponents five metres away until it is controlled."
+    }
   },
-  "camera": { "full": "CAM · FULL PITCH", "half": "CAM · HALF COURT", "circle": "CAM · SHOOTING CIRCLE", "goalmouth": "CAM · GOAL MOUTH", "broadcast": "CAM · BROADCAST 52°", "lowAngle": "CAM · LOW ANGLE", "behindGoal": "CAM · BEHIND THE GOAL", "cornerCam": "CAM · CORNER FLAG", "director": "CAM · DIRECTOR" },
+  "camera": {
+    "full": "CAM · FULL PITCH",
+    "half": "CAM · HALF COURT",
+    "circle": "CAM · SHOOTING CIRCLE",
+    "goalmouth": "CAM · GOAL MOUTH",
+    "broadcast": "CAM · BROADCAST 52°",
+    "lowAngle": "CAM · LOW ANGLE",
+    "behindGoal": "CAM · BEHIND THE GOAL",
+    "cornerCam": "CAM · CORNER FLAG",
+    "director": "CAM · DIRECTOR"
+  },
   "settings": {
     "title": "Settings",
-    "language": "LANGUAGE", "sound": "SOUND", "soundOn": "on", "soundOff": "off", "install": "INSTALL", "installed": "installed as an app", "notInstallable": "open in Chrome or Safari to install",
-    "saves": "SAVED CAREERS", "noSaves": "no saved career", "load": "LOAD", "delete": "DELETE", "exportSave": "EXPORT SAVE", "importSave": "IMPORT SAVE",
-    "replayIntro": "REPLAY THE INTRO", "resetOnboarding": "SHOW ONBOARDING AGAIN"
+    "language": "LANGUAGE",
+    "sound": "SOUND",
+    "soundOn": "on",
+    "soundOff": "off",
+    "install": "INSTALL",
+    "installed": "installed as an app",
+    "notInstallable": "open in Chrome or Safari to install",
+    "saves": "SAVED CAREERS",
+    "noSaves": "no saved career",
+    "load": "LOAD",
+    "delete": "DELETE",
+    "exportSave": "EXPORT SAVE",
+    "importSave": "IMPORT SAVE",
+    "replayIntro": "REPLAY THE INTRO",
+    "resetOnboarding": "SHOW ONBOARDING AGAIN"
   },
   "about": {
     "title": "About BULLY OFF",
@@ -279,7 +854,16 @@
     "credits": "Open source (MIT). Deterministic engine, FIH rules as data, a utility AI, a season model with twenty seasons of generated history, and a PixiJS replay viewer — calibrated against public Belgian League aggregates.",
     "version": "Engine {engine} · save format v{save}"
   },
-  "viewer": { "mens": "men's", "womens": "women's", "dry": "dry", "watered": "watered", "wet": "wet", "director": "director", "tactical": "tactical", "coach": "coach" },
+  "viewer": {
+    "mens": "men's",
+    "womens": "women's",
+    "dry": "dry",
+    "watered": "watered",
+    "wet": "wet",
+    "director": "director",
+    "tactical": "tactical",
+    "coach": "coach"
+  },
   "season": {
     "msgNewWorld": "New world ({n} seasons of history) — pick your club.",
     "msgWriting": "Writing {n} seasons of history…",
@@ -293,5 +877,119 @@
     "msgRecorded": "Your match is in the books — play the rest of the day.",
     "errNoSave": "no save \"{slot}\""
   },
-  "ordinal": { "1": "1ST", "2": "2ND", "3": "3RD", "n": "{n}TH" }
+  "ordinal": {
+    "1": "1ST",
+    "2": "2ND",
+    "3": "3RD",
+    "n": "{n}TH"
+  },
+  "academy": {
+    "title": "Academy",
+    "sub": "What the engine actually models — one topic a minute.",
+    "open": "Walk through",
+    "step": "Step {n} of {total}",
+    "prev": "Back",
+    "next": "Next",
+    "finish": "Finish",
+    "close": "Close",
+    "restart": "Start again",
+    "steps": "{n} steps",
+    "legend": {
+      "us": "Us",
+      "them": "Them",
+      "ball": "Ball",
+      "pass": "Pass",
+      "run": "Run",
+      "carry": "Carry"
+    },
+    "fromReport": "Learn this",
+    "penaltyCorner": {
+      "title": "The penalty corner",
+      "sub": "About a third of all goals come from here.",
+      "steps": {
+        "battery": {
+          "title": "The battery",
+          "body": "Injector, trapper, striker. The injection has to arrive at about 8 m/s: harder and the trapper cannot stop it, softer and the runner beats the ball to the spot."
+        },
+        "variants": {
+          "title": "The variants",
+          "body": "Drag flick, low hit, slip left or right, deflection. Each variant breaks a different running-out system — and every running-out system has a hole."
+        },
+        "runningOut": {
+          "title": "Running out",
+          "body": "The first runner leaves on the injection and guesses two things: his line and his height. Low blocks the hit but is flicked over; high blocks the flick but the low hit goes under him."
+        },
+        "wearOut": {
+          "title": "Wearing it out",
+          "body": "Run the same variant nine times and they set up for it. Keep one back for when it matters."
+        }
+      }
+    },
+    "buildUp": {
+      "title": "Building out",
+      "sub": "From your own 23 to halfway without giving it away.",
+      "steps": {
+        "shape": {
+          "title": "The shape",
+          "body": "Backs split around your own circle — never receive inside your D. A ball played back in there is a turnover with a goal attached."
+        },
+        "freeMan": {
+          "title": "The free man",
+          "body": "The spare back nobody is marking is your whole outlet. Find him first, then play forward."
+        },
+        "upBackThrough": {
+          "title": "Up-back-through",
+          "body": "Into a pressed forward, straight back to the free man, then through the line that has just come with it. This is the combination that makes a build-up look coached."
+        },
+        "overTheTop": {
+          "title": "Over the top",
+          "body": "A full-court press has no spare man. One ball over the top and you are a player up."
+        }
+      }
+    },
+    "pressing": {
+      "title": "Pressing",
+      "sub": "Four systems, four different sports.",
+      "steps": {
+        "systems": {
+          "title": "The four systems",
+          "body": "Full court: man-to-man over the whole pitch, nobody spare. Half court: the block sets around halfway. Split: shepherd to one side and slide across. Zone: everyone behind the 23 and nobody chases."
+        },
+        "channels": {
+          "title": "Who steps out",
+          "body": "The player whose channel the ball is in, not whoever happens to be nearest. A right half who sprints across the pitch leaves exactly the gap the ball is going to."
+        },
+        "freeManRest": {
+          "title": "Free man and rest-break",
+          "body": "A spare defender behind the line covers the mistake. Two forwards who do not come back are the reason you conceded the ball in the first place."
+        },
+        "split": {
+          "title": "The splitting press",
+          "body": "The first defender closes from the inside, the ball has to go wide, the block slides across. You concede the far side on purpose — until they find it."
+        }
+      }
+    },
+    "circleEntry": {
+      "title": "Into the circle",
+      "sub": "Nothing scores from outside the D.",
+      "steps": {
+        "theLine": {
+          "title": "The line",
+          "body": "Possession in midfield is worth comparatively little. The pass that crosses the circle line is the most valuable object on the pitch."
+        },
+        "baseline": {
+          "title": "Baseline and pull-back",
+          "body": "Round the back on the outside, on to the backline, and pull it back to the spot where the runner arrives. The largest goal source in the modern game."
+        },
+        "switchSlip": {
+          "title": "Switch and slip",
+          "body": "Circulate across the top of the D until the block slides with it, then slip the ball in behind them to the far post."
+        },
+        "drawTheFoot": {
+          "title": "Drawing the foot",
+          "body": "A firm push at a defender standing between the ball and the goal. A foot in the circle is a corner — that is where most club-level corners come from."
+        }
+      }
+    }
+  }
 }

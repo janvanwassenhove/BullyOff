@@ -14,13 +14,14 @@ import SquadView from './SquadView.vue';
 import TacticsView from './TacticsView.vue';
 import ClubView from './ClubView.vue';
 import RulebookView from './RulebookView.vue';
+import AcademyView from './AcademyView.vue';
 
 const props = defineProps<{ screen: Screen }>();
 const { t, locale } = useI18n();
 const app = useAppStore();
 const season = useSeasonStore();
 const NAV: { key: Screen; label: string }[] = [
-  { key: 'season', label: 'app.nav.season' }, { key: 'squad', label: 'app.nav.squad' }, { key: 'tactics', label: 'app.nav.tactics' }, { key: 'club', label: 'app.nav.club' }, { key: 'rulebook', label: 'app.nav.rulebook' },
+  { key: 'season', label: 'app.nav.season' }, { key: 'squad', label: 'app.nav.squad' }, { key: 'tactics', label: 'app.nav.tactics' }, { key: 'club', label: 'app.nav.club' }, { key: 'rulebook', label: 'app.nav.rulebook' }, { key: 'academy', label: 'app.nav.academy' },
 ];
 const club = computed(() => season.userClub);
 const ordinal = (n: number): string => (n <= 0 ? '—' : n <= 3 ? t(`ordinal.${n}`) : t('ordinal.n', { n }));
@@ -164,6 +165,7 @@ function pickLocale(ev: Event): void { setLocale((ev.target as HTMLSelectElement
       <SquadView v-else-if="props.screen === 'squad'" />
       <TacticsView v-else-if="props.screen === 'tactics'" />
       <ClubView v-else-if="props.screen === 'club'" />
+      <AcademyView v-else-if="app.screen === 'academy'" />
       <RulebookView v-else />
     </main>
   </div>

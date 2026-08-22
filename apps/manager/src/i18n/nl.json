@@ -1,7 +1,17 @@
 {
   "app": {
     "title": "BULLY OFF",
-    "nav": { "season": "Seizoen", "squad": "Kern", "tactics": "Tactiek", "club": "Club", "rulebook": "Reglement", "viewer": "Wedstrijdkijker", "about": "Over & privacy", "settings": "Instellingen" },
+    "nav": {
+      "season": "Seizoen",
+      "squad": "Kern",
+      "tactics": "Tactiek",
+      "club": "Club",
+      "rulebook": "Reglement",
+      "viewer": "Wedstrijdkijker",
+      "about": "Over & privacy",
+      "settings": "Instellingen",
+      "academy": "Academie"
+    },
     "language": "Taal",
     "install": "App installeren",
     "offlineReady": "Klaar om offline te spelen.",
@@ -14,7 +24,12 @@
     "import": "Save importeren",
     "back": "Terug",
     "menu": "Menu",
-    "version": { "engine": "ENGINE {v}", "save": "SAVE v{v}", "offline": "OFFLINE KLAAR", "langs": "NL · EN · FR" }
+    "version": {
+      "engine": "ENGINE {v}",
+      "save": "SAVE v{v}",
+      "offline": "OFFLINE KLAAR",
+      "langs": "NL · EN · FR"
+    }
   },
   "intro": {
     "eyebrow": "VELDHOCKEY, EERLIJK GEMODELLEERD",
@@ -35,22 +50,43 @@
     "film": "INTROFILM — 45 s LOOP, GEDEMPT AUTOPLAY",
     "filmSub": "opwarming onder de lichtmasten, bal op besproeid kunstgras, gepraat op de bank",
     "steps": [
-      { "title": "Genereer een wereld", "body": "Twee reeksen, twintig seizoenen verzonnen geschiedenis. Duurt acht seconden." },
-      { "title": "Kies je club", "body": "Embleem, tenue, erelijst, een kern met echte problemen. De jouwe vanaf het eerste fluitsignaal." },
-      { "title": "Coach op zaterdag", "body": "Tactiek, de strafcornerbatterij, wissels op conditie — en dan het rapport dat je iets leert." }
+      {
+        "title": "Genereer een wereld",
+        "body": "Twee reeksen, twintig seizoenen verzonnen geschiedenis. Duurt acht seconden."
+      },
+      {
+        "title": "Kies je club",
+        "body": "Embleem, tenue, erelijst, een kern met echte problemen. De jouwe vanaf het eerste fluitsignaal."
+      },
+      {
+        "title": "Coach op zaterdag",
+        "body": "Tactiek, de strafcornerbatterij, wissels op conditie — en dan het rapport dat je iets leert."
+      }
     ],
-    "trust": { "offline": "OFFLINE · GEEN ACCOUNTS", "noReal": "GEEN ECHTE CLUBS OF MENSEN", "langs": "NL · EN · FR" }
+    "trust": {
+      "offline": "OFFLINE · GEEN ACCOUNTS",
+      "noReal": "GEEN ECHTE CLUBS OF MENSEN",
+      "langs": "NL · EN · FR"
+    }
   },
   "title": {
     "eyebrow": "DETERMINISTISCH VELDHOCKEY",
     "body": "Een seizoen dat de engine echt simuleert — cirkelregel, doorlopende wissels, besproeid gras. Leer de sport terwijl je wint.",
     "keyArt": "key art — doelvrouw/doelman, lichtmasten, besproeid gras",
     "menu": {
-      "continue": "VERDER", "continueMeta": "{club} · seizoen {year} · speeldag {day}", "noSave": "nog geen opgeslagen carrière",
-      "newCareer": "NIEUWE CARRIÈRE", "newCareerMeta": "genereer een wereld",
-      "viewer": "WEDSTRIJDKIJKER", "viewerMeta": "herhalingen en scenario's",
-      "rulebook": "HET REGLEMENT", "rulebookMeta": "FIH-regels, geïllustreerd",
-      "settings": "INSTELLINGEN", "settingsMeta": "offline · geen accounts · privacy"
+      "continue": "VERDER",
+      "continueMeta": "{club} · seizoen {year} · speeldag {day}",
+      "noSave": "nog geen opgeslagen carrière",
+      "newCareer": "NIEUWE CARRIÈRE",
+      "newCareerMeta": "genereer een wereld",
+      "viewer": "WEDSTRIJDKIJKER",
+      "viewerMeta": "herhalingen en scenario's",
+      "rulebook": "HET REGLEMENT",
+      "rulebookMeta": "FIH-regels, geïllustreerd",
+      "settings": "INSTELLINGEN",
+      "settingsMeta": "offline · geen accounts · privacy",
+      "academy": "ACADEMIE",
+      "academyMeta": "strafcorners, opbouw, pressen, de cirkel in"
     }
   },
   "onboarding": {
@@ -60,7 +96,11 @@
     "s2": "Speel de speeldagen of simuleer ze. Volg het klassement, de play-offs en de barrage; geef jeugd minuten; hou de behandelkamer kort.",
     "s3Title": "Coach vanaf de zijlijn",
     "s3": "Tactiek, de strafcornerbatterij, wissels op conditie. Elke instructie is reglementair hockey, en na het affluiten toont het spel je waarom het werkte.",
-    "art": ["wereldkaart — verzonnen gemeenten", "seizoenskalender", "bank, lichtmasten"],
+    "art": [
+      "wereldkaart — verzonnen gemeenten",
+      "seizoenskalender",
+      "bank, lichtmasten"
+    ],
     "skip": "OVERSLAAN",
     "next": "VOLGENDE",
     "start": "AAN DE SLAG"
@@ -69,59 +109,187 @@
     "eyebrow": "NIEUWE CARRIÈRE",
     "step": "STAP {n} VAN 2",
     "hero": "Twee reeksen, twintig jaar\ngeschiedenis, geen echte clubs.",
-    "competition": "COMPETITIE", "competitionHint": "regels en fysica verschillen", "mens": "HEREN", "womens": "DAMES",
-    "flavour": "REGIO", "flavourHint": "naam- en gemeentepools", "mixed": "GEMENGD", "vlaanderen": "VLAANDEREN", "wallonie": "WALLONIË", "bruxelles": "BRUSSEL",
-    "history": "GESCHIEDENIS", "historyHint": "kampioenen, promoties, erelijst", "none": "GEEN", "seasons10": "10 SEIZOENEN", "seasons20": "20 SEIZOENEN",
-    "turf": "ONDERGROND", "turfHint": "besproeid gras is een sneller spel", "watered": "BESPROEID", "dry": "DROOG", "wet": "NAT",
-    "seed": "WERELD-SEED", "reroll": "OPNIEUW", "seedNote": "zelfde seed, zelfde wereld — altijd",
+    "competition": "COMPETITIE",
+    "competitionHint": "regels en fysica verschillen",
+    "mens": "HEREN",
+    "womens": "DAMES",
+    "flavour": "REGIO",
+    "flavourHint": "naam- en gemeentepools",
+    "mixed": "GEMENGD",
+    "vlaanderen": "VLAANDEREN",
+    "wallonie": "WALLONIË",
+    "bruxelles": "BRUSSEL",
+    "history": "GESCHIEDENIS",
+    "historyHint": "kampioenen, promoties, erelijst",
+    "none": "GEEN",
+    "seasons10": "10 SEIZOENEN",
+    "seasons20": "20 SEIZOENEN",
+    "turf": "ONDERGROND",
+    "turfHint": "besproeid gras is een sneller spel",
+    "watered": "BESPROEID",
+    "dry": "DROOG",
+    "wet": "NAT",
+    "seed": "WERELD-SEED",
+    "reroll": "OPNIEUW",
+    "seedNote": "zelfde seed, zelfde wereld — altijd",
     "generate": "WERELD GENEREREN",
-    "generating": "BEZIG", "idle": "KLAAR", "writing": "{n} seizoenen geschiedenis aan het schrijven…", "writingNone": "Wereld aan het genereren…", "done": "Wereld klaar — kies je club.",
-    "clubs": "CLUBS", "players": "SPELERS", "seasonsLabel": "SEIZOENEN", "realNames": "ECHTE NAMEN",
-    "ledger": "HISTORISCH GROOTBOEK", "ledgerEmpty": "De geschiedenis verschijnt hier terwijl ze geschreven wordt.",
+    "generating": "BEZIG",
+    "idle": "KLAAR",
+    "writing": "{n} seizoenen geschiedenis aan het schrijven…",
+    "writingNone": "Wereld aan het genereren…",
+    "done": "Wereld klaar — kies je club.",
+    "clubs": "CLUBS",
+    "players": "SPELERS",
+    "seasonsLabel": "SEIZOENEN",
+    "realNames": "ECHTE NAMEN",
+    "ledger": "HISTORISCH GROOTBOEK",
+    "ledgerEmpty": "De geschiedenis verschijnt hier terwijl ze geschreven wordt.",
     "ledgerRegular": "{champion} — reguliere winnaar {regular}",
     "ledgerDouble": "{champion} — ook reguliere winnaar",
     "pickTitle": "Kies de club die je gaat coachen",
     "pickSub": "{n} clubs · reeks 1 & reeks 2 · hoe moeilijker de club, hoe meer de engine je leert",
-    "tier": "REEKS {n}", "level": "NIV {n}", "est": "opgericht {year}", "champions": "kampioen", "rebuilding": "in heropbouw",
-    "titles": "TITELS", "squadLevel": "KERNNIVEAU", "facilities": "ACCOMMODATIE",
+    "tier": "REEKS {n}",
+    "level": "NIV {n}",
+    "est": "opgericht {year}",
+    "champions": "kampioen",
+    "rebuilding": "in heropbouw",
+    "titles": "TITELS",
+    "squadLevel": "KERNNIVEAU",
+    "facilities": "ACCOMMODATIE",
     "blurbTitles": "{n} titel, de laatste in {last}. | {n} titels, de laatste in {last}.",
     "blurbNoTitles": "Geen titel in het gegenereerde verleden — een club die de play-offs altijd vanaf de tribune bekeek.",
     "blurbSquad": "Een kern van {squad} met {youth} jeugdspelers op komst; niveau {level} in een reeks die gemiddeld {tierLevel} haalt.",
     "blurbBoardT1": "Het bestuur wil play-offs; de vrijwilligers willen het dak van het clubhuis gerepareerd.",
     "blurbBoardT2": "Het bestuur wil promotie; de vrijwilligers willen een tweede veld.",
-    "kit": "TENUE", "kitNote": "toegepast als sprite-tint in de wedstrijd",
+    "kit": "TENUE",
+    "kitNote": "toegepast als sprite-tint in de wedstrijd",
     "takeJob": "NEEM DE JOB",
-    "saved": "Opgeslagen carrières", "load": "Laden", "importFile": "Importeer een save-bestand"
+    "saved": "Opgeslagen carrières",
+    "load": "Laden",
+    "importFile": "Importeer een save-bestand"
   },
   "hub": {
-    "tier": "REEKS {n}", "season": "SEIZOEN {year}", "day": "SPEELDAG {d} / {n}", "pos": "{pos}", "finished": "SEIZOEN VOORBIJ",
-    "nextHome": "VOLGENDE — SPEELDAG {day}, THUIS", "nextAway": "VOLGENDE — SPEELDAG {day}, UIT", "nextNone": "GEEN WEDSTRIJD MEER",
+    "tier": "REEKS {n}",
+    "season": "SEIZOEN {year}",
+    "day": "SPEELDAG {d} / {n}",
+    "pos": "{pos}",
+    "finished": "SEIZOEN VOORBIJ",
+    "nextHome": "VOLGENDE — SPEELDAG {day}, THUIS",
+    "nextAway": "VOLGENDE — SPEELDAG {day}, UIT",
+    "nextNone": "GEEN WEDSTRIJD MEER",
     "scout": "{club} · {goals} gescoord, {conceded} geslikt in {played}",
     "scoutNone": "{club} · eerste ontmoeting van het seizoen",
-    "coach": "COACH DE WEDSTRIJD", "simDay": "SIM SPEELDAG", "simToEnd": "SIM TOT EINDE", "nextSeason": "VOLGEND SEIZOEN", "report": "LAATSTE RAPPORT", "watch": "BEKIJK HERHALING",
-    "tabs": { "table": "KLASSEMENT", "fixtures": "KALENDER", "results": "UITSLAGEN", "history": "GESCHIEDENIS" },
-    "cols": { "pos": "#", "club": "CLUB", "p": "G", "w": "W", "d": "G", "l": "V", "gf": "DV", "ga": "DT", "pts": "PTN", "day": "DAG", "phase": "FASE", "home": "THUIS", "away": "UIT", "result": "UITSLAG", "year": "JAAR", "champion": "KAMPIOEN", "final": "FINALE", "up": "OMHOOG", "down": "OMLAAG" },
-    "legend": { "playoffs": "play-offs om de titel", "playdown": "barrage", "relegated": "degradatie", "winter": "winterstop speeldagen {a}–{b}" },
-    "phase": { "regular": "regulier", "playoff-semi": "halve finale", "playoff-final": "finale", "playdown": "barrage" },
-    "form": "VORM · LAATSTE VIJF", "formNote": "{gf} goals / wedstrijd thuis", "formEmpty": "nog geen uitslag",
-    "staff": "VAN DE TECHNISCHE STAF", "staffEmpty": "Niets te melden vóór de eerste speeldag.",
-    "treatment": "BEHANDELKAMER", "treatmentEmpty": "iedereen fit", "daysOut": "{d} d", "light": "fit — licht",
-    "noResults": "Nog geen uitslagen.", "noHistory": "Nog geen seizoenen afgewerkt.",
+    "coach": "COACH DE WEDSTRIJD",
+    "simDay": "SIM SPEELDAG",
+    "simToEnd": "SIM TOT EINDE",
+    "nextSeason": "VOLGEND SEIZOEN",
+    "report": "LAATSTE RAPPORT",
+    "watch": "BEKIJK HERHALING",
+    "tabs": {
+      "table": "KLASSEMENT",
+      "fixtures": "KALENDER",
+      "results": "UITSLAGEN",
+      "history": "GESCHIEDENIS"
+    },
+    "cols": {
+      "pos": "#",
+      "club": "CLUB",
+      "p": "G",
+      "w": "W",
+      "d": "G",
+      "l": "V",
+      "gf": "DV",
+      "ga": "DT",
+      "pts": "PTN",
+      "day": "DAG",
+      "phase": "FASE",
+      "home": "THUIS",
+      "away": "UIT",
+      "result": "UITSLAG",
+      "year": "JAAR",
+      "champion": "KAMPIOEN",
+      "final": "FINALE",
+      "up": "OMHOOG",
+      "down": "OMLAAG"
+    },
+    "legend": {
+      "playoffs": "play-offs om de titel",
+      "playdown": "barrage",
+      "relegated": "degradatie",
+      "winter": "winterstop speeldagen {a}–{b}"
+    },
+    "phase": {
+      "regular": "regulier",
+      "playoff-semi": "halve finale",
+      "playoff-final": "finale",
+      "playdown": "barrage"
+    },
+    "form": "VORM · LAATSTE VIJF",
+    "formNote": "{gf} goals / wedstrijd thuis",
+    "formEmpty": "nog geen uitslag",
+    "staff": "VAN DE TECHNISCHE STAF",
+    "staffEmpty": "Niets te melden vóór de eerste speeldag.",
+    "treatment": "BEHANDELKAMER",
+    "treatmentEmpty": "iedereen fit",
+    "daysOut": "{d} d",
+    "light": "fit — licht",
+    "noResults": "Nog geen uitslagen.",
+    "noHistory": "Nog geen seizoenen afgewerkt.",
     "histLine": "kampioen {champion} (reguliere winnaar {regular}) · finale: {final} · omhoog: {up} · omlaag: {down}",
-    "so": "SO {a}–{b}", "resultVs": "{home} {hg}–{ag} {away}",
+    "so": "SO {a}–{b}",
+    "resultVs": "{home} {hg}–{ag} {away}",
     "seasonOver": "Seizoen {year} is voorbij — {champion} is kampioen. Rol door naar het volgende wanneer je klaar bent."
   },
   "squad": {
     "title": "Kern",
     "sub": "{n} spelers · {youth} jeugd · loonmassa {pct} % van een vrijwilligersbudget",
-    "cols": { "n": "#", "name": "NAAM", "role": "POSITIE", "age": "LFT", "ovr": "ALG", "minutes": "MINUTEN", "goals": "GOALS", "status": "STATUS" },
-    "youth": "JEUGD", "captain": "(C)", "fit": "FIT", "tired": "MOE", "out": "{d} D",
-    "hand": { "right": "RECHTSHANDIG", "left": "LINKSHANDIG" },
-    "role": { "GK": "DOELVERDEDIGER", "DEF": "VERDEDIGER", "MID": "MIDDENVELDER", "FWD": "AANVALLER" },
-    "ovr": "ALG {n}", "goals": "{n} GOALS", "contract": "CONTRACT {year}", "potential": "POT {n}",
+    "cols": {
+      "n": "#",
+      "name": "NAAM",
+      "role": "POSITIE",
+      "age": "LFT",
+      "ovr": "ALG",
+      "minutes": "MINUTEN",
+      "goals": "GOALS",
+      "status": "STATUS"
+    },
+    "youth": "JEUGD",
+    "captain": "(C)",
+    "fit": "FIT",
+    "tired": "MOE",
+    "out": "{d} D",
+    "hand": {
+      "right": "RECHTSHANDIG",
+      "left": "LINKSHANDIG"
+    },
+    "role": {
+      "GK": "DOELVERDEDIGER",
+      "DEF": "VERDEDIGER",
+      "MID": "MIDDENVELDER",
+      "FWD": "AANVALLER"
+    },
+    "ovr": "ALG {n}",
+    "goals": "{n} GOALS",
+    "contract": "CONTRACT {year}",
+    "potential": "POT {n}",
     "attributes": "EIGENSCHAPPEN",
-    "attr": { "acceleration": "versnelling", "topSpeed": "topsnelheid", "stickSkill": "stickbeheersing", "hit": "slag", "aerial": "aerial", "workRate": "arbeidsethos", "dragFlick": "drag flick", "reflexes": "reflexen", "positioning": "positiespel", "oneOnOne": "één-tegen-één", "pace": "snelheid", "composure": "kalmte", "decisions": "beslissingen" },
-    "howToUseM": "HOE ZET JE HEM IN", "howToUseW": "HOE ZET JE HAAR IN",
+    "attr": {
+      "acceleration": "versnelling",
+      "topSpeed": "topsnelheid",
+      "stickSkill": "stickbeheersing",
+      "hit": "slag",
+      "aerial": "aerial",
+      "workRate": "arbeidsethos",
+      "dragFlick": "drag flick",
+      "reflexes": "reflexen",
+      "positioning": "positiespel",
+      "oneOnOne": "één-tegen-één",
+      "pace": "snelheid",
+      "composure": "kalmte",
+      "decisions": "beslissingen"
+    },
+    "howToUseM": "HOE ZET JE HEM IN",
+    "howToUseW": "HOE ZET JE HAAR IN",
     "portrait": "SPELERSPORTRET",
     "pick": "Kies een speler om de coachnota te lezen."
   },
@@ -139,131 +307,538 @@
     "defStopper": "Een stopper (tackle {tackle}): de dekker van hun beste loper in de cirkel. Vraag de kanaaltackle, niet de uitval.",
     "defOutlet": "Een opbouwende verdediger (push {push}): speelt de eerste pass vanaf de 23. Breedte bij de outlet, nooit de terugspeelbal in de cirkel."
   },
-  "suggest": { "buildUpWide": "SUGGESTIE: OPBOUW → FLANKEN", "buildUpMiddle": "SUGGESTIE: OPBOUW → MIDDEN", "buildUpDirect": "SUGGESTIE: OPBOUW → OVER DE TOP", "pressFull": "SUGGESTIE: FULL-COURT PRESS", "rotateLater": "SUGGESTIE: WISSEL ONDER 55 %", "pcStriker": "SUGGESTIE: SC-SCHUTTER", "markRunner": "SUGGESTIE: DEK HUN LOPER" },
-  "drill": { "baseline2v1": "OEFENING: 2v1 ACHTERLIJN", "topOfD": "OEFENING: KOP VAN DE CIRKEL", "leadRuns": "OEFENING: LEAD RUNS", "outletPatterns": "OEFENING: OUTLETPATRONEN", "aerialReceive": "OEFENING: AERIAL AANNEMEN", "pressTriggers": "OEFENING: PRESSTRIGGERS", "dragFlick": "OEFENING: DRAG FLICK", "channelTackle": "OEFENING: KANAALTACKLE", "gkFlicks": "OEFENING: FLICKS HOOG RECHTS" },
+  "suggest": {
+    "buildUpWide": "SUGGESTIE: OPBOUW → FLANKEN",
+    "buildUpMiddle": "SUGGESTIE: OPBOUW → MIDDEN",
+    "buildUpDirect": "SUGGESTIE: OPBOUW → OVER DE TOP",
+    "pressFull": "SUGGESTIE: FULL-COURT PRESS",
+    "rotateLater": "SUGGESTIE: WISSEL ONDER 55 %",
+    "pcStriker": "SUGGESTIE: SC-SCHUTTER",
+    "markRunner": "SUGGESTIE: DEK HUN LOPER"
+  },
+  "drill": {
+    "baseline2v1": "OEFENING: 2v1 ACHTERLIJN",
+    "topOfD": "OEFENING: KOP VAN DE CIRKEL",
+    "leadRuns": "OEFENING: LEAD RUNS",
+    "outletPatterns": "OEFENING: OUTLETPATRONEN",
+    "aerialReceive": "OEFENING: AERIAL AANNEMEN",
+    "pressTriggers": "OEFENING: PRESSTRIGGERS",
+    "dragFlick": "OEFENING: DRAG FLICK",
+    "channelTackle": "OEFENING: KANAALTACKLE",
+    "gkFlicks": "OEFENING: FLICKS HOOG RECHTS"
+  },
   "advice": {
-    "youthMinutes": { "title": "Geef {name} de minuten", "body": "{age} jaar en het snelst ontwikkelend van de lichting — {minutes} minuten tot nu toe. Twee basisplaatsen vóór de winterstop zijn meer waard dan elke aanwinst." },
-    "pressLegs": { "title": "Je press kost je benen", "body": "Full-court met een kern van {squad} staat droog in het derde kwart. Halfveld na de pauze." },
-    "nextOpponent": { "title": "Volgende: {club}", "body": "{goals} gescoord en {conceded} geslikt in {played} wedstrijden. Neem de cirkelbetredingen; zij zetten er weinig om." },
-    "nextOpponentPc": { "title": "Volgende: {club} — hun strafcorners", "body": "Ze scoren {rate} % van hun strafcorners. Geef minder vrije slagen weg in je eigen 23 en de wedstrijd is van jou." },
-    "treatmentRoom": { "title": "De behandelkamer zit vol", "body": "{n} spelers out. Wissel onder 55 % en hou de jeugd op de bank warm." }
+    "youthMinutes": {
+      "title": "Geef {name} de minuten",
+      "body": "{age} jaar en het snelst ontwikkelend van de lichting — {minutes} minuten tot nu toe. Twee basisplaatsen vóór de winterstop zijn meer waard dan elke aanwinst."
+    },
+    "pressLegs": {
+      "title": "Je press kost je benen",
+      "body": "Full-court met een kern van {squad} staat droog in het derde kwart. Halfveld na de pauze."
+    },
+    "nextOpponent": {
+      "title": "Volgende: {club}",
+      "body": "{goals} gescoord en {conceded} geslikt in {played} wedstrijden. Neem de cirkelbetredingen; zij zetten er weinig om."
+    },
+    "nextOpponentPc": {
+      "title": "Volgende: {club} — hun strafcorners",
+      "body": "Ze scoren {rate} % van hun strafcorners. Geef minder vrije slagen weg in je eigen 23 en de wedstrijd is van jou."
+    },
+    "treatmentRoom": {
+      "title": "De behandelkamer zit vol",
+      "body": "{n} spelers out. Wissel onder 55 % en hou de jeugd op de bank warm."
+    }
   },
   "coach": {
-    "pause": "⏸", "play": "▶", "simToFullTime": "SIM TOT AFFLUITEN", "leave": "VERLATEN (NIET OPGESLAGEN)",
-    "shape": "SYSTEEM", "live": "LIVE", "matchLog": "WEDSTRIJDLOG", "decision": "BESLISSING · {s}s", "decisionIdle": "VOLGENDE BESLISSING", "decisionWaiting": "De volgende spelhervatting is jouw keuze. Tot dan leest de bank het spel.",
-    "dials": { "press": "presshoogte", "mentality": "ingesteldheid", "tempo": "tempo", "rotate": "wissel onder" },
-    "stats": { "possession": "balbezit", "circleEntries": "cirkelbetredingen", "shots": "schoten", "pcs": "SC's", "tacklesWon": "tackles gewonnen", "stamina": "gem. conditie" },
-    "pcCall": "SC voor ons. Drag flick of de slip rechts? Ze verdedigen {style}.", "pcLow": "laag", "pcHigh": "hoog",
-    "flick": "FLICK", "slip": "SLIP", "goWide": "GA BREED", "holdShape": "HOU VORM", "rotate": "WISSEL {n}", "legs": "BENEN",
-    "coachRead": "COACHLEZING", "yourCall": "JOUW KEUZE",
-    "briefing": "Briefing kwart {q}", "us": "wij", "them": "zij", "goals": "goals", "shots": "schoten", "circleEntries": "cirkelbetredingen", "pcs": "strafcorners", "possession": "balbezit", "tackles": "tackles",
-    "briefingHint": "Pas links tactiek en rotatie aan en hervat dan. Moe: {names}.", "nobody": "niemand", "resume": "HERVATTEN →",
-    "fullTime": "Affluiten {a} – {b}", "recording": "Wedstrijd wordt opgeslagen en het rapport geschreven…",
-    "tactics": "TACTIEK", "formationLabel": "systeem", "pressLabel": "press", "mentalityLabel": "ingesteldheid", "buildUpLabel": "opbouw", "tempoLabel": "tempo", "rotateBelow": "wissel onder",
-    "press": { "full": "full-court press", "half": "halfveldpress", "split": "split press", "zone": "zone (eigen 23)" },
-    "pressShort": { "full": "FULL", "half": "HALF", "split": "SPLIT", "zone": "ZONE" },
-    "mentality": { "defensive": "defensief", "balanced": "evenwichtig", "attacking": "aanvallend" },
-    "mentalityShort": { "defensive": "DEF", "balanced": "EVEN", "attacking": "AANV" },
-    "buildUp": { "possession": "door het midden", "direct": "over de top / lange bal", "wide": "via de flanken" },
-    "tempo": { "low": "laag", "normal": "normaal", "high": "hoog" },
-    "tempoShort": { "low": "LAAG", "normal": "NORM", "high": "HOOG" },
-    "pcDesigner": "STRAFCORNERBATTERIJ", "variant": "variant", "aiPicks": "AI kiest", "injector": "aangever", "trapper": "stopper", "striker": "schutter",
-    "pc": { "dragFlick": "drag flick", "lowHit": "lage slag", "slipRight": "slip rechts", "slipLeft": "slip links", "deflection": "deflectie" },
-    "rotation": "ROTATIE", "bench": "bank", "substitute": "WISSEL {out} → {in}", "swapWith": "wissel…", "with": "met…", "swapPositions": "posities wisselen",
-    "noteSub": "Doorlopende wissel: {in} erin voor {out}.", "noteGoalUs": "GOAL {scorer}. {a}–{b}.", "noteGoalThem": "Tegengoal — {scorer}. {a}–{b}.", "notePcUs": "Strafcorner — voor ons.", "notePcThem": "Strafcorner tegen.",
-    "noteCard": "{colour} kaart, {name}.", "noteTactic": "Je zette {k} op {v}.", "noteSubReq": "Wissel gevraagd: {out} → {in}.", "noteSwap": "Posities gewisseld: {a} ↔ {b}.", "noteQuarter": "Kwart {q} begint.", "noteFullTime": "Affluiten.",
-    "modes": { "director": "REG", "tactical": "TAC", "coach": "COACH" },
+    "pause": "⏸",
+    "play": "▶",
+    "simToFullTime": "SIM TOT AFFLUITEN",
+    "leave": "VERLATEN (NIET OPGESLAGEN)",
+    "shape": "SYSTEEM",
+    "live": "LIVE",
+    "matchLog": "WEDSTRIJDLOG",
+    "decision": "BESLISSING · {s}s",
+    "decisionIdle": "VOLGENDE BESLISSING",
+    "decisionWaiting": "De volgende spelhervatting is jouw keuze. Tot dan leest de bank het spel.",
+    "dials": {
+      "press": "presshoogte",
+      "mentality": "ingesteldheid",
+      "tempo": "tempo",
+      "rotate": "wissel onder"
+    },
+    "stats": {
+      "possession": "balbezit",
+      "circleEntries": "cirkelbetredingen",
+      "shots": "schoten",
+      "pcs": "SC's",
+      "tacklesWon": "tackles gewonnen",
+      "stamina": "gem. conditie"
+    },
+    "pcCall": "SC voor ons. Drag flick of de slip rechts? Ze verdedigen {style}.",
+    "pcLow": "laag",
+    "pcHigh": "hoog",
+    "flick": "FLICK",
+    "slip": "SLIP",
+    "goWide": "GA BREED",
+    "holdShape": "HOU VORM",
+    "rotate": "WISSEL {n}",
+    "legs": "BENEN",
+    "coachRead": "COACHLEZING",
+    "yourCall": "JOUW KEUZE",
+    "briefing": "Briefing kwart {q}",
+    "us": "wij",
+    "them": "zij",
+    "goals": "goals",
+    "shots": "schoten",
+    "circleEntries": "cirkelbetredingen",
+    "pcs": "strafcorners",
+    "possession": "balbezit",
+    "tackles": "tackles",
+    "briefingHint": "Pas links tactiek en rotatie aan en hervat dan. Moe: {names}.",
+    "nobody": "niemand",
+    "resume": "HERVATTEN →",
+    "fullTime": "Affluiten {a} – {b}",
+    "recording": "Wedstrijd wordt opgeslagen en het rapport geschreven…",
+    "tactics": "TACTIEK",
+    "formationLabel": "systeem",
+    "pressLabel": "press",
+    "mentalityLabel": "ingesteldheid",
+    "buildUpLabel": "opbouw",
+    "tempoLabel": "tempo",
+    "rotateBelow": "wissel onder",
+    "press": {
+      "full": "full-court press",
+      "half": "halfveldpress",
+      "split": "split press",
+      "zone": "zone (eigen 23)"
+    },
+    "pressShort": {
+      "full": "FULL",
+      "half": "HALF",
+      "split": "SPLIT",
+      "zone": "ZONE"
+    },
+    "mentality": {
+      "defensive": "defensief",
+      "balanced": "evenwichtig",
+      "attacking": "aanvallend"
+    },
+    "mentalityShort": {
+      "defensive": "DEF",
+      "balanced": "EVEN",
+      "attacking": "AANV"
+    },
+    "buildUp": {
+      "possession": "door het midden",
+      "direct": "over de top / lange bal",
+      "wide": "via de flanken"
+    },
+    "tempo": {
+      "low": "laag",
+      "normal": "normaal",
+      "high": "hoog"
+    },
+    "tempoShort": {
+      "low": "LAAG",
+      "normal": "NORM",
+      "high": "HOOG"
+    },
+    "pcDesigner": "STRAFCORNERBATTERIJ",
+    "variant": "variant",
+    "aiPicks": "AI kiest",
+    "injector": "aangever",
+    "trapper": "stopper",
+    "striker": "schutter",
+    "pc": {
+      "dragFlick": "drag flick",
+      "lowHit": "lage slag",
+      "slipRight": "slip rechts",
+      "slipLeft": "slip links",
+      "deflection": "deflectie"
+    },
+    "rotation": "ROTATIE",
+    "bench": "bank",
+    "substitute": "WISSEL {out} → {in}",
+    "swapWith": "wissel…",
+    "with": "met…",
+    "swapPositions": "posities wisselen",
+    "noteSub": "Doorlopende wissel: {in} erin voor {out}.",
+    "noteGoalUs": "GOAL {scorer}. {a}–{b}.",
+    "noteGoalThem": "Tegengoal — {scorer}. {a}–{b}.",
+    "notePcUs": "Strafcorner — voor ons.",
+    "notePcThem": "Strafcorner tegen.",
+    "noteCard": "{colour} kaart, {name}.",
+    "noteTactic": "Je zette {k} op {v}.",
+    "noteSubReq": "Wissel gevraagd: {out} → {in}.",
+    "noteSwap": "Posities gewisseld: {a} ↔ {b}.",
+    "noteQuarter": "Kwart {q} begint.",
+    "noteFullTime": "Affluiten.",
+    "modes": {
+      "director": "REG",
+      "tactical": "TAC",
+      "coach": "COACH"
+    },
     "youAre": "jij"
   },
   "sim": {
     "title": "Wedstrijdkijker",
-    "phase": "SPELFASE", "inputs": "ENGINE-INPUT", "deterministic": "DETERMINISTISCH",
+    "phase": "SPELFASE",
+    "inputs": "ENGINE-INPUT",
+    "deterministic": "DETERMINISTISCH",
     "deterministicBody": "Zelfde seed, zelfde input, byte-identiek logboek. Exporteer deze wedstrijd en iedereen kan exact dezelfde 70 minuten herspelen.",
-    "inputKeys": { "profile": "profiel", "turf": "ondergrond", "formation": "systeem", "press": "press", "mentality": "ingesteldheid", "tempo": "tempo", "rotate": "wissel onder", "tickRate": "tickfrequentie" },
-    "live": "LIVE", "eventLog": "GEBEURTENISSEN", "learn": "LEER DEZE FASE", "openRulebook": "OPEN HET REGLEMENT →",
-    "tick": "TICK {n}", "seed": "SEED {seed} · {turf}", "play": "SPEL", "paused": "GEPAUZEERD", "clockOf": "{a} / {b}",
-    "overlays": { "none": "TACTISCH", "press": "PRESSLIJN", "channels": "KANALEN", "circle": "CIRKEL" },
+    "inputKeys": {
+      "profile": "profiel",
+      "turf": "ondergrond",
+      "formation": "systeem",
+      "press": "press",
+      "mentality": "ingesteldheid",
+      "tempo": "tempo",
+      "rotate": "wissel onder",
+      "tickRate": "tickfrequentie"
+    },
+    "live": "LIVE",
+    "eventLog": "GEBEURTENISSEN",
+    "learn": "LEER DEZE FASE",
+    "openRulebook": "OPEN HET REGLEMENT →",
+    "tick": "TICK {n}",
+    "seed": "SEED {seed} · {turf}",
+    "play": "SPEL",
+    "paused": "GEPAUZEERD",
+    "clockOf": "{a} / {b}",
+    "overlays": {
+      "none": "TACTISCH",
+      "press": "PRESSLIJN",
+      "channels": "KANALEN",
+      "circle": "CIRKEL"
+    },
     "cameraLabel": "CAMERA · 91,4 × 55 m",
-    "cams": { "full": "VOLLEDIG", "broadcast": "BROADCAST", "circle": "CIRKEL", "goalmouth": "DOEL", "behindGoal": "ACHTER", "lowAngle": "LAAG", "cornerCam": "HOEK", "half": "HALF", "director": "REGIE" },
-    "legend": { "ourGoal": "ONS DOELPUNT", "theirs": "HUN DOELPUNT", "pc": "SC", "cardSub": "KAART / WISSEL" },
-    "speeds": { "x1": "1×", "x2": "2×", "x4": "4×", "ft": "SIM TOT AFFLUITEN" },
+    "cams": {
+      "full": "VOLLEDIG",
+      "broadcast": "BROADCAST",
+      "circle": "CIRKEL",
+      "goalmouth": "DOEL",
+      "behindGoal": "ACHTER",
+      "lowAngle": "LAAG",
+      "cornerCam": "HOEK",
+      "half": "HALF",
+      "director": "REGIE"
+    },
+    "legend": {
+      "ourGoal": "ONS DOELPUNT",
+      "theirs": "HUN DOELPUNT",
+      "pc": "SC",
+      "cardSub": "KAART / WISSEL"
+    },
+    "speeds": {
+      "x1": "1×",
+      "x2": "2×",
+      "x4": "4×",
+      "ft": "SIM TOT AFFLUITEN"
+    },
     "empty": "Geen herhaling geladen. Coach een wedstrijd, bekijk je laatste, of simuleer een snelle wedstrijd.",
-    "simulate": "SIMULEER EEN WEDSTRIJD", "scenario": "SCENARIO AFSPELEN", "load": "HERHALING LADEN", "export": "HERHALING EXPORTEREN", "source": "BRON",
-    "profile": "PROFIEL", "turf": "ONDERGROND", "seedLabel": "SEED",
-    "card": { "green": "Groene", "yellow": "Gele", "red": "Rode" },
-    "ev": { "Goal": "GOAL {team}. {score}.", "PenaltyCornerAwarded": "Strafcorner {team}.", "PenaltyStrokeAwarded": "Strafbal {team}.", "Card": "{colour} kaart, {team} {id}.", "Substitution": "Doorlopende wissel, {team}.", "QuarterStart": "Kwart {q} begint.", "QuarterEnd": "Einde kwart {q}.", "FullTime": "Affluiten.", "Foul": "Vrije slag {team} — {foul}.", "Tackle": "Tackle {outcome}, {team}.", "home": "thuis", "away": "uit" }
+    "simulate": "SIMULEER EEN WEDSTRIJD",
+    "scenario": "SCENARIO AFSPELEN",
+    "load": "HERHALING LADEN",
+    "export": "HERHALING EXPORTEREN",
+    "source": "BRON",
+    "profile": "PROFIEL",
+    "turf": "ONDERGROND",
+    "seedLabel": "SEED",
+    "card": {
+      "green": "Groene",
+      "yellow": "Gele",
+      "red": "Rode"
+    },
+    "ev": {
+      "Goal": "GOAL {team}. {score}.",
+      "PenaltyCornerAwarded": "Strafcorner {team}.",
+      "PenaltyStrokeAwarded": "Strafbal {team}.",
+      "Card": "{colour} kaart, {team} {id}.",
+      "Substitution": "Doorlopende wissel, {team}.",
+      "QuarterStart": "Kwart {q} begint.",
+      "QuarterEnd": "Einde kwart {q}.",
+      "FullTime": "Affluiten.",
+      "Foul": "Vrije slag {team} — {foul}.",
+      "Tackle": "Tackle {outcome}, {team}.",
+      "home": "thuis",
+      "away": "uit"
+    }
   },
   "report": {
-    "fullTime": "AFFLUITEN · SPEELDAG {day} · {turf}", "tierLine": "REEKS {tier} · {before} → {after}",
-    "watch": "BEKIJK HOOGTEPUNTEN", "export": "HERHALING EXPORTEREN", "back": "TERUG NAAR SEIZOEN",
-    "sheet": "WEDSTRIJDBLAD", "momentum": "MOMENTUM", "momentumSub": "cirkelbetredingen per vijf minuten, de onze boven de lijn",
-    "keyMoments": "SLEUTELMOMENTEN", "noMoments": "Een rustige — geen beslissend moment waar de analyse zeker van is.",
-    "didWell": "WAT JE GOED DEED", "didWellNone": "Niets sprong er deze keer uit als duidelijke winst — het logboek toont een gelijkopgaande wedstrijd.",
-    "workOn": "WERKPUNTEN", "workOnNone": "Geen duidelijke les uit dit logboek. Hou hetzelfde plan en let op het derde kwart.",
-    "ruleOfMatch": "REGEL VAN DE WEDSTRIJD", "readRule": "LEES DE REGEL →", "ruleNone": "Een propere wedstrijd — geen regel om op na te lezen.",
-    "rows": { "goals": "goals", "shots": "schoten", "circleEntries": "cirkelbetredingen", "penaltyCorners": "strafcorners", "possession": "balbezit", "tacklesWon": "tackles gewonnen", "cards": "kaarten", "fouls": "vrije slagen weggegeven" },
-    "thumb": "herhaling {clock}"
+    "fullTime": "AFFLUITEN · SPEELDAG {day} · {turf}",
+    "tierLine": "REEKS {tier} · {before} → {after}",
+    "watch": "BEKIJK HOOGTEPUNTEN",
+    "export": "HERHALING EXPORTEREN",
+    "back": "TERUG NAAR SEIZOEN",
+    "sheet": "WEDSTRIJDBLAD",
+    "momentum": "MOMENTUM",
+    "momentumSub": "cirkelbetredingen per vijf minuten, de onze boven de lijn",
+    "keyMoments": "SLEUTELMOMENTEN",
+    "noMoments": "Een rustige — geen beslissend moment waar de analyse zeker van is.",
+    "didWell": "WAT JE GOED DEED",
+    "didWellNone": "Niets sprong er deze keer uit als duidelijke winst — het logboek toont een gelijkopgaande wedstrijd.",
+    "workOn": "WERKPUNTEN",
+    "workOnNone": "Geen duidelijke les uit dit logboek. Hou hetzelfde plan en let op het derde kwart.",
+    "ruleOfMatch": "REGEL VAN DE WEDSTRIJD",
+    "readRule": "LEES DE REGEL →",
+    "ruleNone": "Een propere wedstrijd — geen regel om op na te lezen.",
+    "rows": {
+      "goals": "goals",
+      "shots": "schoten",
+      "circleEntries": "cirkelbetredingen",
+      "penaltyCorners": "strafcorners",
+      "possession": "balbezit",
+      "tacklesWon": "tackles gewonnen",
+      "cards": "kaarten",
+      "fouls": "vrije slagen weggegeven"
+    },
+    "thumb": "herhaling {clock}",
+    "hints": "Coachtips"
   },
   "insight": {
-    "switchWorked": { "title": "De omschakeling naar {what} op {clock} kantelde de wedstrijd.", "body": "Vóór de wissel: {entriesBefore} cirkelbetredingen en {shotsBefore} schoten per minuut. Erna: {entriesAfter} betredingen, {shotsAfter} schoten, {goals} goals. Tegen een blok dat zijn buitenste backs nooit bijstelde, wint breedte van tempo." },
-    "switchFailed": { "title": "De omschakeling naar {what} op {clock} rendeerde niet.", "body": "Vóór: {entriesBefore} cirkelbetredingen en {shotsBefore} schoten per minuut. Erna: {entriesAfter} en {shotsAfter}. Verander één ding tegelijk en geef het tien minuten." },
-    "ownFreeHits": { "title": "Vrije slagen in je eigen 23", "body": "{n} weggegeven, {pcs} werden strafcorners. Onder druk in je eigen 23 is de outlet de zijlijn, niet het centrum." },
-    "thirdQuarterLegs": { "title": "Benen in het derde kwart", "body": "{n} van je basisspelers zakten vóór de laatste pauze onder 40 % conditie. Wissel bij 55 %, niet bij 45 %." },
-    "aerialsLost": { "title": "Aerials", "body": "Je verloor {lost} van {n} aerial-aannames. Op {surface} gras is de platte bal toch sneller." },
-    "pcBattery": { "title": "De batterij heeft werk nodig", "body": "{n} strafcorners, geen goal. Verander de variant wanneer de keeper de flick gelezen heeft." },
-    "pcBatteryGood": { "title": "De batterij rendeerde", "body": "{goals} goals uit {n} strafcorners — hou aangever en stopper samen." },
-    "momentGoal": { "title": "{scorer} — {score}", "body": "Open spel. Betreding, terugleg, afwerking: het patroon dat deze kern kan herhalen." },
-    "momentGoalPc": { "title": "{scorer}, strafcorner — {score}", "body": "De batterij werkte: aangifte, stop aan de kop, schot." },
-    "momentGoalPs": { "title": "{scorer}, strafbal — {score}", "body": "Een strafbal is een gok van de keeper. Die ging de andere kant op." },
-    "momentConceded": { "title": "Tegengoal — {score}", "body": "Een goal uit open spel. Bekijk de vorm in de tien seconden ervoor: wie stond aan de doelkant van de loper?" },
-    "momentConcededFoul": { "title": "Hun goal kwam uit je eigen vrije slag", "body": "Een {foul} in je eigen 23 gaf hen de hervatting. Onder druk is de outlet de zijlijn, niet het centrum." },
-    "momentConcededTackle": { "title": "Hun goal kwam uit een verloren tackle", "body": "Een uitval die miste liet de baan open. Jockey, kanaliseer, en dan pas tackelen." },
-    "momentConcededPc": { "title": "Hun strafcorner — {score}", "body": "De uitloper was te laat of de paal stond open. Bekijk de SC-verdediging." },
-    "momentPcWon": { "title": "Strafcorner gewonnen op {clock}", "body": "Voet in de cirkel — de beloning voor de aanvaller die op de verdediger afgaat." },
-    "momentCard": { "title": "{colour} kaart, {player}", "body": "{reason}. Tien minuten met een speler minder verandert de press; zak naar halfveld zolang ze eruit zijn." },
-    "rule": { "title": "De wedstrijd draaide om {foul} — {n} keer" },
-    "readNoShots": { "title": "Je komt aan zonder breedte.", "body": "{n} cirkelbetredingen in vier minuten en geen schot. Duw de linkerhelft naar de zijlijn en neem de flanken." },
-    "readUnderSiege": { "title": "Zij hebben de bal in jouw 23.", "body": "{n} betredingen tegen in vier minuten. Zak met de lijn, dek de loper op de stip, ruim op naar de zijlijn." },
-    "readPc": { "title": "Strafcorner — jouw keuze.", "body": "Drag flick als de keeper laag blijft; slip rechts als ze de flicker uitlopen." },
+    "switchWorked": {
+      "title": "De omschakeling naar {what} op {clock} kantelde de wedstrijd.",
+      "body": "Vóór de wissel: {entriesBefore} cirkelbetredingen en {shotsBefore} schoten per minuut. Erna: {entriesAfter} betredingen, {shotsAfter} schoten, {goals} goals. Tegen een blok dat zijn buitenste backs nooit bijstelde, wint breedte van tempo.",
+      "hint": "De omschakeling werkte — laat ze staan."
+    },
+    "switchFailed": {
+      "title": "De omschakeling naar {what} op {clock} rendeerde niet.",
+      "body": "Vóór: {entriesBefore} cirkelbetredingen en {shotsBefore} schoten per minuut. Erna: {entriesAfter} en {shotsAfter}. Verander één ding tegelijk en geef het tien minuten.",
+      "hint": "Verander één ding tegelijk en geef het tien minuten."
+    },
+    "ownFreeHits": {
+      "title": "Vrije slagen in je eigen 23",
+      "body": "{n} weggegeven, {pcs} werden strafcorners. Onder druk in je eigen 23 is de outlet de zijlijn, niet het centrum.",
+      "hint": "Onder druk in eigen 23: outlet naar de zijlijn, niet door het centrum."
+    },
+    "thirdQuarterLegs": {
+      "title": "Benen in het derde kwart",
+      "body": "{n} van je basisspelers zakten vóór de laatste pauze onder 40 % conditie. Wissel bij 55 %, niet bij 45 %.",
+      "hint": "Wissel bij 55 % conditie, niet bij 45 %."
+    },
+    "aerialsLost": {
+      "title": "Aerials",
+      "body": "Je verloor {lost} van {n} aerial-aannames. Op {surface} gras is de platte bal toch sneller.",
+      "hint": "Te veel aerials verloren — speel hem plat over de grond."
+    },
+    "pcBattery": {
+      "title": "De batterij heeft werk nodig",
+      "body": "{n} strafcorners, geen goal. Verander de variant wanneer de keeper de flick gelezen heeft.",
+      "hint": "Wissel van cornervariant zodra ze hem gelezen hebben."
+    },
+    "pcBatteryGood": {
+      "title": "De batterij rendeerde",
+      "body": "{goals} goals uit {n} strafcorners — hou aangever en stopper samen.",
+      "hint": "Hou aangever en stopper samen — die timing is je corner."
+    },
+    "momentGoal": {
+      "title": "{scorer} — {score}",
+      "body": "Open spel. Betreding, terugleg, afwerking: het patroon dat deze kern kan herhalen."
+    },
+    "momentGoalPc": {
+      "title": "{scorer}, strafcorner — {score}",
+      "body": "De batterij werkte: aangifte, stop aan de kop, schot."
+    },
+    "momentGoalPs": {
+      "title": "{scorer}, strafbal — {score}",
+      "body": "Een strafbal is een gok van de keeper. Die ging de andere kant op."
+    },
+    "momentConceded": {
+      "title": "Tegengoal — {score}",
+      "body": "Een goal uit open spel. Bekijk de vorm in de tien seconden ervoor: wie stond aan de doelkant van de loper?"
+    },
+    "momentConcededFoul": {
+      "title": "Hun goal kwam uit je eigen vrije slag",
+      "body": "Een {foul} in je eigen 23 gaf hen de hervatting. Onder druk is de outlet de zijlijn, niet het centrum."
+    },
+    "momentConcededTackle": {
+      "title": "Hun goal kwam uit een verloren tackle",
+      "body": "Een uitval die miste liet de baan open. Jockey, kanaliseer, en dan pas tackelen."
+    },
+    "momentConcededPc": {
+      "title": "Hun strafcorner — {score}",
+      "body": "De uitloper was te laat of de paal stond open. Bekijk de SC-verdediging."
+    },
+    "momentPcWon": {
+      "title": "Strafcorner gewonnen op {clock}",
+      "body": "Voet in de cirkel — de beloning voor de aanvaller die op de verdediger afgaat."
+    },
+    "momentCard": {
+      "title": "{colour} kaart, {player}",
+      "body": "{reason}. Tien minuten met een speler minder verandert de press; zak naar halfveld zolang ze eruit zijn."
+    },
+    "rule": {
+      "title": "De wedstrijd draaide om {foul} — {n} keer"
+    },
+    "readNoShots": {
+      "title": "Je komt aan zonder breedte.",
+      "body": "{n} cirkelbetredingen in vier minuten en geen schot. Duw de linkerhelft naar de zijlijn en neem de flanken.",
+      "hint": "Wel bezit, geen schoten. Zoek de achterlijn en leg terug."
+    },
+    "readUnderSiege": {
+      "title": "Zij hebben de bal in jouw 23.",
+      "body": "{n} betredingen tegen in vier minuten. Zak met de lijn, dek de loper op de stip, ruim op naar de zijlijn.",
+      "hint": "Je zit vast achterin. Zak in blok en hou twee spitsen hoog."
+    },
+    "readPc": {
+      "title": "Strafcorner — jouw keuze.",
+      "body": "Drag flick als de keeper laag blijft; slip rechts als ze de flicker uitlopen.",
+      "hint": "Ze lezen je corner. Neem een andere variant."
+    },
     "phase": {
-      "attack23": { "title": "Bal in hun 23", "body": "{metres} m van hun achterlijn, {possession} % balbezit dit kwart. Betredingen hebben een loper op de stip nodig; een pass in de cirkel is meer waard dan een dribbel." },
-      "middle": { "title": "Middenveld, opbouw", "body": "{metres} m op het veld, {possession} % balbezit dit kwart. De presslijn beslist of de bal breed of door het midden gaat." },
-      "defend23": { "title": "Verdedigen in je 23", "body": "{metres} m van je eigen achterlijn, {possession} % balbezit dit kwart. Kanaliseer naar de zijlijn; een fout hier is een strafcorner." }
+      "attack23": {
+        "title": "Bal in hun 23",
+        "body": "{metres} m van hun achterlijn, {possession} % balbezit dit kwart. Betredingen hebben een loper op de stip nodig; een pass in de cirkel is meer waard dan een dribbel."
+      },
+      "middle": {
+        "title": "Middenveld, opbouw",
+        "body": "{metres} m op het veld, {possession} % balbezit dit kwart. De presslijn beslist of de bal breed of door het midden gaat."
+      },
+      "defend23": {
+        "title": "Verdedigen in je 23",
+        "body": "{metres} m van je eigen achterlijn, {possession} % balbezit dit kwart. Kanaliseer naar de zijlijn; een fout hier is een strafcorner."
+      }
     },
     "what": {
-      "buildUp": { "possession": "het midden", "direct": "over de top", "wide": "de flanken" },
-      "press": { "full": "een full-court press", "half": "een halfveldpress", "split": "een split press", "zone": "een zoneblok" },
-      "formation": { "4-3-3": "4-3-3", "3-4-3": "3-4-3", "4-4-2": "4-4-2", "5-3-2": "5-3-2", "3-3-3-1": "3-3-3-1", "4-2-3-1": "4-2-3-1" },
-      "mentality": { "defensive": "een defensieve ingesteldheid", "balanced": "een evenwichtige ingesteldheid", "attacking": "een aanvallende ingesteldheid" }
+      "buildUp": {
+        "possession": "het midden",
+        "direct": "over de top",
+        "wide": "de flanken"
+      },
+      "press": {
+        "full": "een full-court press",
+        "half": "een halfveldpress",
+        "split": "een split press",
+        "zone": "een zoneblok"
+      },
+      "formation": {
+        "4-3-3": "4-3-3",
+        "3-4-3": "3-4-3",
+        "4-4-2": "4-4-2",
+        "5-3-2": "5-3-2",
+        "3-3-3-1": "3-3-3-1",
+        "4-2-3-1": "4-2-3-1"
+      },
+      "mentality": {
+        "defensive": "een defensieve ingesteldheid",
+        "balanced": "een evenwichtige ingesteldheid",
+        "attacking": "een aanvallende ingesteldheid"
+      }
     },
-    "foul": { "feet": "voeten", "dangerous": "gevaarlijk spel", "backStick": "backstick", "obstruction": "obstructie", "stickTackle": "sticktackle", "freeHitDistance": "de vijf meter bij een vrije slag", "freeHit23Circle": "de self-pass in de cirkel", "pcBreach": "te vroeg uitlopen bij een corner", "pcHighFirstHit": "de hoge eerste slag", "earlyStroke": "de te vroege strafbal" }
+    "foul": {
+      "feet": "voeten",
+      "dangerous": "gevaarlijk spel",
+      "backStick": "backstick",
+      "obstruction": "obstructie",
+      "stickTackle": "sticktackle",
+      "freeHitDistance": "de vijf meter bij een vrije slag",
+      "freeHit23Circle": "de self-pass in de cirkel",
+      "pcBreach": "te vroeg uitlopen bij een corner",
+      "pcHighFirstHit": "de hoge eerste slag",
+      "earlyStroke": "de te vroege strafbal"
+    }
   },
-  "club": { "budget": "BUDGET", "membership": "lidgeld", "sponsor": "sponsoring", "facilities": "accommodatie", "coaching": "trainers", "travel": "verplaatsingen", "balance": "saldo" },
+  "club": {
+    "budget": "BUDGET",
+    "membership": "lidgeld",
+    "sponsor": "sponsoring",
+    "facilities": "accommodatie",
+    "coaching": "trainers",
+    "travel": "verplaatsingen",
+    "balance": "saldo"
+  },
   "rules": {
     "title": "Het reglement",
     "sub": "FIH-regels zoals de engine ze toepast — elke regel is data in packages/rules, geen proza.",
-    "feet": { "title": "Voet in de cirkel", "body": "Een bal die de voet of het lichaam van een verdediger raakt in de cirkel is een strafcorner; buiten de cirkel een vrije slag. De aanvaller die op de voeten speelt blijft binnen de regels — de verdediger moet het lichaam uit de lijn houden." },
-    "dangerous": { "title": "Gevaarlijk spel", "body": "Een bal die binnen vijf meter boven kniehoogte naar een tegenstander wordt opgespeeld is gevaarlijk spel: vrije slag tegen de slaande speler, en een strafcorner of strafbal als het in de cirkel gebeurt." },
-    "backStick": { "title": "Backstick", "body": "Alleen de platte kant van de stick mag de bal spelen. De ronde kant is een vrije slag." },
-    "obstruction": { "title": "Obstructie", "body": "De bal afschermen met het lichaam, in een tegenstander achteruitlopen of een speler kruisen die naar de bal gaat is obstructie — een vrije slag." },
-    "stickTackle": { "title": "Sticktackle", "body": "Slaan, haken of vasthouden van de stick van een tegenstander is een vrije slag; in de cirkel een strafcorner." },
-    "freeHitDistance": { "title": "Vijf meter bij een vrije slag", "body": "Tegenstanders moeten bij een vrije slag vijf meter van de bal staan. Dichterbij staan — of de hervatting opjagen — is een vrije slag voor de andere ploeg." },
-    "selfPass23": { "title": "Self-pass na een vrije slag in de 23", "body": "De aanvaller mag een self-pass nemen, maar bij een vrije slag in de aanvallende 23 moet de bal vijf meter afleggen of door een verdediger geraakt worden vóór hij de cirkel in mag. De vijf meter dichtmaken is hoe de verdediging het afmaakt." },
-    "pcBreach": { "title": "Te vroeg uitlopen bij een strafcorner", "body": "Verdedigers achter de achterlijn en aanvallers buiten de cirkel wachten op de aangifte. Een verdediger die te vroeg loopt wordt naar de middenlijn gestuurd; een aanvaller geeft een vrije slag weg." },
-    "pcFirstHit": { "title": "De eerste slag bij een strafcorner", "body": "Het eerste schot op doel bij een strafcorner moet, als het een slag is, onder 460 mm over de doellijn gaan. Een drag flick of push mag op elke hoogte." },
-    "stroke": { "title": "Strafbal", "body": "Een strafbal wordt gegeven voor een overtreding die een waarschijnlijk doelpunt verhindert of een opzettelijke fout in de cirkel. Eén push of flick van 6,4 m, de keeper op de lijn; de nemer mag niet vóór het fluitsignaal." },
-    "circle": { "title": "De cirkelregel", "body": "Een doelpunt telt alleen als een aanvaller de bal in de cirkel raakte vóór hij de doellijn passeert. Van buiten de cirkel scoort niets — daarom leeft het hele spel daar." },
-    "pc": { "title": "Strafcorner", "body": "Aangegeven vanaf de achterlijn, tien meter van de paal; vijf verdedigers plus de keeper achter de lijn, de rest voorbij de middenlijn; de bal moet de cirkel verlaten vóór een schot, tenzij gestopt aan de kop. Gegeven voor een fout van een verdediger in de cirkel of een opzettelijke in de 23." },
-    "cards": { "title": "Kaarten", "body": "Groen: twee minuten eruit. Geel: vijf of tien minuten eruit. Rood: de rest van de wedstrijd. Herhaald overtreden escaleert." },
-    "subs": { "title": "Doorlopende wissels", "body": "Onbeperkt wisselen op elk moment via de wisselzone — behalve tijdens een strafcorner, wanneer alleen de keeper vervangen mag worden." },
-    "aerial": { "title": "De aerial", "body": "Een opgespeelde bal is toegestaan wanneer hij veilig is: niet naar een tegenstander binnen vijf meter, en ontvangen door één speler met de tegenstanders op vijf meter tot de bal gecontroleerd is." }
+    "feet": {
+      "title": "Voet in de cirkel",
+      "body": "Een bal die de voet of het lichaam van een verdediger raakt in de cirkel is een strafcorner; buiten de cirkel een vrije slag. De aanvaller die op de voeten speelt blijft binnen de regels — de verdediger moet het lichaam uit de lijn houden."
+    },
+    "dangerous": {
+      "title": "Gevaarlijk spel",
+      "body": "Een bal die binnen vijf meter boven kniehoogte naar een tegenstander wordt opgespeeld is gevaarlijk spel: vrije slag tegen de slaande speler, en een strafcorner of strafbal als het in de cirkel gebeurt."
+    },
+    "backStick": {
+      "title": "Backstick",
+      "body": "Alleen de platte kant van de stick mag de bal spelen. De ronde kant is een vrije slag."
+    },
+    "obstruction": {
+      "title": "Obstructie",
+      "body": "De bal afschermen met het lichaam, in een tegenstander achteruitlopen of een speler kruisen die naar de bal gaat is obstructie — een vrije slag."
+    },
+    "stickTackle": {
+      "title": "Sticktackle",
+      "body": "Slaan, haken of vasthouden van de stick van een tegenstander is een vrije slag; in de cirkel een strafcorner."
+    },
+    "freeHitDistance": {
+      "title": "Vijf meter bij een vrije slag",
+      "body": "Tegenstanders moeten bij een vrije slag vijf meter van de bal staan. Dichterbij staan — of de hervatting opjagen — is een vrije slag voor de andere ploeg."
+    },
+    "selfPass23": {
+      "title": "Self-pass na een vrije slag in de 23",
+      "body": "De aanvaller mag een self-pass nemen, maar bij een vrije slag in de aanvallende 23 moet de bal vijf meter afleggen of door een verdediger geraakt worden vóór hij de cirkel in mag. De vijf meter dichtmaken is hoe de verdediging het afmaakt."
+    },
+    "pcBreach": {
+      "title": "Te vroeg uitlopen bij een strafcorner",
+      "body": "Verdedigers achter de achterlijn en aanvallers buiten de cirkel wachten op de aangifte. Een verdediger die te vroeg loopt wordt naar de middenlijn gestuurd; een aanvaller geeft een vrije slag weg."
+    },
+    "pcFirstHit": {
+      "title": "De eerste slag bij een strafcorner",
+      "body": "Het eerste schot op doel bij een strafcorner moet, als het een slag is, onder 460 mm over de doellijn gaan. Een drag flick of push mag op elke hoogte."
+    },
+    "stroke": {
+      "title": "Strafbal",
+      "body": "Een strafbal wordt gegeven voor een overtreding die een waarschijnlijk doelpunt verhindert of een opzettelijke fout in de cirkel. Eén push of flick van 6,4 m, de keeper op de lijn; de nemer mag niet vóór het fluitsignaal."
+    },
+    "circle": {
+      "title": "De cirkelregel",
+      "body": "Een doelpunt telt alleen als een aanvaller de bal in de cirkel raakte vóór hij de doellijn passeert. Van buiten de cirkel scoort niets — daarom leeft het hele spel daar."
+    },
+    "pc": {
+      "title": "Strafcorner",
+      "body": "Aangegeven vanaf de achterlijn, tien meter van de paal; vijf verdedigers plus de keeper achter de lijn, de rest voorbij de middenlijn; de bal moet de cirkel verlaten vóór een schot, tenzij gestopt aan de kop. Gegeven voor een fout van een verdediger in de cirkel of een opzettelijke in de 23."
+    },
+    "cards": {
+      "title": "Kaarten",
+      "body": "Groen: twee minuten eruit. Geel: vijf of tien minuten eruit. Rood: de rest van de wedstrijd. Herhaald overtreden escaleert."
+    },
+    "subs": {
+      "title": "Doorlopende wissels",
+      "body": "Onbeperkt wisselen op elk moment via de wisselzone — behalve tijdens een strafcorner, wanneer alleen de keeper vervangen mag worden."
+    },
+    "aerial": {
+      "title": "De aerial",
+      "body": "Een opgespeelde bal is toegestaan wanneer hij veilig is: niet naar een tegenstander binnen vijf meter, en ontvangen door één speler met de tegenstanders op vijf meter tot de bal gecontroleerd is."
+    }
   },
-  "camera": { "full": "CAM · VOLLEDIG VELD", "half": "CAM · HALF VELD", "circle": "CAM · CIRKEL", "goalmouth": "CAM · DOELMOND", "broadcast": "CAM · BROADCAST 52°", "lowAngle": "CAM · LAGE HOEK", "behindGoal": "CAM · ACHTER HET DOEL", "cornerCam": "CAM · HOEKVLAG", "director": "CAM · REGIE" },
+  "camera": {
+    "full": "CAM · VOLLEDIG VELD",
+    "half": "CAM · HALF VELD",
+    "circle": "CAM · CIRKEL",
+    "goalmouth": "CAM · DOELMOND",
+    "broadcast": "CAM · BROADCAST 52°",
+    "lowAngle": "CAM · LAGE HOEK",
+    "behindGoal": "CAM · ACHTER HET DOEL",
+    "cornerCam": "CAM · HOEKVLAG",
+    "director": "CAM · REGIE"
+  },
   "settings": {
     "title": "Instellingen",
-    "language": "TAAL", "sound": "GELUID", "soundOn": "aan", "soundOff": "uit", "install": "INSTALLEREN", "installed": "geïnstalleerd als app", "notInstallable": "open in Chrome of Safari om te installeren",
-    "saves": "OPGESLAGEN CARRIÈRES", "noSaves": "geen opgeslagen carrière", "load": "LADEN", "delete": "VERWIJDEREN", "exportSave": "SAVE EXPORTEREN", "importSave": "SAVE IMPORTEREN",
-    "replayIntro": "INTRO OPNIEUW AFSPELEN", "resetOnboarding": "ONBOARDING OPNIEUW TONEN"
+    "language": "TAAL",
+    "sound": "GELUID",
+    "soundOn": "aan",
+    "soundOff": "uit",
+    "install": "INSTALLEREN",
+    "installed": "geïnstalleerd als app",
+    "notInstallable": "open in Chrome of Safari om te installeren",
+    "saves": "OPGESLAGEN CARRIÈRES",
+    "noSaves": "geen opgeslagen carrière",
+    "load": "LADEN",
+    "delete": "VERWIJDEREN",
+    "exportSave": "SAVE EXPORTEREN",
+    "importSave": "SAVE IMPORTEREN",
+    "replayIntro": "INTRO OPNIEUW AFSPELEN",
+    "resetOnboarding": "ONBOARDING OPNIEUW TONEN"
   },
   "about": {
     "title": "Over BULLY OFF",
@@ -279,7 +854,16 @@
     "credits": "Open source (MIT). Deterministische engine, FIH-regels als data, een utility-AI, een seizoensmodel met twintig seizoenen gegenereerde geschiedenis en een PixiJS-herhalingskijker — gekalibreerd op publieke cijfers van de Belgische competitie.",
     "version": "Engine {engine} · save-formaat v{save}"
   },
-  "viewer": { "mens": "heren", "womens": "dames", "dry": "droog", "watered": "besproeid", "wet": "nat", "director": "regie", "tactical": "tactisch", "coach": "coach" },
+  "viewer": {
+    "mens": "heren",
+    "womens": "dames",
+    "dry": "droog",
+    "watered": "besproeid",
+    "wet": "nat",
+    "director": "regie",
+    "tactical": "tactisch",
+    "coach": "coach"
+  },
   "season": {
     "msgNewWorld": "Nieuwe wereld ({n} seizoenen geschiedenis) — kies je club.",
     "msgWriting": "{n} seizoenen geschiedenis aan het schrijven…",
@@ -293,5 +877,119 @@
     "msgRecorded": "Jouw wedstrijd staat in de boeken — speel de rest van de speeldag.",
     "errNoSave": "geen save \"{slot}\""
   },
-  "ordinal": { "1": "1STE", "2": "2DE", "3": "3DE", "n": "{n}DE" }
+  "ordinal": {
+    "1": "1STE",
+    "2": "2DE",
+    "3": "3DE",
+    "n": "{n}DE"
+  },
+  "academy": {
+    "title": "Academie",
+    "sub": "Wat de engine echt modelleert — één onderwerp per minuut.",
+    "open": "Doorlopen",
+    "step": "Stap {n} van {total}",
+    "prev": "Vorige",
+    "next": "Volgende",
+    "finish": "Afronden",
+    "close": "Sluiten",
+    "restart": "Opnieuw",
+    "steps": "{n} stappen",
+    "legend": {
+      "us": "Wij",
+      "them": "Zij",
+      "ball": "Bal",
+      "pass": "Pass",
+      "run": "Loopactie",
+      "carry": "Dribbel"
+    },
+    "fromReport": "Leer dit",
+    "penaltyCorner": {
+      "title": "De strafcorner",
+      "sub": "Ongeveer een derde van alle goals valt hier.",
+      "steps": {
+        "battery": {
+          "title": "De batterij",
+          "body": "Aangever, stopper, afwerker. De injectie moet aankomen rond 8 m/s: te hard en de stopper krijgt hem niet stil, te zacht en de uitloper is er eerder dan de bal."
+        },
+        "variants": {
+          "title": "De varianten",
+          "body": "Sleep, lage slag, slip links of rechts, deflectie. Elke variant breekt een ander uitloopsysteem — en elk uitloopsysteem heeft een gat."
+        },
+        "runningOut": {
+          "title": "Het uitlopen",
+          "body": "De uitloper vertrekt bij de injectie en gokt twee dingen: zijn lijn en zijn hoogte. Laag blokt de slag maar wordt overgesleept; hoog blokt de sleep maar de lage slag gaat eronderdoor."
+        },
+        "wearOut": {
+          "title": "Slijtage",
+          "body": "Negen keer dezelfde variant en ze staan er klaar voor. Hou er één achter voor als het telt."
+        }
+      }
+    },
+    "buildUp": {
+      "title": "Opbouw",
+      "sub": "Van je eigen 23 naar de middenlijn zonder de bal weg te geven.",
+      "steps": {
+        "shape": {
+          "title": "De vorm",
+          "body": "Backs splitsen rond je eigen cirkel — nooit aannemen ín je D. Een terugspeelbal daar is balverlies met een tegendoelpunt eraan vast."
+        },
+        "freeMan": {
+          "title": "De vrije man",
+          "body": "De spare back die niemand dekt is je hele outlet. Vind hem eerst, speel dan pas vooruit."
+        },
+        "upBackThrough": {
+          "title": "Up-back-through",
+          "body": "In op een aangespeelde spits, meteen terug op de vrije man, en dóór de linie die net is meegekomen. Dit is de combinatie die opbouw gecoacht doet lijken."
+        },
+        "overTheTop": {
+          "title": "Over de top",
+          "body": "Een full-court press heeft geen vrije man. Eén hoge bal over hem heen en je hebt een man over."
+        }
+      }
+    },
+    "pressing": {
+      "title": "Pressen",
+      "sub": "Vier systemen, vier verschillende sporten.",
+      "steps": {
+        "systems": {
+          "title": "De vier systemen",
+          "body": "Full court: man op man over het hele veld, niemand vrij. Half court: blok rond de middellijn. Split: naar één kant duwen en meeschuiven. Zone: iedereen achter de 23 en niemand loopt mee naar de bal."
+        },
+        "channels": {
+          "title": "Wie eruit stapt",
+          "body": "De speler in wiens kanaal de bal ligt, niet wie toevallig het dichtst staat. Een rechterhalf die het hele veld oversteekt laat precies het gat achter waar de bal naartoe gaat."
+        },
+        "freeManRest": {
+          "title": "Vrije man en rustpunt",
+          "body": "Een vrije man achter de linie vangt de fout op. Twee spitsen die niet meeverdedigen zijn de reden dat je het balbezit weggeeft."
+        },
+        "split": {
+          "title": "De splitpress",
+          "body": "De eerste verdediger komt van binnenuit, de bal moet naar buiten, het blok schuift mee. De verre kant geef je bewust weg — tot ze hem vinden."
+        }
+      }
+    },
+    "circleEntry": {
+      "title": "De cirkel in",
+      "sub": "Buiten de D scoort niets.",
+      "steps": {
+        "theLine": {
+          "title": "De lijn",
+          "body": "Balbezit op het middenveld is weinig waard. De pass die de cirkellijn kruist is het waardevolste object op het veld."
+        },
+        "baseline": {
+          "title": "Achterlijn en terugleg",
+          "body": "Buitenom voorbij de back, door tot de achterlijn, en terugleggen op de stip waar de loper aankomt. De grootste doelpuntenbron van het moderne spel."
+        },
+        "switchSlip": {
+          "title": "Wisselen en glippen",
+          "body": "Circuleer over de top van de D tot het blok meeschuift, en glip er dan achterlangs naar de tweede paal."
+        },
+        "drawTheFoot": {
+          "title": "De voet uitlokken",
+          "body": "Een stevige push tegen een verdediger die tussen bal en doel staat. Voet in de cirkel is een strafcorner — zo vallen de meeste corners op clubniveau."
+        }
+      }
+    }
+  }
 }

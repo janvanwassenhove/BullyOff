@@ -13,6 +13,10 @@ describe('app store', () => {
     expect(app.inHub).toBe(false);
     app.openRule('rules.selfPass23');
     expect(app.screen).toBe('rulebook');
+    app.openAcademy('penaltyCorner');
+    expect(app.screen).toBe('academy');
+    expect(app.academyFocus).toBe('penaltyCorner');
+    expect(app.inHub).toBe(true);
     expect(app.ruleFocus).toBe('rules.selfPass23');
     app.markSaved('2026-08-22T16:38:00');
     expect(app.savedClock).toBe('16:38');

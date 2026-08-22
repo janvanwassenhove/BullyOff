@@ -27,8 +27,9 @@ const items = [
   { n: '01', key: 'continue', go: onContinue },
   { n: '02', key: 'newCareer', go: () => { app.go('newCareer'); } },
   { n: '03', key: 'viewer', go: () => { app.go('viewer'); } },
-  { n: '04', key: 'rulebook', go: () => { app.go('rulebook'); } },
-  { n: '05', key: 'settings', go: () => { app.go('about'); } },
+  { n: '04', key: 'academy', go: () => { app.openAcademy(null); } },
+  { n: '05', key: 'rulebook', go: () => { app.go('rulebook'); } },
+  { n: '06', key: 'settings', go: () => { app.go('about'); } },
 ];
 </script>
 
