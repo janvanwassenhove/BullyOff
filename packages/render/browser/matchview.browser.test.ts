@@ -11,12 +11,25 @@ import { aiController, simulateMatch, squadsFromSetup, MENS, DEFAULT_TACTICS, ty
 import { aiMatchSetup } from '@bullyoff/engine/fixtures';
 import { createMatchView } from '../src/index.js';
 
-function pixels(canvas: HTMLCanvasElement): Uint8ClampedArray {
-  const oc = document.createElement('canvas'); oc.width = 64; oc.height = 40;
+function pixelsAt(canvas: HTMLCanvasElement, w: number, h: number): Uint8ClampedArray {
+  const oc = document.createElement('canvas'); oc.width = w; oc.height = h;
   const ctx = oc.getContext('2d')!;
-  ctx.drawImage(canvas, 0, 0, 64, 40);
-  return ctx.getImageData(0, 0, 64, 40).data;
+  ctx.drawImage(canvas, 0, 0, w, h);
+  return ctx.getImageData(0, 0, w, h).data;
 }
+// Read back straight after an explicit renderFrame(): the WebGL drawing buffer is not preserved,
+// so a read taken later in the frame sees a cleared canvas rather than the picture.
+const pixels = (canvas: HTMLCanvasElement): Uint8ClampedArray => pixelsAt(canvas, 64, 40);
+/** Fraction of pixels whose colour moved by more than `thr` on any channel. */
+const changedFraction = (a: Uint8ClampedArray, b: Uint8ClampedArray, thr = 24): number => {
+  let n = 0, px = 0;
+  for (let i = 0; i < a.length; i += 4) {
+    px++;
+    const d = Math.max(Math.abs((a[i] ?? 0) - (b[i] ?? 0)), Math.abs((a[i + 1] ?? 0) - (b[i + 1] ?? 0)), Math.abs((a[i + 2] ?? 0) - (b[i + 2] ?? 0)));
+    if (d > thr) n++;
+  }
+  return n / px;
+};
 const diff = (a: Uint8ClampedArray, b: Uint8ClampedArray): number => { let d = 0; for (let i = 0; i < a.length; i++) d += Math.abs((a[i] ?? 0) - (b[i] ?? 0)); return d / a.length; };
 
 it('renders a replay frame-accurately in the browser', async () => {
@@ -36,7 +49,7 @@ it('renders a replay frame-accurately in the browser', async () => {
   let nonBg = 0; for (let i = 0; i < a1.length; i += 4) if (Math.abs((a1[i] ?? 0) - 14) > 20 || Math.abs((a1[i + 1] ?? 0) - 17) > 20) nonBg++;
   expect(nonBg).toBeGreaterThan(a1.length / 4 * 0.3);
   // same tick → same picture; different tick → different picture (camera & actors moved)
-  expect(diff(a1, a2)).toBeLessThan(0.5);
+  expect(diff(a1, a2)).toBeLessThan(0.01); // exactly 0 in practice: a paused view redraws only on command
   expect(diff(a1, b)).toBeGreaterThan(2);
   // HUD follows events: after 60 s the clock is > 0 and phase is Q1
   view.seek(1200); view.renderFrame();
@@ -89,10 +102,17 @@ it('live mode (Phase 7): the log grows through append(), the coach view draws nu
   out.length = 0; host.handle({ type: 'instruct', id: 99, instructions: [] });
   const t = out[0]; expect(t?.type === 'instructed' && t.tactics[0].pressHeight).toBe(0.9);
   view.seek(600); view.renderFrame();
-  const coach = pixels(canvas);
+  const coach = pixelsAt(canvas, 400, 225);
   view.setMode('tactical'); view.renderFrame();
-  const tactical = pixels(canvas);
-  expect(diff(coach, tactical)).toBeGreaterThan(0.2); // overlays (numbers, stamina bars) are visible in coach mode
+  const tactical = pixelsAt(canvas, 400, 225);
+  view.setMode('coach'); view.renderFrame();
+  const coachAgain = pixelsAt(canvas, 400, 225);
+  // Overlays (shirt numbers, stamina bars) cover well under 1 % of the canvas, so a whole-image
+  // mean is the wrong instrument for "are they drawn": it measures 0.19, and the 0.2 threshold it
+  // used to face only ever passed on the wall-clock repaint noise MatchView no longer produces.
+  // Count changed pixels instead (measured 0.0060), with the same mode twice as the control.
+  expect(changedFraction(coach, tactical)).toBeGreaterThan(0.002);
+  expect(changedFraction(coach, coachAgain)).toBe(0);
   view.seek(1250); view.renderFrame();
   expect(view.hud.clockSeconds).toBeGreaterThan(50);
   if (navigator.userAgent.includes('Chrome')) {
