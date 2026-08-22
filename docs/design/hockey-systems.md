@@ -331,7 +331,7 @@ And the situational deck gains scenarios named for what they test: `press-full-b
 
 | Phase | Content | Why in this order |
 |---|---|---|
-| **11 — Systems** | §2–§4 assignments + press systems as data (**built, not merged** — `docs/handoff/phase-11.md`); §5 PC defence systems; §7 entry patterns | the action space. Nothing can read or learn without it. **Do not split the defensive and attacking halves again**: shipping §2–§4 alone dropped goals per match from 5.49 to 4.33, out of the calibration band, because both sides defend better and the attack was given nothing to answer with |
+| **11 — Systems** | §2–§4 assignments + press systems as data (**merged 2026-08-22**, with a calibration regression as known debt — `docs/handoff/phase-11.md`); §5 PC defence systems; §7 entry patterns | the action space. Nothing can read or learn without it. **Do not split the defensive and attacking halves again**: shipping §2–§4 alone dropped goals per match from 5.49 to 4.33, out of the calibration band, because both sides defend better and the attack was given nothing to answer with |
 | **11b — Handedness** | §6, full scope: pressing angle, tackle side, receiving, carrying, striking | confirmed as its own phase. It makes every pressing angle read correctly and is the right cause for the PC shortfall (question 18) |
 | **12 — Naturalness** | `adaptive-play.md` layer D | commitment, softmax, anticipation, timed runs — now applied to real assignments |
 | **13 — Reads** | layer B (`ScoutMemory`) | reads *choose between systems and variants*: trap channel, PC runner line and height, entry pattern |

@@ -1,7 +1,8 @@
 # Phase 11 — pressing systems as data, and the defence works from assignments
 
-> **Status: not merged. `pnpm check` is green (169 tests) but the calibration gate regressed and the
-> phase is half-built by design of its own spec.** Read § "Why this is not merged" before anything else.
+> **Status: merged on Jan's call, with the calibration regression accepted as known debt.**
+> `pnpm check` is green, but goals per match fell out of band and the phase is half-built by the
+> design of its own spec. Read § "The debt this carries" before building on top of it.
 
 ## What was built
 
@@ -26,7 +27,7 @@
 Engine **0.7.0**; sandbox golden `cec18ab670a0562b`, scenario goldens regenerated (reviewed:
 `high-press-vs-deep-block` reads as build-up with shape, not as a scramble).
 
-## Why this is not merged
+## The debt this carries
 
 **Goals per match fell out of the calibration band.** Same batch, 96 matches, ±2 spread:
 
@@ -47,12 +48,16 @@ and the attack has been given nothing new to beat them with. §7 of the spec —
 passing into space via a pursuit test, up-back-through — is exactly the missing counterweight, and it
 is in the same phase in the spec for this reason. Splitting them was my call and it was the wrong one.
 
-**Two honest ways forward, Jan's choice:**
-1. **Finish the phase** — build §7 on this branch, re-calibrate, merge when goals are back in band.
-   This is what the spec intends and my recommendation.
-2. **Merge the defensive half and re-tune** — accept the drop as the new baseline and let the fitting
-   layer (ADR-014 layer A) find the weights that restore it. Faster, but it tunes around a known
-   half-built model instead of finishing it.
+**Jan chose to merge.** So this is now the state of `main`, and the debt is named rather than hidden:
+
+- **`main` scores below the calibrated band** until §7 lands. Anyone reading `docs/rules/calibration.md`
+  should know the miss is this change and not a drift.
+- **The next phase is §7, not something else.** Circle-entry patterns, passing into space via a
+  pursuit test, and up-back-through are the counterweight this half removed. Re-run
+  `pnpm calibrate:run` when they land; goals per match back inside [4.86, 5.94] is the gate.
+- **Do not tune around it first.** The fitting layer (ADR-014 layer A) could probably pull the number
+  back by reweighting, but it would be fitting weights to a half-built model — the thing ADR-014's
+  own invariants warn about. Finish the model, then fit.
 
 ## What surprised me
 
