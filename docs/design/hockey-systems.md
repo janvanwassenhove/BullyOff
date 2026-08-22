@@ -185,11 +185,11 @@ type PcDefenceId = 'runnerLeads' | 'keeperLeads' | 'doubleCharge' | 'block';
 interface PcDefenceSystem {
   /** Who attacks the striking point. */
   lead: 'runner' | 'gk' | 'both' | 'none';
-  /** The runner's LINE — this is the decision, not the speed. */
+  /** The runner's LINE — one of the two things he guesses. */
   runnerLine: 'trap' | 'striker' | 'split';
   /** Metres the runner covers before the strike leaves — how early they commit. */
   chargeCommit: Scalar;
-  /** Runner's body/stick profile: low blocks the hit, high blocks the flick. Cannot do both. */
+  /** Runner's body/stick profile — the other thing he guesses: low blocks the hit, high blocks the flick. Cannot do both. */
   runnerProfile: 'low' | 'high';
   /** Posts hold to the strike, or step on a hit. */
   posts: 'hold' | 'stepOnHit';
@@ -205,7 +205,7 @@ interface PcDefenceSystem {
 - **doubleCharge** (`lead: 'both'`, `runnerLine: 'split'`). Two runners: one at the trapper, one at the striker or the slip side. Kills slips and hits. **Beaten by the straight flick over the top** — two bodies committed low is two bodies not in the goal.
 - **block** (`lead: 'none'`, posts `hold`, GK `line`). Nobody charges; five bodies fill the goal and the near angles. Concedes the clean strike but nothing catastrophic: no beaten runner, no gaps. What you play against an elite flicker with slow runners, or to protect a lead.
 
-**The read/counter-read is the whole point.** `runnerProfile` is a binary the defence must guess: a runner set low is beaten over the top by a flick; set high he is beaten under by the low hit. Which one he sets is exactly what `ScoutMemory.pcVariant` and `goalkeeper.pcReading` should decide (ADR-014 layer B), and the attacking coach's counter is to run a variant the defence is not set for. That closes the loop BRIEF §5.5 asks for — *"reusing one variant every time must be punished"* — with a mechanism instead of a modifier.
+**The read/counter-read is the whole point.** Confirmed 2026-08-22: the uitloper guesses **both** his line and his body height, and they are independent. A runner set low is beaten over the top by a flick; set high he is beaten under by the low hit; and whichever height he picks, a slip beats the line he committed to. What he guesses is exactly what `ScoutMemory.pcVariant` and `goalkeeper.pcReading` should decide (ADR-014 layer B), and the attacking coach's counter is to run a variant the defence is not set for. That closes the loop BRIEF §5.5 asks for — *"reusing one variant every time must be punished"* — with a mechanism instead of a modifier.
 
 ### The counter matrix — confirmed 2026-08-22: all four systems get played
 
@@ -244,21 +244,34 @@ Also required, and missing today:
 `pcAttack` already does the hard part well — roles fixed per corner, injection speed computed for a stoppable trap, five variants, slip handling, the scripted-moment guard against open-play logic stealing the ball. Three gaps:
 
 1. **The runners are four fixed spots** (`spots[i % 4]`). They should be a pattern per variant: near-post deflector, far-post runner, top-of-D rebounder, trailer — and for `deflection` there is currently *no deflector making contact*, which means the variant is a straight strike with a different name.
-2. **No read of the defence.** The attack should see `lead` and `runnerLine` in the same way the defence reads the variant: charge coming down the middle → slip; posts stepping → flick over; block → take the extra half-second and pick a corner.
+2. **No read of the defence.** The attack should see `lead`, `runnerLine` and the runner's height in the same way the defence reads the variant: charge coming down the middle → slip; runner set low → flick over; posts stepping → flick over; block → take the extra half-second and pick a corner.
 3. **The rebound is not a phase.** Most PC goals at club level are second-phase. The trailer and the top-of-D rebounder need to be arriving, not standing.
 
 ---
 
-## 6. Handedness — the cheapest hockey-specific realism there is
+## 6. Handedness — confirmed 2026-08-22: its own phase, full scope
 
-Every stick is right-handed. The engine models none of this, and it changes defending, receiving and tackling:
+Every stick is right-handed. The engine knows no difference between left and right anywhere: `grep -n "reverse\|openStick\|handed"` over `packages/engine` and `packages/rules` returns only array reversals. Jan has chosen the full version, so this is a phase (10b) rather than a note.
 
-- A carrier's **open stick side is their right**; their reverse is their left, and it is weaker for hitting and for taking the ball forward at speed.
-- A defender therefore **shows the carrier onto their reverse** — `shepherd: 'toReverse'` — by closing the open-stick channel. This is the standard club-level instruction and it is why hockey pressing angles do not look like football pressing angles.
-- A **tackle from the carrier's open-stick side** is the safe one; coming across the body from the reverse side is where obstruction and stick fouls come from. This gives `discipline` and `aggression` a real hockey consequence and would move the PC-award frequency the calibration is short on (open question 18) at the *right cause*.
-- Receiving: you open up onto your forehand; a ball arriving on your reverse costs a touch. `firstTouch` and `trapping` should be modified by which side the pass arrives on.
+**The one idea:** a player's **open stick side is their right**, their **reverse is their left**. Everything below follows from that, and every one of them is an *input* to physics, never a change to physics (Phase 3's rule: attributes scale physics inputs).
 
-Bounded, testable, and no rule ambiguity. Worth its own small phase; it touches `attributes.ts` mappings, not physics.
+### What it touches
+
+1. **The pressing angle.** `shepherd: 'toReverse'` becomes real: the first defender closes the carrier's open-stick channel so the only way forward is on the reverse. This is why hockey pressing angles are not football pressing angles, and it is what §3 gives `half` and `zone`.
+2. **The tackle side.** A tackle from the carrier's open-stick side is the clean one; coming across the body from the reverse side is where `obstruction` and stick offences come from. The rules layer **already has the vocabulary** — `FoulKind` carries `obstruction` and `backStick` (`packages/rules/src/types.ts`) — and the AI has never been able to trigger them from a wrong-side tackle, because there is no side. Wiring the side in gives `mental.discipline` and `mental.aggression` a genuine hockey consequence, and it is the *right cause* for the PC shortfall in open question 18 (6.4 awarded vs ≈ 9 real): club-level corners come from stick tackles and feet in the D, not from an abstract foul rate.
+3. **Receiving.** A ball arriving on the reverse costs a touch: `firstTouch` and `trapping` are scaled by which side it comes from. A good player opens up onto their forehand; a weak one lets it run. This is where the turnover rate of the amateur game actually lives.
+4. **Carrying and eliminating.** `technical.elimination` and `skills3d` on the reverse are harder than on the open stick — so shepherding a carrier onto their reverse pays off in the value function, not just in the picture.
+5. **Striking.** The reverse hit is weaker and less accurate than the forehand: `strikeSpeedFactor` gains a side term, and the AI prefers to take the extra step to get the ball onto its forehand when it has time.
+
+### What it does not touch
+
+- **Physics.** No new forces, no stick model. Sides scale attribute-derived inputs.
+- **Left-handed players.** They do not exist in hockey; there is no attribute for it and there must not be one.
+- **The keeper.** A keeper's stick-side/pad-side asymmetry is real but small next to `gkSaveScale` (open question 19) and would muddy that already-provisional knob. Left out of this phase deliberately; revisit when defensive organisation is modelled.
+
+### Why it is worth a phase even though it is invisible
+
+It will not show up on screen — capsules do not have hands. It shows up in the **numbers and in the shapes**: where defenders stand, which way attacks are funnelled, how many corners are won and why. That is the half of "does this look like hockey" that a coach judges from the pattern of play rather than from the sprites.
 
 ---
 
@@ -299,6 +312,9 @@ Relational, because absolute numbers are calibration's job (CLAUDE.md rule 8):
 | A split press abandons a side | system `split`: the weak-side winger is > 15 m from the ball's channel; recoveries concentrate in the strong-side channel |
 | Marks stay marked | mark changes per attacker per possession below a stated bound; no two defenders on the same runner for more than one decision tick |
 | Shepherding works | vs `toReverse`, the carrier's forward progress on their open stick falls |
+| The reverse costs you | a pass arriving on the receiver's reverse yields a worse first touch and more turnovers than the same pass on the forehand, at equal `firstTouch` |
+| Tackle side matters | tackles from the carrier's open-stick side succeed more and concede fewer `obstruction` / stick fouls than tackles across the body |
+| Handedness moves PCs at the right cause | with tackle sides wired in, awarded PCs per match rises towards the calibration target without touching an abstract foul rate |
 | The PC counter matrix holds | every sign in the §5 matrix, as a relational test over batched corners: e.g. `slipLeft` converts better vs `runnerLeads` than vs `block`; `deflection` converts better vs `keeperLeads` than vs `block`; `lowHit` converts better vs a `high` runner than a `low` one |
 | No PC defence system dominates | over the five variants at equal quality, no system has the best conversion conceded against all five — each has at least one variant it loses to |
 | A system needs its players | `runnerLeads` with a slow first runner concedes more than `block` with the same squad |
@@ -316,19 +332,20 @@ And the situational deck gains scenarios named for what they test: `press-full-b
 | Phase | Content | Why in this order |
 |---|---|---|
 | **10 — Systems** | §2–§4 assignments + press systems as data; §5 PC defence systems; §7 entry patterns | the action space. Nothing can read or learn without it |
-| **10b — Handedness** | §6 | small, self-contained, and it makes every pressing angle read correctly |
+| **10b — Handedness** | §6, full scope: pressing angle, tackle side, receiving, carrying, striking | confirmed as its own phase. It makes every pressing angle read correctly and is the right cause for the PC shortfall (question 18) |
 | **11 — Naturalness** | `adaptive-play.md` layer D | commitment, softmax, anticipation, timed runs — now applied to real assignments |
-| **12 — Reads** | layer B (`ScoutMemory`) | reads *choose between systems and variants*: trap channel, PC runner profile, entry pattern |
+| **12 — Reads** | layer B (`ScoutMemory`) | reads *choose between systems and variants*: trap channel, PC runner line and height, entry pattern |
 | **13 — Fitting** | layer A (`PolicyWeights`, `pnpm fit`) | fit the utility weights **and** the system parameters against calibration |
 | **14 — Season** | layer C | familiarity is now per *system* (§3), which is exactly what a squad drills |
 
 Two things fall out of this ordering that are worth stating plainly. **Familiarity becomes meaningful**: a squad that has drilled the split press for two seasons executes the slide tightly, and switching them to a full press in July costs them for months — that is only expressible once systems exist as objects. And **calibration gets a new lever at the right cause**: open questions 18 (too few PCs — the AI under-fouls in the D) and 20 (quality spread) are both defensive-behaviour problems, and §4's marking positions and §6's tackle sides are where a coach would actually look for them.
 
-## 10. For Jan — before any of this is built
+## 10. For Jan — answered
 
-Per CLAUDE.md rule 9, three modelling readings I want confirmed rather than invented:
+Per CLAUDE.md rule 9, three modelling readings were put to Jan rather than invented. All three are now closed.
 
 1. ~~**The four press systems in §3**~~ — **confirmed 2026-08-22.** The names and shapes stand as written, `split` included (first defender from the inside shoulder, block slides, far side conceded). The variants listed under §3 stay my proposal; they cost nothing but values, so they can be added or dropped when the systems are built.
-2. ~~**PC defence systems in §5**~~ — **confirmed 2026-08-22: all four are played.** All four therefore ship as data and the coach picks one (`pcDefence` in `TeamTactics`, a control in the PC designer), gated on having the players for it. The counter matrix in §5 is the consequence.
-   *Still an assumption, not a confirmation:* the `runnerProfile` low/high binary as the model of what the uitloper is guessing. I am building on it because it is what makes the matrix work — a runner cannot be set for the flick and the hit at once — but say so if a coach would describe that choice differently (line and timing rather than body height, say), because the whole read/counter-read hangs off it.
-3. **Handedness in §6** — *open.* Worth its own phase, or over-modelling for a management game? It is the highest-fidelity item in this document and also the one most likely to be invisible on screen.
+2. ~~**PC defence systems in §5**~~ — **confirmed 2026-08-22: all four are played**, and **the uitloper guesses both his line and his body height.** `runnerLine` and `runnerProfile` are therefore two independent choices, which is what keeps each of the four systems holding its own weakness. All four ship as data and the coach picks one (`pcDefence` in `TeamTactics`, a control in the PC designer), gated on having the players for it. The counter matrix in §5 stands as written.
+3. ~~**Handedness in §6**~~ — **confirmed 2026-08-22: its own phase, full scope.** Pressing angle, tackle side, receiving, carrying and striking; keeper asymmetry deliberately excluded. See §6.
+
+**Nothing in this document is now waiting on a hockey answer.** What it is waiting on is ADR-014's acceptance and a decision on order and timing — see `adaptive-play.md` and the phase table in §9.
