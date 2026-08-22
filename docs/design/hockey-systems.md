@@ -207,6 +207,32 @@ interface PcDefenceSystem {
 
 **The read/counter-read is the whole point.** `runnerProfile` is a binary the defence must guess: a runner set low is beaten over the top by a flick; set high he is beaten under by the low hit. Which one he sets is exactly what `ScoutMemory.pcVariant` and `goalkeeper.pcReading` should decide (ADR-014 layer B), and the attacking coach's counter is to run a variant the defence is not set for. That closes the loop BRIEF §5.5 asks for — *"reusing one variant every time must be punished"* — with a mechanism instead of a modifier.
 
+### The counter matrix — confirmed 2026-08-22: all four systems get played
+
+Jan confirms all four are in use at Belgian club level, so all four ship as data and **the coach picks one**: a `pcDefence: PcDefenceId` knob in `TeamTactics`, next to `pcVariant` and `pcBattery`, and a second control in the Phase 7 PC designer (you already design the battery there; you should be able to set up the defence of one too).
+
+Four systems that all get played only stays interesting if none of them dominates. This is the mechanism the engine has to produce — not a table of modifiers, but the *outcome* of the geometry above. Written out as what the engine should therefore make happen, so that §8 can assert it:
+
+| | **runnerLeads** | **keeperLeads** | **doubleCharge** | **block** |
+|---|---|---|---|---|
+| **dragFlick** | defence, *if the runner is set high* | **attack** — lift over an advancing keeper into the corner | **attack** — two bodies committed forward are two bodies not in the goal | even; the elite flicker wins, the average one does not |
+| **lowHit** | the profile bet: runner low → defence, runner high → **attack** under him | defence — an advanced keeper covers low well | **defence** — two low runners smother it | defence, but the rebound is live |
+| **slipLeft / slipRight** | **attack** — the runner is committed to a line the ball no longer travels | attack — the keeper is committed centrally, the slip opens the angle | side-dependent: covered if the second runner guessed the right side, beaten if not | even — no one is committed, but the slip has the angle |
+| **deflection** | attack — the charge is at the striking point, the ball never goes there | **attack** — the goal behind an advanced keeper is empty | attack — the posts are thin | **defence** — held posts are exactly what a deflection runs into |
+
+Read down the columns and each system has a hole: `runnerLeads` dies to slips and deflections, `keeperLeads` dies to anything lifted or wide, `doubleCharge` dies to the straight flick over the top, and `block` wins nothing — it concedes the clean strike in exchange for never being caught out. That last one matters: a safe passive option that is *not* dominated is what makes the choice a coaching decision rather than a solved one.
+
+**The magnitudes are calibration's job, not mine.** This matrix is a set of *signs*, and §8 asserts the signs. The actual conversion numbers come out of `pnpm calibrate:run` against the PC targets and must stay inside the band whichever system the AI is playing.
+
+**Not every club can play every system.** The choice should be gated on whether the players exist, the way it is on a real touchline:
+
+- `runnerLeads` needs a genuine flyer — `physical.pace` + `physical.acceleration`, and `mental.aggression` over `mental.discipline` to actually go. A slow first runner playing this is worse than a block.
+- `keeperLeads` needs `goalkeeper.oneOnOne` and `goalkeeper.pcReading`; a hesitant keeper caught halfway is the worst outcome on the list.
+- `doubleCharge` needs two runners, so it costs a body somewhere else.
+- `block` needs nothing — which is why it is the right default for a weak side and the honest fallback when the AI has nobody for the other three.
+
+The AI's default choice per club is therefore attribute-driven, and the *switch* mid-match is `ScoutMemory`-driven (ADR-014 layer B): a side that has conceded twice to slips stops charging.
+
 Also required, and missing today:
 - The runner must **not leave before the ball is played** (the rules layer holds the restart; the AI must not walk out early).
 - The **posts hold until the strike, then close** on the rebound. A post who steps early is why slips score.
@@ -273,7 +299,9 @@ Relational, because absolute numbers are calibration's job (CLAUDE.md rule 8):
 | A split press abandons a side | system `split`: the weak-side winger is > 15 m from the ball's channel; recoveries concentrate in the strong-side channel |
 | Marks stay marked | mark changes per attacker per possession below a stated bound; no two defenders on the same runner for more than one decision tick |
 | Shepherding works | vs `toReverse`, the carrier's forward progress on their open stick falls |
-| The PC read matters | `block` concedes more clean flicks and fewer slip/rebound goals than `runnerLeads`; `doubleCharge` concedes more flicks over the top; a `low` runner concedes to a flick, a `high` runner to a low hit |
+| The PC counter matrix holds | every sign in the §5 matrix, as a relational test over batched corners: e.g. `slipLeft` converts better vs `runnerLeads` than vs `block`; `deflection` converts better vs `keeperLeads` than vs `block`; `lowHit` converts better vs a `high` runner than a `low` one |
+| No PC defence system dominates | over the five variants at equal quality, no system has the best conversion conceded against all five — each has at least one variant it loses to |
+| A system needs its players | `runnerLeads` with a slow first runner concedes more than `block` with the same squad |
 | The runner is legal | no defender crosses the backline before the injection, in any system |
 | The baseline pattern is real | shot quality from a completed pull-back exceeds a shot from the same distance at the top of the D |
 
@@ -300,6 +328,7 @@ Two things fall out of this ordering that are worth stating plainly. **Familiari
 
 Per CLAUDE.md rule 9, three modelling readings I want confirmed rather than invented:
 
-1. **The four press systems in §3** — are those the names and the shapes a Belgian club coach would recognise, and is `split` the splitting press as described (first defender from the inside shoulder, block slides, far side conceded)? The variants in §3 are my list, not a canonical one.
-2. **PC defence systems in §5** — four is my count (`runnerLeads` / `keeperLeads` / `doubleCharge` / `block`). Which two or three actually get used at Belgian club level, and is the `runnerProfile` low/high binary the right way to model what the uitloper is guessing?
-3. **Handedness in §6** — worth its own phase, or over-modelling for a management game? It is the highest-fidelity item in this document and also the one most likely to be invisible on screen.
+1. ~~**The four press systems in §3**~~ — **confirmed 2026-08-22.** The names and shapes stand as written, `split` included (first defender from the inside shoulder, block slides, far side conceded). The variants listed under §3 stay my proposal; they cost nothing but values, so they can be added or dropped when the systems are built.
+2. ~~**PC defence systems in §5**~~ — **confirmed 2026-08-22: all four are played.** All four therefore ship as data and the coach picks one (`pcDefence` in `TeamTactics`, a control in the PC designer), gated on having the players for it. The counter matrix in §5 is the consequence.
+   *Still an assumption, not a confirmation:* the `runnerProfile` low/high binary as the model of what the uitloper is guessing. I am building on it because it is what makes the matrix work — a runner cannot be set for the flick and the hit at once — but say so if a coach would describe that choice differently (line and timing rather than body height, say), because the whole read/counter-read hangs off it.
+3. **Handedness in §6** — *open.* Worth its own phase, or over-modelling for a management game? It is the highest-fidelity item in this document and also the one most likely to be invisible on screen.
