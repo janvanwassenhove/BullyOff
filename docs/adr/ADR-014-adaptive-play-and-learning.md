@@ -1,6 +1,6 @@
 # ADR-014 — Adaptive play and learning, without giving up determinism
 
-**Status:** Proposed · 2026-08-22 · *needs Jan's acceptance before any code is written*
+**Status:** Accepted · 2026-08-22
 **Decides:** where learning may live in BULLY OFF, and what must stay a pure function. Extends BRIEF §5.4 (utility AI), §5.5 ("opponents build a read on your tendencies across a season") and §6 (calibration). Touches ADR-002, ADR-005, ADR-007, ADR-010, ADR-011.
 
 ## Context

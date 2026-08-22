@@ -21,7 +21,7 @@ import { attackingEnd, type PlayerView, type RulesState, type RulesView, type Te
 import type { Command } from '../match/commands.js';
 import type { Controller, PlayerSetup } from '../match/match.js';
 import { attributesFor, norm, type Attributes, type Role } from '../player/attributes.js';
-import { DEFAULT_TACTICS, FORMATION_433, FORMATIONS, assignSlots, presetPatch, shapeTarget, type Slot, type TeamTactics } from './tactics.js';
+import { DEFAULT_TACTICS, FORMATION_433, FORMATIONS, PRESS_SYSTEMS, assignSlots, channelOf, lineOf, presetPatch, shapeTarget, type PressSystem, type Slot, type TeamTactics } from './tactics.js';
 import { laneEntersCircle, pitchValue, shotQuality } from './valueGrid.js';
 import { MENS, type Profile, type SurfaceState } from '../profile.js';
 import { strikeSpeedFactor } from '../player/attributes.js';
@@ -136,6 +136,8 @@ export function createAi(seed: number, squads: [AiTeam, AiTeam], opts: AiOptions
   };
   const leaving = new Map<number, number>(); // outId → inId, players jogging to the dugout
   const lastTackleTick = new Map<number, number>();
+  // sticky marking state, one per team (marks are handed over on a switch, not on a wobble)
+  const defence: [DefenceState, DefenceState] = [newDefenceState(), newDefenceState()];
   const pcRoles: PcRoles = { key: -1, injector: null, trapper: null, striker: null };
 
   const apply = (view: RulesView, tick: number): void => {
@@ -186,7 +188,7 @@ export function createAi(seed: number, squads: [AiTeam, AiTeam], opts: AiOptions
         slotOf: (id) => slotMap.get(id) ?? { role: 'MID', xp: 30, y: 0 },
         cmds, profile, surface,
       };
-      teamTick(ctx, leaving, lastTackleTick);
+      teamTick(ctx, leaving, lastTackleTick, defence[team.team]);
     }
     return cmds;
   };
@@ -200,7 +202,7 @@ export function createAi(seed: number, squads: [AiTeam, AiTeam], opts: AiOptions
 
 // ── team-level ─────────────────────────────────────────────────────────────────
 
-function teamTick(c: Ctx, leaving: Map<number, number>, lastTackleTick: Map<number, number>): void {
+function teamTick(c: Ctx, leaving: Map<number, number>, lastTackleTick: Map<number, number>, defence: DefenceState): void {
   const { view, rules, tick, team, end, mine, ball } = c;
   const restart = rules.restart;
   const restartMine = restart !== null && restart.team === team.team;
@@ -266,10 +268,10 @@ function teamTick(c: Ctx, leaving: Map<number, number>, lastTackleTick: Map<numb
     for (const p of mine) if (p.id !== carrier.id && !p.isGoalkeeper) supportRun(c, p, carrier, ballXp, ballY);
   } else if (carrier && carrier.team !== team.team) {
     // defending: nearest presses/tackles, second closes, others mark by shape
-    defend(c, carrier, ballXp, ballY, lastTackleTick);
+    defend(c, carrier, ballXp, ballY, lastTackleTick, defence);
   } else {
-    // loose ball: nearest chases; if the ball is coming, trap it
-    looseBall(c, ballXp, ballY, inPossession);
+    // loose ball: nearest chases; if the ball is coming, trap it. Off the ball we still hold the system.
+    looseBall(c, ballXp, ballY, inPossession, lastTackleTick, defence);
   }
   if (c.keeperMine) goalkeeper(c, c.keeperMine, carrier);
 
@@ -462,63 +464,227 @@ function supportRun(c: Ctx, p: PlayerView, carrier: PlayerView, ballXp: Scalar, 
   moveTo(c, p, target, 0.65);
 }
 
-function defend(c: Ctx, carrier: PlayerView, ballXp: Scalar, ballY: Scalar, lastTackleTick: Map<number, number>): void {
-  const { end, mine, tick, team, ball } = c;
-  const outfield = mine.filter((p) => !p.isGoalkeeper);
-  // press line: how far up the pitch (from our goal) we engage
-  const pressLine = 22 + team.tactics.pressHeight * 55;
-  const engage = ballXp < pressLine || in23(ball, -end as End);
-  const byDist = [...outfield].sort((a, b) => dist(a.pos, ball) - dist(b.pos, ball));
-  const first = byDist[0], second = byDist[1], third = byDist[2];
-  const inOwnDNow = inCircle(ball, -end as End);
-  // Marking in our 23 (hockey: zonal shape until the ball reaches the 23, then every attacker who gets into the D
-  // is picked up goal-side — a free forward on the spot is a goal). Greedy, nearest defender to each runner.
-  const marks = assignMarks(c, outfield, new Set([first?.id, second?.id, inOwnDNow ? third?.id : undefined]), carrier.id);
-  for (const p of outfield) {
-    if (engage && (p.id === first?.id || p.id === second?.id || (inOwnDNow && p.id === third?.id))) {
-      // close down: run at the ball, tackle when in reach; second man covers the pass inside
-      // jockey 2 m goal-side (stick reach is 1.6 m; you tackle from there, you don't stand on the ball).
-      // In our own circle the first defender gets ON the ball–goal line to block the shot with stick and body —
-      // that is where most penalty corners come from (feet), and it is what real defenders do.
-      const inOwnD = inCircle(ball, -end as End);
-      const ownGoal = { x: -end * HALF_LENGTH, y: 0 };
-      const gvx = ownGoal.x - ball.x, gvy = ownGoal.y - ball.y; const gl = Math.sqrt(gvx * gvx + gvy * gvy) || 1;
-      // Split press (hockey: first defender closes from the INSIDE shoulder so the carrier is shepherded to the
-      // touchline and the team shifts across; the middle of the pitch is closed, the ball goes into the traffic on one side).
-      const split = team.tactics.press === 'split' && !inOwnD;
-      const inside = ball.y > 0 ? -1 : 1; // towards the centre line
-      const goalSide = inOwnD
-        ? { x: ball.x + (gvx / gl) * 1.7, y: ball.y + (gvy / gl) * 1.7 }
-        : split
-          ? { x: ball.x - end * 1.6, y: ball.y + inside * 1.4 }
-          : { x: ball.x - end * 2.0, y: ball.y + (p.pos.y > ball.y ? 0.5 : -0.5) };
-      // second and third defenders stack the line towards goal, slightly staggered — a real D is crowded
-      // in a split press the second defender sits on the touchline side ahead of the ball to spring the trap
-      const cover = inOwnD ? { x: ball.x + (gvx / gl) * 3.2, y: ball.y + (gvy / gl) * 3.2 + (ball.y > 0 ? -1.0 : 1.0) } : split ? { x: ball.x - end * 6, y: ball.y - inside * 5 } : { x: ball.x - end * 5, y: ball.y + (ball.y > 0 ? -4 : 4) };
-      const cover3 = { x: ball.x + (gvx / gl) * 4.6, y: ball.y + (gvy / gl) * 4.6 + (ball.y > 0 ? 1.0 : -1.0) };
-      const target = p.id === first?.id ? goalSide : p.id === second?.id ? cover : cover3;
-      if (inOwnD) c.cmds.push({ tick, kind: 'move', playerId: p.id, dx: target.x - p.pos.x, dy: target.y - p.pos.y, effort: dist(p.pos, target) < 0.4 ? 0 : 1 });
-      else moveTo(c, p, target, 1);
-      const d = dist(p.pos, ball);
-      // Tackle: pick the moment (not every tick), and a beaten tackler is out of it for ~2 s — a lunge that misses
-      // leaves you behind the play; that is what makes elimination skills matter.
-      if (p.id === first?.id && d < 1.9 && tick - (lastTackleTick.get(p.id) ?? -99) >= 40) {
-        // Midfield is jockey-and-channel territory; committed tackles belong in the 23 and the D (a missed lunge at halfway is how counters start)
-        const aggr = 0.02 + 0.1 * norm(c.attrsOf(p.id).technical.tackling) + 0.25 * (in23(ball, -end as End) ? 1 : 0) + 0.4 * (inOwnD ? 1 : 0);
-        if (c.rng.chance(aggr)) { c.cmds.push({ tick, kind: 'tackle', playerId: p.id, targetId: carrier.id }); lastTackleTick.set(p.id, tick); }
+/**
+ * One defender's job this phase (docs/design/hockey-systems.md §2). Distance to the ball is an
+ * *input* to choosing jobs, never the job itself — that is what used to collapse the shape ball-side.
+ */
+type Assignment =
+  | { kind: 'pressBall' }
+  | { kind: 'cover'; rank: 1 | 2 }
+  | { kind: 'markMan'; target: number }
+  | { kind: 'markZone' }
+  | { kind: 'free' }
+  | { kind: 'restBreak' };
+
+/** A mark is handed over only on a real switch, never on a geometry wobble (§4). */
+const MARK_SWITCH_MARGIN = 2;   // metres a challenger must be closer by
+const MARK_SWITCH_TICKS = 10;   // and for this long (0.5 s)
+
+export interface DefenceState {
+  /** runner id → the defender who has him. */
+  markedBy: Map<number, number>;
+  /** runner id → the defender trying to take him over, and since when. */
+  challenge: Map<number, { by: number; since: number }>;
+}
+export const newDefenceState = (): DefenceState => ({ markedBy: new Map(), challenge: new Map() });
+
+/**
+ * Turn the pressing system into one job per outfielder. No branch per system: every difference
+ * between full / half / split / zone is a value in PRESS_SYSTEMS.
+ */
+function assign(c: Ctx, carrier: PlayerView, sys: PressSystem, st: DefenceState, skip?: number): Map<number, Assignment> {
+  const { end, mine, opp, ball, tick, team } = c;
+  const out = new Map<number, Assignment>();
+  const outfield = mine.filter((p) => !p.isGoalkeeper && p.id !== skip);
+  const ballXp = end * ball.x + HALF_LENGTH;
+  const ballChannel = channelOf(end * ball.y);
+  const inOwn23 = in23(ball, -end as End);
+  const engage = ballXp < 22 + team.tactics.pressHeight * 55 || inOwn23;
+
+  // Rest-break: the most advanced forwards do not defend — in a deep block they are the whole point
+  // of conceding the ball. Once it reaches our own 23 nobody is exempt any more.
+  const resting = new Set<number>();
+  if (!inOwn23 && sys.restBreak > 0) {
+    const fwd = outfield.filter((p) => c.slotOf(p.id).role === 'FWD').sort((a, b) => c.slotOf(b.id).xp - c.slotOf(a.id).xp || a.id - b.id);
+    for (const p of fwd.slice(0, sys.restBreak)) { resting.add(p.id); out.set(p.id, { kind: 'restBreak' }); }
+  }
+  const available = outfield.filter((p) => !resting.has(p.id));
+  const taken = new Set<number>();
+
+  // The presser is the owner of the ball's channel on the initiating line — not the nearest body on
+  // the pitch. A right half does not sprint across to a ball on the far left; he holds the inside slot.
+  if (engage) {
+    // Channel discipline is a build-up and midfield idea. Once the ball is in our own 23 it stops
+    // applying: the nearest body goes, everyone else picks up a shirt. A back who holds his channel
+    // while the ball sits on the spot is not disciplined, he is watching a goal.
+    const score = (p: PlayerView): number => {
+      if (inOwn23) return dist(p.pos, ball);
+      const slot = c.slotOf(p.id);
+      const dc = Math.abs(channelOf(slot.y) - ballChannel);
+      const dl = lineOf(slot.xp) === sys.initiator ? 0 : 1;
+      return dc * 100 + dl * 40 + dist(p.pos, ball);
+    };
+    const presser = [...available].sort((a, b) => score(a) - score(b) || a.id - b.id)[0];
+    if (presser) {
+      out.set(presser.id, { kind: 'pressBall' });
+      taken.add(presser.id);
+      // cover: `commit` players go to the ball in total, from the channels beside the presser
+      const covers = available.filter((p) => !taken.has(p.id)).sort((a, b) => dist(a.pos, ball) - dist(b.pos, ball) || a.id - b.id).slice(0, sys.commit - 1);
+      covers.forEach((p, i) => { out.set(p.id, { kind: 'cover', rank: (i === 0 ? 1 : 2) }); taken.add(p.id); });
+      // in our own circle a third body always joins: bodies in the D are what shots hit
+      if (inCircle(ball, -end as End)) {
+        const third = available.filter((p) => !taken.has(p.id)).sort((a, b) => dist(a.pos, ball) - dist(b.pos, ball) || a.id - b.id)[0];
+        if (third) { out.set(third.id, { kind: 'cover', rank: 2 }); taken.add(third.id); }
       }
-    } else if (marks.has(p.id)) {
-      const r = marks.get(p.id);
-      if (r) markRunner(c, p, r);
-    } else {
-      moveToShape(c, p, false, ballXp, ballY);
+    }
+  }
+
+  // Marking. Threat order: how close an opponent is to our goal, then to the ball.
+  const ownGoal = { x: -end * HALF_LENGTH, y: 0 };
+  const marks = sys.scheme === 'zonal' && !inOwn23 ? 0 : sys.scheme === 'manToMan' ? 99 : inOwn23 ? 99 : 2;
+  if (marks > 0) {
+    const threats = opp.filter((o) => !o.isGoalkeeper && o.id !== carrier.id)
+      .filter((o) => sys.scheme === 'manToMan' ? end * o.pos.x < 0 || inOwn23 : in23(o.pos, -end as End) || inOwn23 || sys.scheme === 'hybrid')
+      .sort((a, b) => dist(a.pos, ownGoal) - dist(b.pos, ownGoal) || dist(a.pos, ball) - dist(b.pos, ball) || a.id - b.id)
+      .slice(0, marks);
+    // Standing marks are reserved BEFORE anything new is handed out. Assigning in threat order and
+    // taking "the nearest free man" each time lets an earlier runner steal the defender who is
+    // already on someone, and then nobody arrives anywhere: the whole line spends the match
+    // swapping men 10 Hz and never closing. Reserve first, fill second.
+    const unheld: PlayerView[] = [];
+    for (const r of threats) {
+      const held = st.markedBy.get(r.id);
+      const holder = held !== undefined ? available.find((p) => p.id === held && !taken.has(p.id)) : undefined;
+      if (!holder) { unheld.push(r); continue; }
+      // hand the mark over only when a teammate has been clearly closer for half a second
+      const others = available.filter((p) => !taken.has(p.id) && p.id !== holder.id);
+      const nearest = [...others].sort((a, b) => dist(a.pos, r.pos) - dist(b.pos, r.pos) || a.id - b.id)[0];
+      let marker = holder;
+      if (nearest && dist(holder.pos, r.pos) - dist(nearest.pos, r.pos) > MARK_SWITCH_MARGIN) {
+        const ch = st.challenge.get(r.id);
+        if (ch?.by === nearest.id) { if (tick - ch.since >= MARK_SWITCH_TICKS) { marker = nearest; st.challenge.delete(r.id); } }
+        else st.challenge.set(r.id, { by: nearest.id, since: tick });
+      } else st.challenge.delete(r.id);
+      st.markedBy.set(r.id, marker.id);
+      out.set(marker.id, { kind: 'markMan', target: r.id });
+      taken.add(marker.id);
+    }
+    for (const r of unheld) {
+      const free = available.filter((p) => !taken.has(p.id));
+      const nearest = [...free].sort((a, b) => dist(a.pos, r.pos) - dist(b.pos, r.pos) || a.id - b.id)[0];
+      if (!nearest) break;
+      st.markedBy.set(r.id, nearest.id);
+      out.set(nearest.id, { kind: 'markMan', target: r.id });
+      taken.add(nearest.id);
+    }
+  }
+
+  // The spare. A full-court press has none — that absence is the system's risk, not an oversight.
+  if (sys.freeMan) {
+    const rest = available.filter((p) => !taken.has(p.id));
+    const spare = [...rest].sort((a, b) => dist(a.pos, ownGoal) - dist(b.pos, ownGoal) || a.id - b.id)[0];
+    if (spare) { out.set(spare.id, { kind: 'free' }); taken.add(spare.id); }
+  }
+  for (const p of available) if (!taken.has(p.id)) out.set(p.id, { kind: 'markZone' });
+  return out;
+}
+
+/**
+ * Hold the pressing system's shape against `target` — the man who has the ball, or the man the ball
+ * is travelling to. `skip` is a teammate already committed to the ball (the loose-ball chaser), who
+ * gets no assignment because he has one.
+ */
+function defend(c: Ctx, target: PlayerView, ballXp: Scalar, ballY: Scalar, lastTackleTick: Map<number, number>, st: DefenceState, skip?: number): void {
+  const { end, mine, tick, team, ball } = c;
+  const sys = PRESS_SYSTEMS[team.tactics.press];
+  const jobs = assign(c, target, sys, st, skip);
+  const outfield = mine.filter((p) => !p.isGoalkeeper && p.id !== skip);
+  // only a man who actually has the ball can be tackled
+  const tacklable = dist(target.pos, ball) < 1.6;
+  const inOwnD = inCircle(ball, -end as End);
+  const ownGoal = { x: -end * HALF_LENGTH, y: 0 };
+  const gvx = ownGoal.x - ball.x, gvy = ownGoal.y - ball.y; const gl = Math.sqrt(gvx * gvx + gvy * gvy) || 1;
+  // Shepherding: the first defender closes from the inside shoulder so the carrier's only way forward
+  // is wide, and the block slides across behind him. `toReverse` is the same geometry until stick
+  // handedness lands (phase 11b) and it can aim at the carrier's backhand instead of at the middle.
+  const inside = ball.y > 0 ? -1 : 1;
+  const shepherded = sys.shepherd !== 'toLine' || sys.trap === 'touchline';
+
+  for (const p of outfield) {
+    const job = jobs.get(p.id);
+    if (!job) { moveToShape(c, p, false, ballXp, ballY); continue; }
+    // Whoever the ball actually arrives at challenges for it. Channel discipline decides who steps
+    // OUT OF SHAPE to hunt the ball, not who is allowed to touch it at their feet: a defender
+    // standing next to the ball and forbidden to tackle is not hockey, and it is where the fouls
+    // that become penalty corners come from.
+    if (tacklable) tryTackle(c, p, target, lastTackleTick, job.kind === 'pressBall' ? 1 : 0.6);
+    switch (job.kind) {
+      case 'pressBall': {
+        // jockey 2 m goal-side (stick reach is 1.6 m; you tackle from there, you don't stand on the ball).
+        // In our own circle the first defender gets ON the ball–goal line to block the shot with stick and
+        // body — that is where most penalty corners come from (feet), and it is what real defenders do.
+        const target = inOwnD
+          ? { x: ball.x + (gvx / gl) * 1.7, y: ball.y + (gvy / gl) * 1.7 }
+          : shepherded
+            ? { x: ball.x - end * 1.6, y: ball.y + inside * 1.4 }
+            : { x: ball.x - end * 2.0, y: ball.y + (p.pos.y > ball.y ? 0.5 : -0.5) };
+        if (inOwnD) c.cmds.push({ tick, kind: 'move', playerId: p.id, dx: target.x - p.pos.x, dy: target.y - p.pos.y, effort: dist(p.pos, target) < 0.4 ? 0 : 1 });
+        else moveTo(c, p, target, 1);
+        break;
+      }
+      case 'cover': {
+        // stacked towards our goal, staggered — a real D is crowded; in a trap the cover sits on the
+        // touchline side ahead of the ball to spring it
+        const back = job.rank === 1 ? 3.2 : 4.6;
+        const target = inOwnD
+          ? { x: ball.x + (gvx / gl) * back, y: ball.y + (gvy / gl) * back + (ball.y > 0 ? -1.0 : 1.0) * (job.rank === 1 ? 1 : -1) }
+          : sys.trap === 'touchline'
+            ? { x: ball.x - end * 6, y: ball.y - inside * 5 }
+            : { x: ball.x - end * 5, y: ball.y + (ball.y > 0 ? -4 : 4) };
+        moveTo(c, p, target, 1);
+        break;
+      }
+      case 'markMan': {
+        const r = c.view.playerById(job.target);
+        if (r) markRunner(c, p, r); else moveToShape(c, p, false, ballXp, ballY);
+        break;
+      }
+      case 'free': {
+        // the spare: central, goal-side of the deepest attacker, on the defensive line
+        const deepest = [...c.opp].filter((o) => !o.isGoalkeeper).sort((a, b) => dist(a.pos, ownGoal) - dist(b.pos, ownGoal) || a.id - b.id)[0];
+        const line = 14 + team.tactics.defensiveLine * 30;
+        const xp = deepest ? Math.min(line, end * deepest.pos.x + HALF_LENGTH - 4) : line;
+        moveTo(c, p, { x: end * (clamp(xp, 6, HALF_LENGTH * 2 - 10) - HALF_LENGTH), y: end * clamp(ballY * 0.3, -8, 8) }, 0.85);
+        break;
+      }
+      case 'restBreak': {
+        // left high on purpose: hold the halfway line on the far side from the ball, ready to go
+        moveTo(c, p, { x: end * 6, y: end * clamp(-ballY * 0.5, -16, 16) }, 0.45);
+        break;
+      }
+      default:
+        moveToShape(c, p, false, ballXp, ballY);
     }
   }
 }
 
 /**
- * Marking in our 23 (hockey: zonal shape until the ball reaches the 23, then every attacker who gets into the D
- * is picked up goal-side — a free forward on the spot is a goal). Greedy, nearest free defender to each runner.
+ * Tackle: pick the moment (not every tick), and a beaten tackler is out of it for ~2 s — a lunge that
+ * misses leaves you behind the play; that is what makes elimination skills matter. Midfield is
+ * jockey-and-channel territory; committed tackles belong in the 23 and the D (a missed lunge at
+ * halfway is how counters start).
+ */
+function tryTackle(c: Ctx, p: PlayerView, carrier: PlayerView, lastTackleTick: Map<number, number>, keenness: Scalar): void {
+  const { end, tick, ball } = c;
+  if (dist(p.pos, ball) >= 1.9 || tick - (lastTackleTick.get(p.id) ?? -99) < 40) return;
+  const inOwnD = inCircle(ball, -end as End);
+  const aggr = (0.02 + 0.1 * norm(c.attrsOf(p.id).technical.tackling) + 0.25 * (in23(ball, -end as End) ? 1 : 0) + 0.4 * (inOwnD ? 1 : 0)) * keenness;
+  if (c.rng.chance(aggr)) { c.cmds.push({ tick, kind: 'tackle', playerId: p.id, targetId: carrier.id }); lastTackleTick.set(p.id, tick); }
+}
+
+/**
+ * Marking in our 23 for the loose-ball case (hockey: zonal shape until the ball reaches the 23, then
+ * every attacker who gets into the D is picked up goal-side — a free forward on the spot is a goal).
  */
 function assignMarks(c: Ctx, outfield: readonly PlayerView[], busy: Set<number | undefined>, carrierId: number | null): Map<number, PlayerView> {
   const { end, ball } = c;
@@ -541,11 +707,39 @@ function markRunner(c: Ctx, p: PlayerView, r: PlayerView): void {
   moveTo(c, p, { x: r.pos.x + (gvx / gl) * 1.4, y: r.pos.y + (gvy / gl) * 1.4 + (ball.y > r.pos.y ? 0.4 : -0.4) }, 1);
 }
 
-function looseBall(c: Ctx, ballXp: Scalar, ballY: Scalar, inPossession: boolean): void {
-  const { mine, ball, tick } = c;
+/**
+ * Take the ball if it is arriving. No reaction time: a ball fired from inside ~4 m at pace reaches you
+ * before the stick does — the body takes it (that is the feet foul the attacker was after). Only a
+ * deliberate stop from distance is a trap; a slow ball within reach is a controlled pick-up.
+ */
+function trapIfArriving(c: Ctx, p: PlayerView): void {
+  const { ball, tick } = c;
+  const d = dist(p.pos, ball);
+  const lt = c.view.ball.lastTouch === null ? undefined : c.view.playerById(c.view.ball.lastTouch);
+  const pointBlank = c.ballSpeed > 8 && lt !== undefined && lt.team !== p.team && dist(lt.pos, p.pos) < 4;
+  if (d < 1.4 && c.ballSpeed > 3.5 && approaching(c, p) && !pointBlank) c.cmds.push({ tick, kind: 'trap', playerId: p.id });
+  else if (d < 1.3 && c.ballSpeed <= 3.5 && c.view.ball.lastTouch !== p.id) c.cmds.push({ tick, kind: 'trap', playerId: p.id });
+}
+
+function looseBall(c: Ctx, ballXp: Scalar, ballY: Scalar, inPossession: boolean, lastTackleTick: Map<number, number>, st: DefenceState): void {
+  const { mine, ball } = c;
   const outfield = mine.filter((p) => !p.isGoalkeeper);
   const chaser = nearestTo(outfield, ball);
-  // a loose ball in our 23 when we are not in possession: the non-chasers mark, they do not watch the ball
+  // Off the ball the system still governs. A ball in flight is most of a hockey match; if the shape
+  // only applied while an opponent was physically dribbling, the pressing system would be steering a
+  // fraction of the game and everyone else would be standing in their formation slot.
+  if (!inPossession) {
+    const receiver = nearestTo(c.opp.filter((o) => !o.isGoalkeeper), ball);
+    if (receiver) {
+      if (chaser) {
+        const t = clamp(dist(chaser.pos, ball) / 6, 0, 1.2);
+        moveTo(c, chaser, { x: ball.x + c.ballVel.x * t * 0.6, y: ball.y + c.ballVel.y * t * 0.6 }, 1);
+        trapIfArriving(c, chaser);
+      }
+      defend(c, receiver, ballXp, ballY, lastTackleTick, st, chaser?.id);
+      return;
+    }
+  }
   const marks = inPossession ? new Map<number, PlayerView>() : assignMarks(c, outfield, new Set([chaser?.id]), null);
   for (const p of outfield) {
     if (p.id === chaser?.id) {
@@ -553,14 +747,7 @@ function looseBall(c: Ctx, ballXp: Scalar, ballY: Scalar, inPossession: boolean)
       const t = clamp(dist(p.pos, ball) / 6, 0, 1.2);
       const meet = { x: ball.x + c.ballVel.x * t * 0.6, y: ball.y + c.ballVel.y * t * 0.6 };
       moveTo(c, p, meet, 1);
-      const d = dist(p.pos, ball);
-      // No reaction time: a ball fired from inside ~4 m at pace reaches you before the stick does — the body takes it
-      // (that is the feet foul the attacker was after). Only a deliberate stop from distance is a trap.
-      const lt = c.view.ball.lastTouch === null ? undefined : c.view.playerById(c.view.ball.lastTouch);
-      const pointBlank = c.ballSpeed > 8 && lt !== undefined && lt.team !== p.team && dist(lt.pos, p.pos) < 4;
-      if (d < 1.4 && c.ballSpeed > 3.5 && approaching(c, p) && !pointBlank) c.cmds.push({ tick, kind: 'trap', playerId: p.id });
-      // collect: a slow ball within reach goes onto the stick (a controlled pick-up, not a stop)
-      else if (d < 1.3 && c.ballSpeed <= 3.5 && c.view.ball.lastTouch !== p.id) c.cmds.push({ tick, kind: 'trap', playerId: p.id });
+      trapIfArriving(c, p);
     } else if (marks.has(p.id)) {
       const r = marks.get(p.id);
       if (r) markRunner(c, p, r);

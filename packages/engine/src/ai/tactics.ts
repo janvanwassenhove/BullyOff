@@ -48,6 +48,75 @@ export const DEFAULT_TACTICS: TeamTactics = {
   pressHeight: 0.55, defensiveLine: 0.45, buildUp: 'possession', pcVariant: 'dragFlick', tempo: 0.5, rotateBelowStamina: 0.7,
 };
 
+/**
+ * A pressing system is a record of values, never a branch (CLAUDE.md rule 5 applies to systems too:
+ * `if (press === 'full')` is the same mistake as branching on the profile id). Before Phase 11 the four systems
+ * differed only by `pressHeight`, so they played identical hockey at four heights — a zone block is
+ * not a low full press, because in a zone block *nobody chases*. These are the values that make them
+ * different sports. See `docs/design/hockey-systems.md` §3.
+ */
+
+/** Which line of the team a slot belongs to. */
+export type Line = 'front' | 'mid' | 'back';
+/** Channels across the pitch in the team's own frame: -2 left … +2 right. */
+export type Channel = -2 | -1 | 0 | 1 | 2;
+/**
+ * Which way the first defender shows the carrier. `toReverse` needs stick handedness (phase 11b);
+ * until that lands it behaves as `toInside` — a defender closing the middle.
+ */
+export type Shepherd = 'toLine' | 'toInside' | 'toReverse';
+
+export interface PressSystem {
+  /** Which line steps first. */
+  initiator: Line;
+  /** How many players go to the ball, the presser included. `1` is what makes a zone block a block. */
+  commit: 1 | 2 | 3;
+  /** What everyone who is not on the ball does. */
+  scheme: 'manToMan' | 'zonal' | 'hybrid';
+  /**
+   * Is there a spare defender behind the line? A full-court press has none — that is the bet:
+   * one overhead over the top and you are numerically short goal-side.
+   */
+  freeMan: boolean;
+  /** Forwards left high who do not defend. In a deep block they are the reason for the block. */
+  restBreak: 0 | 1 | 2;
+  /** 0 = hold width, 1 = slide the whole block into the ball's channel. */
+  lateralShift: Scalar;
+  /** Where we try to win it. */
+  trap: 'touchline' | 'centre' | 'none';
+  /** Which way the first defender shows the carrier. */
+  shepherd: Shepherd;
+}
+
+/**
+ * The four systems. `pressHeight` (above) still owns where we engage — that part already worked and
+ * moving it would blur what this change is responsible for; these values own *who does what*.
+ */
+export const PRESS_SYSTEMS: Record<PressId, PressSystem> = {
+  // Man-to-man from their backline. Nobody spare, nobody rests: you press their outlet to win the
+  // ball in their 23, where a turnover is a circle entry, and you accept being 3-v-2 down if it breaks.
+  full: { initiator: 'front', commit: 2, scheme: 'manToMan', freeMan: false, restBreak: 0, lateralShift: 0.40, trap: 'centre', shepherd: 'toLine' },
+  // The block sets around halfway, the two nearest options are picked up, everyone behind holds zone.
+  half: { initiator: 'mid', commit: 2, scheme: 'hybrid', freeMan: true, restBreak: 1, lateralShift: 0.50, trap: 'touchline', shepherd: 'toReverse' },
+  // The first defender closes from the inside shoulder and the whole block slides across; the far
+  // side is abandoned on purpose. You win it in the traffic on the touchline, you lose it to a switch.
+  split: { initiator: 'front', commit: 2, scheme: 'hybrid', freeMan: true, restBreak: 1, lateralShift: 0.85, trap: 'touchline', shepherd: 'toLine' },
+  // Deep block. `commit: 1` is the defining value: only the channel owner engages and nobody else
+  // moves towards the ball. Two forwards stay high — they are what the conceded possession buys.
+  zone: { initiator: 'back', commit: 1, scheme: 'zonal', freeMan: true, restBreak: 2, lateralShift: 0.60, trap: 'none', shepherd: 'toReverse' },
+};
+
+/** Channel of a y coordinate in the team's own frame (the pitch is 55 m wide; five lanes of 11 m). */
+export function channelOf(y: Scalar): Channel {
+  const c = Math.round(clamp(y / 11, -2, 2));
+  return (c < -2 ? -2 : c > 2 ? 2 : c) as Channel;
+}
+
+/** Which line a formation slot sits on (own-frame metres from our own goal line). */
+export function lineOf(xp: Scalar): Line {
+  return xp < 24 ? 'back' : xp < 44 ? 'mid' : 'front';
+}
+
 /** Numeric press height per pressing system (where the first defender engages, 0..1 of the pitch). */
 export const PRESS_HEIGHT: Record<PressId, Scalar> = { full: 0.9, half: 0.55, split: 0.6, zone: 0.25 };
 /** Defensive line per mentality (0 = edge of own D, 1 = halfway). */
@@ -175,7 +244,11 @@ export function shapeTarget(slot: Slot, end: 1 | -1, ballXp: Scalar, ballY: Scal
       xp = clamp(ballXp * t, 4, 20); y = ballY * t + (near ? 0 : (ballY >= 0 ? -2.2 : 2.2));
     }
     // split press: the whole block shifts across to the ball side (the far side is left open on purpose)
-    y = y * 0.7 + ballY * (t.press === 'split' ? 0.55 : 0.35);
+    // How far the whole block slides into the ball's channel. A split press concedes the far side on
+    // purpose (0.85): the shape stops holding its width and overloads the ball side. A zone block
+    // shifts less and keeps its lanes. This has to be a real displacement or the value is decoration.
+    const shift = PRESS_SYSTEMS[t.press].lateralShift;
+    y = y * (1 - 0.5 * shift) + ballY * (0.15 + 0.6 * shift);
   }
   return slotToPitch({ xp, y }, end);
 }
