@@ -33,10 +33,10 @@ Engine **0.7.0**; sandbox golden `cec18ab670a0562b`, scenario goldens regenerate
 
 | mens | main | this branch | band |
 |---|---|---|---|
-| goals per match | **5.49 ok** | **4.33 MISS** | 4.86 – 5.94 |
+| goals per match | **5.49 ok** | **4.52 MISS** | 4.86 – 5.94 |
 | share of goals from PC | 0.15 MISS | 0.16 MISS | 0.25 – 0.40 |
-| penalty corners | 4.31 MISS | 4.55 MISS | 6 – 12 |
-| circle entries | 12.75 MISS | 12.10 MISS | 26 – 48 |
+| penalty corners | 4.31 MISS | 4.41 MISS | 6 – 12 |
+| circle entries | 12.75 MISS | 11.97 MISS | 26 – 48 |
 
 `allMeasuredPass` was already NO on main (the PC goal share misses), so this does not break a passing
 gate — but it moves a *measured* row out of band that was in it, and that is a regression whatever
@@ -59,6 +59,30 @@ is in the same phase in the spec for this reason. Splitting them was my call and
   back by reweighting, but it would be fitting weights to a half-built model — the thing ADR-014's
   own invariants warn about. Finish the model, then fit.
 
+## It costs 22 % of the simulation, and CI is what said so
+
+The Phase 3 budget — one AI match in under 6 s in Node — failed on CI at 6.5 s. It is a real cost,
+not runner noise. Measured here over seven seeds, median of each:
+
+| | median | min – max |
+|---|---|---|
+| `main` (no Phase 11) | **2908 ms** | 2790 – 3303 |
+| Phase 11, resolving every tick | ~4239 ms | — |
+| Phase 11, resolving at the decision cadence | **3545 ms** | 3258 – 3921 |
+
+The fix is not a bigger budget. `assign()` was running twice per tick — 20 Hz × 2 teams × ~4200
+ticks — and re-sorting the squad each time. Assignments are a *shape* decision, and shape decisions
+are not taken at 20 Hz: a job that changes between two ticks is a defender changing his mind
+mid-stride, which is the flicker §4's stickiness exists to stop. They now resolve on the same
+cadence as every other off-ball decision (`DECISION_EVERY`), keyed on **possession** rather than on
+which opponent happens to be nearest — while the ball travels the nearest opponent flickers between
+receivers, and re-resolving on every flicker was most of the cost.
+
+**+22 % remains, and it is not only a test.** The season screen runs every fixture through the
+engine (≈ 15–20 s per match day, open question 23) and calibration runs 96 matches per profile; both
+get 22 % longer. If the budget fails again, that is a real signal that the resolver needs an
+allocation pass — do not move the line to 7 s.
+
 ## What surprised me
 
 - **The pressing system was steering a fraction of the match.** `defend()` only ran while an opponent
@@ -67,6 +91,9 @@ is in the same phase in the spec for this reason. Splitting them was my call and
 - **Sticky marking is defeated by processing order.** Reserving held marks *after* handing out new
   ones lets an earlier runner steal a defender who is already on someone; the line then swaps men at
   10 Hz and nobody ever arrives. Reserve first, fill second.
+- **`pnpm check` does not run the perf budget the way CI does.** It passed locally at every step; the
+  6 s assertion only bit on a slower runner. The budget is doing its job — it caught a 42 % slowdown
+  that no functional test noticed.
 - **A single seed will tell you whatever you want to hear.** "A zone block does not chase" measured a
   23 % gap on seed 42 and vanished (2.05 vs 2.07) when averaged over two. Every assertion in
   `press.test.ts` is averaged over two seeds because of it.

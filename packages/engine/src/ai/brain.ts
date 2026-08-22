@@ -485,8 +485,31 @@ export interface DefenceState {
   markedBy: Map<number, number>;
   /** runner id → the defender trying to take him over, and since when. */
   challenge: Map<number, { by: number; since: number }>;
+  /** Last resolved jobs, and what they were resolved for (see `jobsFor`). */
+  jobs: Map<number, Assignment>;
+  jobsTick: number;
+  jobsKey: number;
 }
-export const newDefenceState = (): DefenceState => ({ markedBy: new Map(), challenge: new Map() });
+export const newDefenceState = (): DefenceState => ({ markedBy: new Map(), challenge: new Map(), jobs: new Map(), jobsTick: -99, jobsKey: -1 });
+
+/**
+ * Assignments are a shape decision, and shape decisions are not taken at 20 Hz. Re-resolving every
+ * tick cost ~40 % of a match's simulation time and bought nothing: a job that changes between two
+ * ticks is a defender changing his mind mid-stride, which is the flicker §4's stickiness exists to
+ * stop. Resolve on the same cadence as every other off-ball decision (DECISION_EVERY), and
+ * immediately when the man on the ball changes — that *is* a new phase of play.
+ */
+function jobsFor(c: Ctx, target: PlayerView, sys: PressSystem, st: DefenceState, skip?: number): Map<number, Assignment> {
+  // Keyed on possession, not on which opponent is nearest: while the ball travels, the nearest
+  // opponent flickers between receivers and re-resolving on every change is what made this
+  // expensive. Who we are defending against is a phase; who is momentarily closest is not.
+  const key = target.team;
+  if (c.tick - st.jobsTick < DECISION_EVERY && st.jobsKey === key && st.jobs.size > 0) return st.jobs;
+  st.jobs = assign(c, target, sys, st, skip);
+  st.jobsTick = c.tick;
+  st.jobsKey = key;
+  return st.jobs;
+}
 
 /**
  * Turn the pressing system into one job per outfielder. No branch per system: every difference
@@ -597,7 +620,7 @@ function assign(c: Ctx, carrier: PlayerView, sys: PressSystem, st: DefenceState,
 function defend(c: Ctx, target: PlayerView, ballXp: Scalar, ballY: Scalar, lastTackleTick: Map<number, number>, st: DefenceState, skip?: number): void {
   const { end, mine, tick, team, ball } = c;
   const sys = PRESS_SYSTEMS[team.tactics.press];
-  const jobs = assign(c, target, sys, st, skip);
+  const jobs = jobsFor(c, target, sys, st, skip);
   const outfield = mine.filter((p) => !p.isGoalkeeper && p.id !== skip);
   // only a man who actually has the ball can be tackled
   const tacklable = dist(target.pos, ball) < 1.6;
