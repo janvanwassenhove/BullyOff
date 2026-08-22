@@ -3,10 +3,51 @@
  * A step's diagram: a slice of pitch with markers and arrows, drawn from academy data.
  * Metres in, pixels out — the conversion happens here and nowhere else (CLAUDE.md rule 12).
  */
-import { computed } from 'vue';
-import type { Arrow, DiagramView, Marker } from '../../lib/academy';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { frameAt, stepDuration, type Arrow, type DiagramView, type Marker, type Step } from '../../lib/academy';
 
-const props = defineProps<{ view: DiagramView; markers: Marker[]; arrows: Arrow[] }>();
+const props = defineProps<{ step: Step }>();
+const emit = defineEmits<{ playing: [v: boolean] }>();
+
+/**
+ * The clock. The engine may not touch wall time (CLAUDE.md rule 4) — this is the app, where a
+ * coaching board is allowed to play itself back. A step plays once on arrival and then holds the
+ * finished picture, which is the frame a coach actually reads.
+ */
+const total = computed(() => stepDuration(props.step.arrows));
+const t = ref(total.value);
+let raf = 0;
+let start = 0;
+
+const reduced = (): boolean => {
+  try { return globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; }
+};
+
+function stop(): void { if (raf) { cancelAnimationFrame(raf); raf = 0; } emit('playing', false); }
+
+function play(): void {
+  stop();
+  if (reduced()) { t.value = total.value; return; } // straight to the end state: no motion, same picture
+  t.value = 0;
+  start = performance.now();
+  emit('playing', true);
+  const tick = (): void => {
+    t.value = (performance.now() - start) / 1000;
+    if (t.value >= total.value) { t.value = total.value; raf = 0; emit('playing', false); return; }
+    raf = requestAnimationFrame(tick);
+  };
+  raf = requestAnimationFrame(tick);
+}
+
+// a new step is a new play
+watch(() => props.step, () => { play(); }, { immediate: true });
+onBeforeUnmount(stop);
+defineExpose({ play });
+
+const frame = computed(() => frameAt(props.step, t.value));
+const markers = computed(() => frame.value.markers);
+const arrows = computed<Arrow[]>(() => props.step.arrows);
+const view = computed(() => props.step.view);
 
 /** [minX, maxX, minY, maxY] in metres for each slice. */
 const BOX: Record<DiagramView, [number, number, number, number]> = {
@@ -21,8 +62,8 @@ const BOX: Record<DiagramView, [number, number, number, number]> = {
  */
 const UPFIELD: Record<DiagramView, boolean> = { full: false, attackingHalf: true, circle: true };
 const W = 520;
-const box = computed(() => BOX[props.view]);
-const up = computed(() => UPFIELD[props.view]);
+const box = computed(() => BOX[view.value]);
+const up = computed(() => UPFIELD[view.value]);
 const spanX = computed(() => box.value[1] - box.value[0]);
 const spanY = computed(() => box.value[3] - box.value[2]);
 const scale = computed(() => W / (up.value ? spanY.value : spanX.value));
@@ -109,21 +150,32 @@ const dash = (k: Arrow['kind']): string => (k === 'run' ? '5 4' : k === 'carry' 
       class="goal"
     />
     <g
-      v-for="(a, i) in props.arrows"
+      v-for="(a, i) in arrows"
       :key="'a' + i"
     >
+      <!-- the whole path, faint: where the movement is going -->
       <line
         :x1="px(a.from[0], a.from[1])"
         :y1="py(a.from[0], a.from[1])"
         :x2="px(a.to[0], a.to[1])"
         :y2="py(a.to[0], a.to[1])"
+        class="arrow ghost"
+        :stroke-dasharray="dash(a.kind)"
+      />
+      <!-- and the part already travelled, solid, with the head arriving on the last frame -->
+      <line
+        v-if="(frame.reveal[i] ?? 0) > 0.02"
+        :x1="px(a.from[0], a.from[1])"
+        :y1="py(a.from[0], a.from[1])"
+        :x2="px(a.from[0] + (a.to[0] - a.from[0]) * (frame.reveal[i] ?? 0), a.from[1] + (a.to[1] - a.from[1]) * (frame.reveal[i] ?? 0))"
+        :y2="py(a.from[0] + (a.to[0] - a.from[0]) * (frame.reveal[i] ?? 0), a.from[1] + (a.to[1] - a.from[1]) * (frame.reveal[i] ?? 0))"
         class="arrow"
         :stroke-dasharray="dash(a.kind)"
-        marker-end="url(#ah)"
+        :marker-end="(frame.reveal[i] ?? 0) > 0.98 ? 'url(#ah)' : undefined"
       />
     </g>
     <g
-      v-for="(m, i) in props.markers"
+      v-for="(m, i) in markers"
       :key="'m' + i"
     >
       <circle
@@ -151,6 +203,7 @@ const dash = (k: Arrow['kind']): string => (k === 'run' ? '5 4' : k === 'carry' 
 .circle { stroke-width: 1.5; }
 .goal { stroke: var(--fg-1); stroke-width: 4.5; stroke-linecap: round; }
 .arrow { stroke: var(--fg-2); stroke-width: 2; }
+.arrow.ghost { stroke: color-mix(in srgb, var(--fg-2) 28%, transparent); stroke-width: 1.5; }
 .ball { stroke: var(--bg); stroke-width: 1.5; }
 .tag { font-family: var(--font-mono, monospace); font-size: 9px; fill: var(--bg); text-anchor: middle; font-weight: 700; }
 </style>

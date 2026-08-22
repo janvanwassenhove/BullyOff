@@ -17,6 +17,10 @@ const i = ref(0);
 // a deep link from the report opens the wizard straight on that topic
 watch(() => app.academyFocus, (f) => { if (f) { open.value = f; i.value = 0; } });
 
+const diagram = ref<{ play: () => void } | null>(null);
+const playing = ref(false);
+function replay(): void { diagram.value?.play(); }
+
 const current = computed(() => (open.value ? topicById(open.value) ?? null : null));
 const steps = computed(() => current.value?.steps ?? []);
 const step = computed(() => steps.value[i.value] ?? null);
@@ -79,11 +83,20 @@ function prev(): void { if (i.value > 0) i.value--; }
       </header>
 
       <div class="body">
-        <AcademyDiagram
-          :view="step.view"
-          :markers="step.markers"
-          :arrows="step.arrows"
-        />
+        <div class="stage">
+          <AcademyDiagram
+            ref="diagram"
+            :step="step"
+            @playing="(v: boolean) => { playing = v; }"
+          />
+          <button
+            class="replay"
+            :disabled="playing"
+            @click="replay"
+          >
+            {{ playing ? t('academy.playing') : t('academy.replay') }}
+          </button>
+        </div>
         <div class="text">
           <h2 class="st">
             {{ t('academy.' + current.id + '.steps.' + step.id + '.title') }}
@@ -144,6 +157,9 @@ function prev(): void { if (i.value > 0) i.value--; }
 .body { display: grid; grid-template-columns: minmax(280px, 1.15fr) 1fr; gap: 18px; align-items: start; }
 .st { font-family: var(--font-display); font-size: 21px; font-weight: 600; margin-bottom: 8px; }
 .sb { font-size: 14.5px; color: var(--fg-2); line-height: 1.6; }
+.stage { position: relative; }
+.replay { position: absolute; right: 8px; bottom: 8px; font-size: 10.5px; letter-spacing: 0.08em; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line-strong); background: color-mix(in srgb, var(--bg) 72%, transparent); color: var(--fg-2); cursor: pointer; }
+.replay:disabled { opacity: 0.45; cursor: default; }
 .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 14px; font-size: 11.5px; color: var(--fg-muted); }
 .legend span { display: inline-flex; align-items: center; gap: 5px; }
 .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }

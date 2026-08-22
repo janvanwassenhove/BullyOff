@@ -28,6 +28,10 @@ export interface Arrow {
   to: [number, number];
   /** pass = the ball travels, run = a player moves off the ball, carry = a player takes it with them. */
   kind: 'pass' | 'run' | 'carry';
+  /** Seconds from the start of the step. Omitted = the sequence in §Timing below. */
+  at?: number;
+  /** Seconds the movement takes. Omitted = the default for its kind. */
+  dur?: number;
 }
 
 export interface Step {
@@ -141,6 +145,94 @@ export const ACADEMY: Topic[] = [
     ],
   },
 ];
+
+// ── playing a step back ────────────────────────────────────────────────────────
+//
+// A still diagram shows the shape; a play is a sequence. These are pure functions over the step
+// data so the timing is unit-testable without a DOM — the component only owns the clock.
+
+/** How long each kind of movement takes, and the gap before the next one starts. */
+const DUR: Record<Arrow['kind'], number> = { pass: 0.65, run: 1.1, carry: 1.2 };
+const GAP = 0.25;
+/**
+ * A run makes the pass, so it leaves before its turn: the receiver is already moving when the ball
+ * is struck, which is the whole point of a timed run.
+ */
+const RUN_LEAD = 0.45;
+
+export interface Timed { at: number; dur: number }
+
+/** Resolve each arrow's start and duration, filling in the sequence where the data does not say. */
+export function timeline(arrows: readonly Arrow[]): Timed[] {
+  const out: Timed[] = [];
+  let cursor = 0;
+  for (const a of arrows) {
+    const dur = a.dur ?? DUR[a.kind];
+    const at = a.at ?? Math.max(0, cursor - (a.kind === 'run' ? RUN_LEAD : 0));
+    out.push({ at, dur });
+    cursor = Math.max(cursor, at + dur) + GAP;
+  }
+  return out;
+}
+
+/** Total length of a step's play, plus a beat to read the finished picture. */
+export function stepDuration(arrows: readonly Arrow[]): number {
+  const t = timeline(arrows);
+  return t.reduce((m, x) => Math.max(m, x.at + x.dur), 0) + 0.6;
+}
+
+const lerp = (a: number, b: number, u: number): number => a + (b - a) * u;
+/** Ease in and out: players accelerate and arrive, they do not teleport at constant speed. */
+const ease = (u: number): number => (u < 0.5 ? 2 * u * u : 1 - ((-2 * u + 2) ** 2) / 2);
+const clamp01 = (v: number): number => (v < 0 ? 0 : v > 1 ? 1 : v);
+const near = (m: Marker, p: [number, number]): number => (m.x - p[0]) ** 2 + (m.y - p[1]) ** 2;
+
+export interface Frame {
+  /** Marker positions at time t, in the same order as the step's markers. */
+  markers: Marker[];
+  /** 0..1 of each arrow that has been travelled — the trail drawn behind the movement. */
+  reveal: number[];
+}
+
+/**
+ * The step at time `t` (seconds). Players move along their run and carry arrows; the ball travels
+ * along passes and carries and waits where it was last played. Owners are resolved against the
+ * step's *starting* positions, so a chain of arrows still finds the player it means.
+ */
+export function frameAt(step: Step, t: number): Frame {
+  const times = timeline(step.arrows);
+  const markers: Marker[] = step.markers.map((m) => ({ ...m }));
+  const ballIndex = step.markers.findIndex((m) => m.side === 'ball');
+  const reveal: number[] = [];
+
+  step.arrows.forEach((a, i) => {
+    const tm = times[i];
+    if (!tm) { reveal.push(0); return; }
+    const u = clamp01((t - tm.at) / tm.dur);
+    const e = ease(u);
+    // The trail is what has been travelled, so it uses the *eased* fraction too. With the raw one
+    // the line runs ahead of the ball during the ease-in and the pass looks like it arrives twice.
+    reveal.push(e);
+    if (u <= 0) return;
+    const x = lerp(a.from[0], a.to[0], e), y = lerp(a.from[1], a.to[1], e);
+    if (a.kind === 'run' || a.kind === 'carry') {
+      // the player whose starting position the arrow leaves from
+      let best = -1, bd = Infinity;
+      step.markers.forEach((m, mi) => {
+        if (m.side === 'ball') return;
+        const d = near(m, a.from);
+        if (d < bd) { bd = d; best = mi; }
+      });
+      const mk = markers[best];
+      if (mk) { mk.x = x; mk.y = y; }
+    }
+    if (a.kind === 'pass' || a.kind === 'carry') {
+      const b = markers[ballIndex];
+      if (b) { b.x = x; b.y = y; }
+    }
+  });
+  return { markers, reveal };
+}
 
 export const TOPIC_IDS: TopicId[] = ACADEMY.map((t) => t.id);
 export const topic = (id: TopicId): Topic | undefined => ACADEMY.find((t) => t.id === id);

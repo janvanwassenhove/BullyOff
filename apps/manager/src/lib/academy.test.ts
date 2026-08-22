@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { HALF_LENGTH, HALF_WIDTH } from '@bullyoff/shared';
-import { ACADEMY, TOPIC_IDS, topic, topicForFinding } from './academy';
+import { ACADEMY, TOPIC_IDS, frameAt, stepDuration, timeline, topic, topicForFinding } from './academy';
 import nl from '../i18n/nl.json';
 import en from '../i18n/en.json';
 import fr from '../i18n/fr.json';
@@ -78,6 +78,67 @@ describe('academy content', () => {
       .filter(([, v]) => typeof v === 'object' && 'hint' in v).map(([k]) => k);
     for (const [loc, dict] of Object.entries(LOCALES)) {
       for (const k of keys) expect(typeof at(dict, `insight.${k}.hint`), `${loc}: insight.${k}.hint`).toBe('string');
+    }
+  });
+});
+
+describe('playing a step back', () => {
+  const steps = ACADEMY.flatMap((tp) => tp.steps.map((s) => ({ tp: tp.id, s })));
+
+  it('sequences arrows without overlapping the same movement twice', () => {
+    for (const { tp, s } of steps) {
+      const tl = timeline(s.arrows);
+      expect(tl).toHaveLength(s.arrows.length);
+      for (const x of tl) { expect(x.at).toBeGreaterThanOrEqual(0); expect(x.dur).toBeGreaterThan(0); }
+      // passes and carries move the ball, so two of them may never run at the same time
+      const ballMoves = s.arrows.map((a, i) => ({ a, ...tl[i]! })).filter((x) => x.a.kind !== 'run');
+      for (let i = 1; i < ballMoves.length; i++) {
+        const prev = ballMoves[i - 1]!, cur = ballMoves[i]!;
+        expect(cur.at, `${tp}/${s.id}: the ball is in two places at once`).toBeGreaterThanOrEqual(prev.at + prev.dur);
+      }
+    }
+  });
+
+  it('a run leaves before the pass it makes', () => {
+    // The run makes the pass, not the other way round: a receiver who starts moving after the ball
+    // is struck is the thing the timed-run work exists to fix.
+    const arrows = [{ from: [0, 0] as [number, number], to: [10, 0] as [number, number], kind: 'pass' as const },
+                    { from: [12, 4] as [number, number], to: [20, 4] as [number, number], kind: 'run' as const }];
+    const tl = timeline(arrows);
+    expect(tl[1]!.at).toBeLessThan(tl[0]!.at + tl[0]!.dur);
+  });
+
+  it('starts on the drawn shape and ends on the finished picture', () => {
+    for (const { tp, s } of steps) {
+      const first = frameAt(s, 0);
+      expect(first.markers.map((m) => [m.x, m.y]), `${tp}/${s.id} at t=0`).toEqual(s.markers.map((m) => [m.x, m.y]));
+      expect(first.reveal.every((r) => r === 0)).toBe(true);
+      const end = frameAt(s, stepDuration(s.arrows));
+      expect(end.reveal.every((r) => r === 1), `${tp}/${s.id} finishes every movement`).toBe(true);
+      // the ball ends where the last thing that moved it put it
+      const lastBall = [...s.arrows].reverse().find((a) => a.kind !== 'run');
+      const ball = end.markers.find((m) => m.side === 'ball');
+      if (lastBall && ball) { expect(ball.x).toBeCloseTo(lastBall.to[0], 5); expect(ball.y).toBeCloseTo(lastBall.to[1], 5); }
+    }
+  });
+
+  it('never moves a marker off the pitch mid-play', () => {
+    for (const { tp, s } of steps) {
+      const d = stepDuration(s.arrows);
+      for (let k = 0; k <= 20; k++) {
+        for (const m of frameAt(s, (d * k) / 20).markers) {
+          expect(Math.abs(m.x), `${tp}/${s.id} x`).toBeLessThanOrEqual(HALF_LENGTH);
+          expect(Math.abs(m.y), `${tp}/${s.id} y`).toBeLessThanOrEqual(HALF_WIDTH);
+        }
+      }
+    }
+  });
+
+  it('every step is short enough to watch and long enough to read', () => {
+    for (const { tp, s } of steps) {
+      const d = stepDuration(s.arrows);
+      expect(d, `${tp}/${s.id}`).toBeGreaterThan(1);
+      expect(d, `${tp}/${s.id}`).toBeLessThan(8);
     }
   });
 });

@@ -990,6 +990,8 @@
           "body": "Une passe ferme sur un défenseur placé entre la balle et le but. Un pied dans le cercle, c'est un corner — c'est de là que viennent la plupart des corners en club."
         }
       }
-    }
+    },
+    "replay": "Rejouer",
+    "playing": "lecture…"
   }
 }
