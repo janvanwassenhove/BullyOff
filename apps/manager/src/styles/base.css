@@ -1,11 +1,30 @@
 *, *::before, *::after { box-sizing: border-box; }
 html, body, #app { margin: 0; min-height: 100%; }
 body {
-  background: var(--color-bg);
-  color: var(--color-fg);
+  background: var(--ink);
+  color: var(--fg);
   font-family: var(--font-sans);
   font-size: var(--text-base);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 h1, h2, h3, p { margin: 0; }
+a { color: var(--accent-soft); text-decoration: none; }
+a:hover { color: var(--accent-pale); }
+
+/* Type roles shared by every screen (docs/design/handoff/README.md § Design tokens). */
+.t-display { font-family: var(--font-display); font-weight: 700; letter-spacing: var(--track-display); line-height: 1; }
+.t-eyebrow { font-family: var(--font-mono); font-size: 10px; letter-spacing: var(--track-eyebrow); text-transform: uppercase; color: var(--fg-dim); }
+.t-mono { font-family: var(--font-mono); font-weight: 400; }
+
+/* Motion — restrained, one accent at a time. */
+@keyframes bo-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes bo-pulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+@keyframes bo-sweep { from { transform: translateX(-100%); } to { transform: translateX(320%); } }
+.bo-rise { animation: bo-rise var(--dur-rise) ease both; }
+.bo-pulse { animation: bo-pulse var(--dur-pulse) ease-in-out infinite; }
+.bo-sweep { animation: bo-sweep var(--dur-sweep) linear infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .bo-rise, .bo-pulse, .bo-sweep { animation: none; }
+}

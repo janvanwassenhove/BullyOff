@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#06080a; color:#e6edf3; font-family:"Barlow", system-ui, sans-serif; }
+  a { color:#7fe3b0; text-decoration:none; } a:hover { color:#d7f5e6; }
+  @keyframes bo-rise { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+  @keyframes bo-pulse { 0%,100% { opacity:0.35; } 50% { opacity:1; } }
+  @keyframes bo-sweep { from { transform:translateX(-100%); } to { transform:translateX(320%); } }
+</style>
+</helmet>
+
+<div style="display:flex; flex-direction:column; gap:72px; padding:48px; background:#06080a">
+
+  <div style="display:flex; align-items:flex-end; gap:24px; flex-wrap:wrap">
+    <div style="display:flex; flex-direction:column; gap:4px">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.14em; text-transform:uppercase; color:#5c6b78">Commercial design solution · instrument-panel direction</div>
+      <div style="font-family:'Barlow Condensed',sans-serif; font-size:44px; font-weight:700; letter-spacing:0.16em; color:#e6edf3; line-height:1">BULLY OFF</div>
+    </div>
+    <div style="font-size:15px; color:#8b949e; max-width:56ch; padding-bottom:6px">Field hockey, modelled honestly. Every screen doubles as a teaching surface: the game shows you the decision, then shows you why it worked. Baseline recreation lives in <a href="Current UI.dc.html">Current UI</a>.</div>
+  </div>
+
+  <!-- ================= TURN 1 — HUD VARIATIONS ================= -->
+  <section style="display:flex; flex-direction:column; gap:20px">
+    <div style="display:flex; align-items:baseline; gap:14px">
+      <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.14em; color:#1f9a63">TURN 1</span>
+      <span style="font-family:'Barlow Condensed',sans-serif; font-size:26px; font-weight:600; letter-spacing:0.06em">THE TOUCHLINE — THREE HUD DIRECTIONS</span>
+      <span style="font-size:14px; color:#8b949e">Pick one and I'll build the rest of the game around it: <a href="#1a">1a</a> · <a href="#1b">1b</a> · <a href="#1c">1c</a></span>
+    </div>
+
+    <div style="display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start">
+
+      <!-- ---- 1a : BROADCAST BENCH ---- -->
+      <div id="1a" style="display:flex; flex-direction:column; gap:10px">
+        <div style="display:flex; align-items:center; gap:10px">
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:500; color:#06080a; background:#1f9a63; border-radius:3px; padding:2px 7px">1a</span>
+          <span style="font-family:'Barlow Condensed',sans-serif; font-size:19px; font-weight:600; letter-spacing:0.05em">BROADCAST BENCH</span>
+          <span style="font-size:13px; color:#8b949e">pitch first, chrome floats over it</span>
+        </div>
+        <div style="width:900px; height:506px; position:relative; background:#0a0d10; border:1px solid #232a31; border-radius:12px; overflow:hidden">
+          <dc-import name="Pitch" metre="{{ m98 }}" pad="4" preset="press" overlay="press" home-colour="#1d3557" away-colour="#e63946" tags="{{ tagsA }}" hint-size="902px,508px" style="position:absolute; left:0; top:-20px"></dc-import>
+
+          <div style="position:absolute; left:20px; top:18px; display:flex; align-items:stretch; background:rgba(6,9,12,0.86); border:1px solid #232a31; border-radius:8px; overflow:hidden; backdrop-filter:blur(6px)">
+            <div style="width:5px; background:#1d3557"></div>
+            <div style="display:flex; align-items:center; gap:12px; padding:9px 14px">
+              <span style="font-family:'Barlow Condensed',sans-serif; font-size:19px; font-weight:600; letter-spacing:0.08em">BRK</span>
+              <span style="font-family:'Barlow Condensed',sans-serif; font-size:30px; font-weight:700; letter-spacing:0.04em; line-height:1">2</span>
+              <span style="color:#3d4852">·</span>
+              <span style="font-family:'Barlow Condensed',sans-serif; font-size:30px; font-weight:700; letter-spacing:0.04em; line-height:1">1</span>
+              <span style="font-family:'Barlow Condensed',sans-serif; font-size:19px; font-weight:600; letter-spacing:0.08em; color:#8b949e">SRT</span>
+            </div>
+            <div style="width:1px; background:#232a31"></div>
+            <div style="display:flex; flex-direction:column; justify-content:center; padding:6px 14px; gap:1px">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:16px; font-weight:500; letter-spacing:0.04em">41:20</span>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.16em; color:#8b949e">Q3</span>
+            </div>
+            <div style="width:5px; background:#e63946"></div>
+          </div>
+
+          <div style="position:absolute; right:20px; top:18px; display:flex; gap:6px">
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em; color:#d7f5e6; background:rgba(20,107,74,0.5); border:1px solid #1f9a63; border-radius:4px; padding:5px 9px">WATERED</span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em; color:#8b949e; background:rgba(6,9,12,0.8); border:1px solid #232a31; border-radius:4px; padding:5px 9px">DIR</span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em; color:#8b949e; background:rgba(6,9,12,0.8); border:1px solid #232a31; border-radius:4px; padding:5px 9px">TAC</span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em; color:#06080a; background:#d7f5e6; border:1px solid #d7f5e6; border-radius:4px; padding:5px 9px">COACH</span>
+          </div>
+
+          <div style="position:absolute; left:20px; bottom:20px; width:330px; background:rgba(6,9,12,0.9); border:1px solid #232a31; border-left:2px solid #f1c40f; border-radius:8px; padding:12px 14px; display:flex; flex-direction:column; gap:6px; animation:bo-rise 500ms ease both">
+            <div style="display:flex; align-items:center; gap:8px">
+              <span style="width:6px; height:6px; border-radius:50%; background:#f1c40f; animation:bo-pulse 1.6s ease-in-out infinite"></span>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#f1c40f">COACH READ</span>
+            </div>
+            <div style="font-family:'Barlow Condensed',sans-serif; font-size:20px; font-weight:600; letter-spacing:0.02em; line-height:1.15">They've dropped into their own 23.</div>
+            <div style="font-size:13.5px; color:#a6b2bd; line-height:1.5">Three circle entries in four minutes and no shot — you're arriving without width. Push the left half to the sideline and take the flanks.</div>
+            <div style="display:flex; gap:8px; padding-top:4px">
+              <button style="font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:600; letter-spacing:0.08em; color:#06080a; background:#1f9a63; border:none; border-radius:5px; padding:7px 12px; cursor:pointer">GO WIDE</button>
+              <button style="font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:600; letter-spacing:0.08em; color:#e6edf3; background:transparent; border:1px solid #2f3a44; border-radius:5px; padding:7px 12px; cursor:pointer">HOLD SHAPE</button>
+            </div>
+          </div>
+
+          <div style="position:absolute; right:20px; bottom:20px; width:236px; background:rgba(6,9,12,0.9); border:1px solid #232a31; border-radius:8px; padding:11px 13px; display:flex; flex-direction:column; gap:8px">
+            <div style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#5c6b78">LEGS</div>
+            <sc-for list="{{ legs }}" as="p" hint-placeholder-count="4">
+              <div style="display:grid; grid-template-columns:1fr 54px; gap:9px; align-items:center">
+                <span style="font-size:13px; color:#c8d2db">{{ p.name }}</span>
+                <span style="height:4px; background:#1b2127; border-radius:2px; position:relative; overflow:hidden">
+                  <span style="position:absolute; left:0; top:0; bottom:0; border-radius:2px; width:{{ p.w }}; background:{{ p.c }}"></span>
+                </span>
+              </div>
+            </sc-for>
+            <button style="font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:600; letter-spacing:0.08em; color:#06080a; background:#d7f5e6; border:none; border-radius:5px; padding:7px 0; cursor:pointer; margin-top:2px">ROTATE 3</button>
+          </div>
+
+          <div style="position:absolute; left:50%; bottom:20px; transform:translateX(-50%); display:flex; align-items:center; gap:10px; background:rgba(6,9,12,0.9); border:1px solid #232a31; border-radius:999px; padding:6px 12px">
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#e6edf3">⏸</span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#06080a; background:#1f9a63; border-radius:3px; padding:2px 6px">1×</span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#8b949e">2×</span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#8b949e">4×</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---- 1b : INSTRUMENT PANEL ---- -->
+      <div id="1b" style="display:flex; flex-direction:column; gap:10px">
+        <div style="display:flex; align-items:center; gap:10px">
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:500; color:#06080a; background:#1f9a63; border-radius:3px; padding:2px 7px">1b</span>
+          <span style="font-family:'Barlow Condensed',sans-serif; font-size:19px; font-weight:600; letter-spacing:0.05em">INSTRUMENT PANEL</span>
+          <span style="font-size:13px; color:#8b949e">cockpit rails, nothing occludes play</span>
+        </div>
+        <div style="width:900px; height:506px; background:#0a0d10; border:1px solid #232a31; border-radius:12px; overflow:hidden; display:grid; grid-template-rows:52px minmax(0,1fr) 118px">
+          <div style="display:flex; align-items:center; gap:16px; padding:0 16px; background:#0d1216; border-bottom:1px solid #232a31">
+            <span style="width:12px; height:12px; border-radius:2px; background:#1d3557; border:1px solid #3b4a5c"></span>
+            <span style="font-family:'Barlow Condensed',sans-serif; font-size:16px; font-weight:600; letter-spacing:0.1em">BERKENDAEL</span>
+            <span style="font-family:'Barlow Condensed',sans-serif; font-size:26px; font-weight:700; letter-spacing:0.06em; line-height:1">2 · 1</span>
+            <span style="font-family:'Barlow Condensed',sans-serif; font-size:16px; font-weight:600; letter-spacing:0.1em; color:#8b949e">SARTCOURT</span>
+            <span style="width:12px; height:12px; border-radius:2px; background:#e63946; border:1px solid #6d2229"></span>
+            <span style="flex:1"></span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#8b949e">Q3</span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:15px; letter-spacing:0.04em; color:#e6edf3">41:20</span>
+            <span style="width:120px; height:4px; background:#1b2127; border-radius:2px; position:relative; overflow:hidden"><span style="position:absolute; inset:0 44% 0 0; background:#1f9a63; border-radius:2px"></span></span>
+          </div>
+          <div style="display:grid; grid-template-columns:172px minmax(0,1fr) 172px; min-height:0">
+            <div style="border-right:1px solid #232a31; padding:12px; display:flex; flex-direction:column; gap:10px; background:#0b0f13">
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#5c6b78">SHAPE</div>
+              <div style="font-family:'Barlow Condensed',sans-serif; font-size:30px; font-weight:700; letter-spacing:0.04em; line-height:1">4-3-3</div>
+              <sc-for list="{{ dials }}" as="d" hint-placeholder-count="4">
+                <div style="display:flex; flex-direction:column; gap:4px">
+                  <div style="display:flex; justify-content:space-between; font-size:12px; color:#8b949e"><span>{{ d.k }}</span><span style="color:#d7f5e6; font-family:'IBM Plex Mono',monospace">{{ d.v }}</span></div>
+                  <div style="height:3px; background:#1b2127; border-radius:2px; position:relative; overflow:hidden"><span style="position:absolute; left:0; top:0; bottom:0; width:{{ d.w }}; background:#1f9a63; border-radius:2px"></span></div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="position:relative; background:#0f2b23; overflow:hidden">
+              <dc-import name="Pitch" metre="{{ m59 }}" pad="5" preset="open" overlay="channels" home-colour="#1d3557" away-colour="#e63946" hint-size="554px,336px" style="position:absolute; left:0; top:0"></dc-import>
+              <div style="position:absolute; left:10px; top:10px; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.16em; color:rgba(215,245,230,0.62); background:rgba(6,9,12,0.6); border-radius:3px; padding:3px 6px">CHANNELS · HALF-COURT PRESS</div>
+            </div>
+            <div style="border-left:1px solid #232a31; padding:12px; display:flex; flex-direction:column; gap:9px; background:#0b0f13">
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#5c6b78">LIVE</div>
+              <sc-for list="{{ liveStats }}" as="s" hint-placeholder-count="5">
+                <div style="display:flex; justify-content:space-between; align-items:baseline; font-size:13px; border-bottom:1px solid #171d23; padding-bottom:5px">
+                  <span style="color:#8b949e">{{ s.k }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace; color:#e6edf3">{{ s.v }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="border-top:1px solid #232a31; background:#0d1216; display:grid; grid-template-columns:minmax(0,1fr) 260px">
+            <div style="padding:10px 14px; display:flex; flex-direction:column; gap:6px; min-width:0">
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#5c6b78">MATCH LOG</div>
+              <sc-for list="{{ logLines }}" as="l" hint-placeholder-count="3">
+                <div style="display:flex; gap:10px; font-size:13px; align-items:baseline">
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#5c6b78">{{ l.t }}</span>
+                  <span style="color:{{ l.c }}">{{ l.s }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="border-left:1px solid #232a31; padding:10px 14px; display:flex; flex-direction:column; gap:7px">
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#f1c40f">DECISION · 8s</div>
+              <div style="font-size:13.5px; color:#c8d2db; line-height:1.45">PC for us. Drag flick or the slip right? They defend low.</div>
+              <div style="display:flex; gap:6px">
+                <button style="flex:1; font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:600; letter-spacing:0.06em; color:#06080a; background:#1f9a63; border:none; border-radius:4px; padding:6px 0; cursor:pointer">FLICK</button>
+                <button style="flex:1; font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:600; letter-spacing:0.06em; color:#e6edf3; background:transparent; border:1px solid #2f3a44; border-radius:4px; padding:6px 0; cursor:pointer">SLIP</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---- 1c : PHONE TOUCHLINE ---- -->
+      <div id="1c" style="display:flex; flex-direction:column; gap:10px">
+        <div style="display:flex; align-items:center; gap:10px">
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:500; color:#06080a; background:#1f9a63; border-radius:3px; padding:2px 7px">1c</span>
+          <span style="font-family:'Barlow Condensed',sans-serif; font-size:19px; font-weight:600; letter-spacing:0.05em">THUMB TOUCHLINE</span>
+          <span style="font-size:13px; color:#8b949e">phone-first, one decision at a time</span>
+        </div>
+        <div style="width:390px; height:780px; background:#0a0d10; border:1px solid #232a31; border-radius:28px; overflow:hidden; display:grid; grid-template-rows:44px 64px 300px minmax(0,1fr)">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:0 20px; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#8b949e">
+            <span>16:41</span><span>LIVE · offline</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px; padding:0 18px; background:#0d1216; border-bottom:1px solid #232a31">
+            <span style="width:14px; height:14px; border-radius:3px; background:#1d3557; border:1px solid #3b4a5c"></span>
+            <span style="font-family:'Barlow Condensed',sans-serif; font-size:17px; font-weight:600; letter-spacing:0.08em">BRK</span>
+            <span style="font-family:'Barlow Condensed',sans-serif; font-size:30px; font-weight:700; line-height:1">2 · 1</span>
+            <span style="font-family:'Barlow Condensed',sans-serif; font-size:17px; font-weight:600; letter-spacing:0.08em; color:#8b949e">SRT</span>
+            <span style="width:14px; height:14px; border-radius:3px; background:#e63946; border:1px solid #6d2229"></span>
+            <span style="flex:1"></span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:14px">41:20</span>
+          </div>
+          <div style="position:relative; background:#0f2b23; overflow:hidden">
+            <dc-import name="Pitch" metre="7" pad="4" preset="pc" overlay="circle" home-colour="#1d3557" away-colour="#e63946" hint-size="390px,300px" style="position:absolute; left:-258px; top:-46px"></dc-import>
+            <div style="position:absolute; left:14px; bottom:14px; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.14em; color:#d7f5e6; background:rgba(6,9,12,0.8); border:1px solid #1f9a63; border-radius:4px; padding:4px 8px">PC FOR US</div>
+          </div>
+          <div style="padding:16px 18px 22px; display:flex; flex-direction:column; gap:14px; background:#0b0f13; border-top:1px solid #232a31">
+            <div style="display:flex; flex-direction:column; gap:6px">
+              <div style="display:flex; align-items:center; gap:8px">
+                <span style="width:6px; height:6px; border-radius:50%; background:#f1c40f; animation:bo-pulse 1.6s ease-in-out infinite"></span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#f1c40f">YOUR CALL</span>
+              </div>
+              <div style="font-family:'Barlow Condensed',sans-serif; font-size:24px; font-weight:600; line-height:1.15">Sartcourt's keeper stays low on flicks.</div>
+              <div style="font-size:14px; color:#a6b2bd; line-height:1.5">Two of their three concessions this season came high to the right post.</div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px">
+              <button style="font-family:'Barlow Condensed',sans-serif; font-size:17px; font-weight:600; letter-spacing:0.06em; color:#06080a; background:#1f9a63; border:none; border-radius:8px; padding:15px 0; cursor:pointer">DRAG FLICK — HIGH RIGHT</button>
+              <button style="font-family:'Barlow Condensed',sans-serif; font-size:17px; font-weight:600; letter-spacing:0.06em; color:#e6edf3; background:transparent; border:1px solid #2f3a44; border-radius:8px; padding:15px 0; cursor:pointer">SLIP RIGHT</button>
+            </div>
+            <div style="display:flex; gap:8px; justify-content:space-between; align-items:center; padding-top:2px">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#5c6b78">TACTICS</span>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#5c6b78">ROTATE</span>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#5c6b78">SPEED 1×</span>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#5c6b78">LOG</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= THE REST OF THE GAME ================= -->
+  <section style="display:flex; flex-direction:column; gap:36px">
+    <div style="display:flex; align-items:baseline; gap:14px; border-top:1px solid #171d23; padding-top:28px">
+      <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.14em; color:#5c6b78">SUPPORTING SCREENS</span>
+      <span style="font-family:'Barlow Condensed',sans-serif; font-size:26px; font-weight:600; letter-spacing:0.06em">TITLE · ONBOARDING · WORLD · CLUBS · SEASON · SQUAD · REPORT</span>
+    </div>
+
+    <!-- INTRO / LANDING -->
+    <div data-screen-label="Intro landing" style="display:flex; flex-direction:column; gap:10px">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#5c6b78">00 · INTRO — CINEMATIC LANDING, ONE OBVIOUS WAY IN</div>
+      <div style="width:1440px; height:860px; position:relative; background:#06080a; border:1px solid #232a31; border-radius:14px; overflow:hidden">
+        <div style="position:absolute; inset:0; background:repeating-linear-gradient(112deg,#0c1418 0 3px,#0a1114 3px 7px)"></div>
+        <div style="position:absolute; left:0; right:0; top:0; height:560px; border-bottom:1px solid #1b2530; background:repeating-linear-gradient(135deg,#0e171c 0 14px,#0b1216 14px 28px); display:grid; place-items:center">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:12px">
+            <span style="width:64px; height:64px; border-radius:50%; border:1px solid rgba(215,245,230,0.4); display:grid; place-items:center; background:rgba(6,9,12,0.5)">
+              <span style="width:0; height:0; border-left:16px solid rgba(215,245,230,0.85); border-top:10px solid transparent; border-bottom:10px solid transparent; margin-left:5px"></span>
+            </span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:0.16em; color:#5c6b78">[ INTRO FILM — 45 s LOOP, MUTED AUTOPLAY ]</span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#3f4b56">1440 × 560 · floodlit warm-up, ball on watered turf, bench chatter</span>
+          </div>
+        </div>
+        <div style="position:absolute; left:0; right:0; top:300px; height:300px; background:linear-gradient(180deg, rgba(6,8,10,0), rgba(6,8,10,0.86) 70%, #06080a)"></div>
+
+        <div style="position:absolute; left:40px; top:34px; display:flex; align-items:center; gap:14px">
+          <span style="width:28px; height:28px; border-radius:50%; background:#1f9a63; position:relative; overflow:hidden"><span style="position:absolute; left:0; right:0; top:50%; height:3px; background:#06080a"></span></span>
+          <span style="font-family:'Barlow Condensed',sans-serif; font-size:18px; font-weight:700; letter-spacing:0.16em; color:#f2f7fa">BULLY OFF</span>
+        </div>
+        <div style="position:absolute; right:40px; top:32px; display:flex; align-items:center; gap:10px">
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; color:#8b949e; border:1px solid #2f3a44; border-radius:5px; padding:7px 12px; cursor:pointer">EN</span>
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; color:#8b949e; border:1px solid #2f3a44; border-radius:5px; padding:7px 12px; cursor:pointer">🔇 SOUND</span>
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; color:#c8d2db; border:1px solid #2f3a44; border-radius:5px; padding:7px 12px; cursor:pointer">SKIP INTRO →</span>
+        </div>
+
+        <div style="position:absolute; left:40px; right:40px; top:388px; display:flex; align-items:flex-end; gap:48px">
+          <div style="display:flex; flex-direction:column; gap:14px; max-width:620px">
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.22em; color:#7fe3b0">FIELD HOCKEY, MODELLED HONESTLY</span>
+            <span style="font-family:'Barlow Condensed',sans-serif; font-size:76px; font-weight:700; letter-spacing:0.03em; line-height:0.95; color:#f2f7fa">TAKE THE BENCH<br>ON SATURDAY.</span>
+            <span style="font-size:17px; color:#a6b2bd; line-height:1.55; max-width:52ch">Coach a fictional club through a season the engine truly simulates. Every instruction is legal hockey — and after full time the game shows you why it worked.</span>
+            <div style="display:flex; align-items:center; gap:14px; margin-top:6px">
+              <button style="font-family:'Barlow Condensed',sans-serif; font-size:21px; font-weight:700; letter-spacing:0.1em; color:#06080a; background:#1f9a63; border:none; border-radius:8px; padding:17px 34px; cursor:pointer">START COACHING</button>
+              <button style="font-family:'Barlow Condensed',sans-serif; font-size:17px; font-weight:600; letter-spacing:0.08em; color:#e6edf3; background:rgba(6,9,12,0.6); border:1px solid #2f3a44; border-radius:8px; padding:16px 24px; cursor:pointer">▶ WATCH THE 60-SECOND INTRO</button>
+              <span style="font-size:13px; color:#5c6b78; max-width:16ch; line-height:1.4">No account. Works offline. 90 seconds to your first match.</span>
+            </div>
+          </div>
+          <div style="flex:1; display:flex; flex-direction:column; gap:10px; padding-bottom:6px">
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#5c6b78">PICK UP WHERE YOU LEFT OFF</span>
+            <div style="background:rgba(11,15,19,0.9); border:1px solid #232a31; border-left:3px solid #1f9a63; border-radius:8px; padding:14px 16px; display:flex; align-items:center; gap:14px; cursor:pointer">
+              <span style="width:30px; height:36px; border-radius:4px 4px 12px 12px; background:#1d3557; border:1px solid #3b4a5c; position:relative; overflow:hidden"><span style="position:absolute; left:0; right:0; top:38%; height:22%; background:#f1faee"></span></span>
+              <div style="display:flex; flex-direction:column; gap:2px; min-width:0">
+                <span style="font-family:'Barlow Condensed',sans-serif; font-size:19px; font-weight:600; letter-spacing:0.03em">Koninklijke Berkendael HC</span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em; color:#8b949e">SEASON 2026 · DAY 7 · 2ND · SAVED 16:38</span>
+              </div>
+              <span style="flex:1"></span>
+              <span style="font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:600; letter-spacing:0.08em; color:#7fe3b0">CONTINUE →</span>
+            </div>
+            <div style="display:flex; gap:10px">
+              <span style="flex:1; font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:600; letter-spacing:0.08em; color:#c8d2db; background:rgba(11,15,19,0.85); border:1px solid #232a31; border-radius:7px; padding:12px 14px; cursor:pointer">QUICK MATCH</span>
+              <span style="flex:1; font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:600; letter-spacing:0.08em; color:#c8d2db; background:rgba(11,15,19,0.85); border:1px solid #232a31; border-radius:7px; padding:12px 14px; cursor:pointer">LEARN THE RULES</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="position:absolute; left:40px; right:40px; bottom:34px; display:flex; align-items:stretch; gap:14px">
+          <sc-for list="{{ steps }}" as="s" hint-placeholder-count="3">
+            <div style="flex:1; background:rgba(11,15,19,0.86); border:1px solid #232a31; border-radius:9px; padding:14px 16px; display:flex; gap:14px; align-items:flex-start">
+              <span style="font-family:'Barlow Condensed',sans-serif; font-size:26px; font-weight:700; line-height:1; color:{{ s.nC }}">{{ s.n }}</span>
+              <div style="display:flex; flex-direction:column; gap:3px">
+                <span style="font-family:'Barlow Condensed',sans-serif; font-size:18px; font-weight:600; letter-spacing:0.03em">{{ s.title }}</span>
+                <span style="font-size:13.5px; color:#8b949e; line-height:1.45">{{ s.body }}</span>
+              </div>
+            </div>
+          </sc-for>
+          <div style="width:210px; display:flex; flex-direction:column; justify-content:center; gap:5px; padding-left:6px; border-left:1px solid #1b2530">
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.14em; color:#3f4b56">OFFLINE · NO ACCOUNTS</span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.14em; color:#3f4b56">NO REAL CLUBS OR PEOPLE</span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.14em; color:#3f4b56">NL · EN · FR</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CAMERA ANGLES -->
+    <div data-screen-label="Camera angles" style="display:flex; flex-direction:column; gap:10px">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#5c6b78">00b · MATCH CAMERAS — ONE PITCH MODEL, SEVEN ANGLES</div>
+      <div style="width:1440px; background:#0a0d10; border:1px solid #232a31; border-radius:14px; padding:20px; display:grid; grid-template-columns:repeat(3,1fr); gap:16px">
+        <sc-for list="{{ cams }}" as="c" hint-placeholder-count="6">
+          <div style="display:flex; flex-direction:column; gap:8px">
+            <div style="border:1px solid #232a31; border-radius:9px; overflow:hidden">
+              <dc-import name="Pitch" camera="{{ c.id }}" preset="{{ c.preset }}" overlay="{{ c.overlay }}" view-w="440" view-h="248" hide-cam-label="{{ true }}" home-colour="#1d3557" away-colour="#e63946" hint-size="440px,248px"></dc-import>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:2px">
+              <span style="font-family:'Barlow Condensed',sans-serif; font-size:17px; font-weight:600; letter-spacing:0.06em">{{ c.title }}</span>
+              <span style="font-size:13px; color:#8b949e; line-height:1.45">{{ c.body }}</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- TITLE -->
+    <div data-screen-label="Title" style="display:flex; flex-direction:column; gap:10px">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#5c6b78">01 · TITLE / MAIN MENU</div>
+      <div style="width:1440px; height:810px; position:relative; background:#080b0e; border:1px solid #232a31; border-radius:14px; overflow:hidden">
+        <div style="position:absolute; inset:0; background:repeating-linear-gradient(102deg,#0c1418 0 3px,#0a1114 3px 7px); opacity:0.9"></div>
+        <div style="position:absolute; right:0; top:0; bottom:0; width:58%; background:linear-gradient(200deg, rgba(31,154,99,0.22), rgba(30,120,200,0.10) 55%, transparent)"></div>
+        <div style="position:absolute; right:70px; top:90px; width:640px; height:590px; border:1px solid #1b2530; border-radius:8px; background:repeating-linear-gradient(135deg,#0d151a 0 12px,#0b1216 12px 24px); display:grid; place-content:center; gap:8px; justify-items:center">
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#5c6b78">[ key art — goalkeeper, floodlit, watered turf ]</div>
+          <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#3f4b56">1280 × 1260 · drop image here</div>
+        </div>
+        <div style="position:absolute; left:80px; top:80px; bottom:52px; width:520px; display:flex; flex-direction:column; gap:6px">
+          <div style="display:flex; align-items:center; gap:14px">
+            <span style="width:34px; height:34px; border-radius:50%; background:#1f9a63; position:relative; overflow:hidden"><span style="position:absolute; left:0; right:0; top:50%; height:3px; background:#06080a"></span></span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.22em; color:#7fe3b0">DETERMINISTIC FIELD HOCKEY</span>
+          </div>
+          <div style="font-family:'Barlow Condensed',sans-serif; font-size:92px; font-weight:700; letter-spacing:0.06em; line-height:0.9; color:#f2f7fa">BULLY<br>OFF</div>
+          <div style="width:190px; height:2px; background:#1f9a63; margin:10px 0 4px"></div>
+          <div style="font-size:16px; color:#a6b2bd; max-width:44ch; line-height:1.5">A season the engine actually simulates — circle rule, rolling subs, watered turf. Learn the sport while you win it.</div>
+          <span style="flex:1; min-height:20px"></span>
+          <div style="display:flex; flex-direction:column; gap:10px; width:400px">
+          <sc-for list="{{ menu }}" as="m" hint-placeholder-count="5">
+            <div style="display:flex; align-items:center; gap:16px; background:{{ m.bg }}; border:1px solid {{ m.bd }}; border-left:3px solid {{ m.rail }}; border-radius:6px; padding:10px 18px; cursor:pointer">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#5c6b78">{{ m.n }}</span>
+              <span style="font-family:'Barlow Condensed',sans-serif; font-size:23px; font-weight:600; letter-spacing:0.08em; color:{{ m.fg }}">{{ m.label }}</span>
+              <span style="flex:1"></span>
+              <span style="font-size:13px; color:#5c6b78">{{ m.meta }}</span>
+            </div>
+          </sc-for>
+          </div>
+        </div>
+        <div style="position:absolute; right:70px; bottom:28px; display:flex; gap:22px; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; color:#5c6b78">
+          <span>ENGINE 1.0.0</span><span>SAVE v3</span><span>OFFLINE READY</span><span>NL · EN · FR</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ONBOARDING -->
+    <div data-screen-label="Onboarding" style="display:flex; flex-direction:column; gap:10px">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#5c6b78">02 · FIRST RUN — THREE CARDS</div>
+      <div style="display:flex; gap:20px; flex-wrap:wrap">
+        <sc-for list="{{ onboard }}" as="o" hint-placeholder-count="3">
+          <div style="width:453px; height:400px; background:#0b0f13; border:1px solid #232a31; border-radius:12px; padding:26px; display:flex; flex-direction:column; gap:14px">
+            <div style="display:flex; gap:6px">
+              <span style="width:22px; height:3px; border-radius:2px; background:{{ o.d1 }}"></span>
+              <span style="width:22px; height:3px; border-radius:2px; background:{{ o.d2 }}"></span>
+              <span style="width:22px; height:3px; border-radius:2px; background:{{ o.d3 }}"></span>
+            </div>
+            <div style="height:126px; border:1px solid #1b2530; border-radius:8px; background:repeating-linear-gradient(135deg,#0d151a 0 10px,#0b1216 10px 20px); display:grid; place-items:center; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#5c6b78">{{ o.art }}</div>
+            <div style="font-family:'Barlow Condensed',sans-serif; font-size:30px; font-weight:600; letter-spacing:0.03em; line-height:1.1">{{ o.title }}</div>
+            <div style="font-size:15px; color:#a6b2bd; line-height:1.55">{{ o.body }}</div>
+            <span style="flex:1"></span>
+            <div style="display:flex; align-items:center; gap:12px">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#5c6b78">SKIP</span>
+              <span style="flex:1"></span>
+              <button style="font-family:'Barlow Condensed',sans-serif; font-size:16px; font-weight:600; letter-spacing:0.08em; color:#06080a; background:{{ o.btnBg }}; border:none; border-radius:6px; padding:11px 22px; cursor:pointer">{{ o.btn }}</button>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- WORLD GEN + CLUB SELECT -->
+    <div data-screen-label="World generation" style="display:flex; flex-direction:column; gap:10px">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#5c6b78">03 · NEW CAREER — BUILD THE WORLD</div>
+      <div style="width:1440px; height:760px; background:#0a0d10; border:1px solid #232a31; border-radius:14px; overflow:hidden; display:grid; grid-template-rows:58px minmax(0,1fr)">
+        <div style="display:flex; align-items:center; gap:18px; padding:0 24px; border-bottom:1px solid #232a31; background:#0d1216">
+          <span style="font-family:'Barlow Condensed',sans-serif; font-size:18px; font-weight:700; letter-spacing:0.16em; color:#d7f5e6">BULLY OFF</span>
+          <span style="width:1px; height:18px; background:#232a31"></span>
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.16em; color:#8b949e">NEW CAREER</span>
+          <span style="flex:1"></span>
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#5c6b78">STEP 1 OF 2</span>
+        </div>
+        <div style="display:grid; grid-template-columns:430px minmax(0,1fr); min-height:0">
+          <div style="border-right:1px solid #232a31; padding:26px; display:flex; flex-direction:column; gap:20px; background:#0b0f13; overflow:hidden">
+            <div style="font-family:'Barlow Condensed',sans-serif; font-size:34px; font-weight:600; letter-spacing:0.03em; line-height:1.05">Two tiers, twenty years<br>of history, no real clubs.</div>
+            <sc-for list="{{ setup }}" as="s" hint-placeholder-count="4">
+              <div style="display:flex; flex-direction:column; gap:8px">
+                <div style="display:flex; justify-content:space-between; align-items:baseline">
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#5c6b78">{{ s.k }}</span>
+                  <span style="font-size:12.5px; color:#5c6b78">{{ s.hint }}</span>
+                </div>
+                <div style="display:flex; gap:6px; flex-wrap:wrap">
+                  <sc-for list="{{ s.opts }}" as="o" hint-placeholder-count="3">
+                    <span style="font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:600; letter-spacing:0.06em; color:{{ o.fg }}; background:{{ o.bg }}; border:1px solid {{ o.bd }}; border-radius:5px; padding:8px 14px; cursor:pointer">{{ o.label }}</span>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+            <div style="display:flex; flex-direction:column; gap:8px">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#5c6b78">WORLD SEED</span>
+              <div style="display:flex; gap:8px; align-items:center">
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:22px; color:#e6edf3; background:#0a0d10; border:1px solid #2f3a44; border-radius:6px; padding:9px 16px">2026</span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; color:#7fe3b0; border:1px solid #1f9a63; border-radius:5px; padding:9px 12px; cursor:pointer">RE-ROLL</span>
+                <span style="font-size:12.5px; color:#5c6b78">same seed, same world — always</span>
+              </div>
+            </div>
+            <span style="flex:1"></span>
+            <button style="font-family:'Barlow Condensed',sans-serif; font-size:19px; font-weight:700; letter-spacing:0.1em; color:#06080a; background:#1f9a63; border:none; border-radius:7px; padding:15px 0; cursor:pointer">GENERATE WORLD</button>
+          </div>
+          <div style="padding:26px; display:flex; flex-direction:column; gap:16px; min-height:0">
+            <div style="display:flex; align-items:baseline; gap:12px">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#5c6b78">GENERATING</span>
+              <span style="font-size:14px; color:#a6b2bd">Writing 20 seasons of history…</span>
+              <span style="flex:1"></span>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#7fe3b0">68 %</span>
+            </div>
+            <div style="height:3px; background:#1b2127; border-radius:2px; position:relative; overflow:hidden">
+              <span style="position:absolute; inset:0 32% 0 0; background:#1f9a63; border-radius:2px"></span>
+              <span style="position:absolute; top:0; bottom:0; width:60px; background:linear-gradient(90deg,transparent,rgba(215,245,230,0.5),transparent); animation:bo-sweep 1.8s linear infinite"></span>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px">
+              <sc-for list="{{ genStats }}" as="g" hint-placeholder-count="4">
+                <div style="background:#0b0f13; border:1px solid #232a31; border-radius:8px; padding:14px; display:flex; flex-direction:column; gap:4px">
+                  <span style="font-family:'Barlow Condensed',sans-serif; font-size:34px; font-weight:700; line-height:1; color:#e6edf3">{{ g.v }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.14em; color:#5c6b78">{{ g.k }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="flex:1; min-height:0; background:#0b0f13; border:1px solid #232a31; border-radius:10px; padding:18px; display:flex; flex-direction:column; gap:10px">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#5c6b78">HISTORY LEDGER</span>
+              <sc-for list="{{ ledger }}" as="h" hint-placeholder-count="8">
+                <div style="display:grid; grid-template-columns:64px 1fr auto; gap:14px; align-items:baseline; border-bottom:1px solid #141a20; padding-bottom:7px">
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#7fe3b0">{{ h.year }}</span>
+                  <span style="font-size:14px; color:#c8d2db">{{ h.line }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#5c6b78">{{ h.final }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLUB SELECT -->
+    <div data-screen-label="Club selection" style="display:flex; flex-direction:column; gap:10px">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#5c6b78">04 · CLUB SELECTION — CREST + KIT SYSTEM</div>
+      <div style="width:1440px; height:820px; background:#0a0d10; border:1px solid #232a31; border-radius:14px; overflow:hidden; display:grid; grid-template-columns:minmax(0,1fr) 430px">
+        <div style="padding:26px; display:flex; flex-direction:column; gap:16px; min-height:0">
+          <div style="display:flex; align-items:baseline; gap:14px">
+            <span style="font-family:'Barlow Condensed',sans-serif; font-size:30px; font-weight:600; letter-spacing:0.04em">Pick the club you'll coach</span>
+            <span style="font-size:14px; color:#8b949e">12 clubs · tier 1 &amp; tier 2 · the harder the club, the more the engine teaches you</span>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px">
+            <sc-for list="{{ clubCards }}" as="c" hint-placeholder-count="9">
+              <div style="background:#0b0f13; border:1px solid {{ c.bd }}; border-radius:10px; padding:14px; display:flex; gap:12px; cursor:pointer">
+                <span style="width:38px; height:44px; flex:none; border-radius:4px 4px 16px 16px; background:{{ c.c1 }}; position:relative; overflow:hidden; border:1px solid rgba(255,255,255,0.14)">
+                  <span style="position:absolute; left:0; right:0; top:38%; height:22%; background:{{ c.c2 }}"></span>
+                </span>
+                <div style="display:flex; flex-direction:column; gap:3px; min-width:0">
+                  <span style="font-family:'Barlow Condensed',sans-serif; font-size:19px; font-weight:600; letter-spacing:0.03em; line-height:1.15">{{ c.name }}</span>
+                  <span style="font-size:12.5px; color:#8b949e">{{ c.meta }}</span>
+                  <div style="display:flex; gap:5px; margin-top:5px">
+                    <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.1em; color:{{ c.tagFg }}; background:{{ c.tagBg }}; border-radius:3px; padding:3px 6px">{{ c.tag }}</span>
+                    <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.1em; color:#8b949e; border:1px solid #232a31; border-radius:3px; padding:3px 6px">{{ c.level }}</span>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="border-left:1px solid #232a31; background:#0b0f13; display:flex; flex-direction:column; min-height:0">
+          <div style="height:200px; position:relative; background:#1d3557; overflow:hidden; flex:none">
+            <div style="position:absolute; inset:0; background:repeating-linear-gradient(135deg, rgba(255,255,255,0.06) 0 14px, transparent 14px 28px)"></div>
+            <div style="position:absolute; left:24px; bottom:20px; display:flex; align-items:flex-end; gap:14px">
+              <span style="width:56px; height:66px; border-radius:6px 6px 24px 24px; background:#1d3557; border:2px solid #f1faee; position:relative; overflow:hidden">
+                <span style="position:absolute; left:0; right:0; top:40%; height:20%; background:#f1faee"></span>
+              </span>
+              <div style="display:flex; flex-direction:column; gap:2px">
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:rgba(241,250,238,0.7)">BERKENDAEL · EST. 1921</span>
+                <span style="font-family:'Barlow Condensed',sans-serif; font-size:30px; font-weight:700; letter-spacing:0.04em; line-height:1; color:#f1faee">KONINKLIJKE<br>BERKENDAEL HC</span>
+              </div>
+            </div>
+          </div>
+          <div style="padding:22px; display:flex; flex-direction:column; gap:16px; min-height:0">
+            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px">
+              <sc-for list="{{ clubKpis }}" as="k" hint-placeholder-count="3">
+                <div style="display:flex; flex-direction:column; gap:2px">
+                  <span style="font-family:'Barlow Condensed',sans-serif; font-size:28px; font-weight:700; line-height:1">{{ k.v }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#5c6b78">{{ k.k }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="font-size:14.5px; color:#a6b2bd; line-height:1.6">Five titles, none since 2019. A settled back four, an ageing captain, and a youth intake that needs minutes. The board wants play-offs; the volunteers want the clubhouse roof fixed.</div>
+            <div style="display:flex; flex-direction:column; gap:8px">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#5c6b78">KIT</span>
+              <div style="display:flex; gap:8px">
+                <span style="width:34px; height:34px; border-radius:5px; background:#1d3557; border:1px solid #3b4a5c"></span>
+                <span style="width:34px; height:34px; border-radius:5px; background:#f1faee"></span>
+                <span style="width:34px; height:34px; border-radius:5px; background:#0f2b23; border:1px solid #232a31"></span>
+                <span style="flex:1"></span>
+                <span style="font-size:12.5px; color:#5c6b78; align-self:center">applied as sprite tint in match</span>
+              </div>
+            </div>
+            <span style="flex:1"></span>
+            <button style="font-family:'Barlow Condensed',sans-serif; font-size:19px; font-weight:700; letter-spacing:0.1em; color:#06080a; background:#1f9a63; border:none; border-radius:7px; padding:15px 0; cursor:pointer">TAKE THE JOB</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEASON HUB -->
+    <div data-screen-label="Season hub" style="display:flex; flex-direction:column; gap:10px">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#5c6b78">05 · SEASON HUB</div>
+      <div style="width:1440px; height:860px; background:#0a0d10; border:1px solid #232a31; border-radius:14px; overflow:hidden; display:grid; grid-template-rows:58px 96px minmax(0,1fr)">
+        <div style="display:flex; align-items:center; gap:18px; padding:0 24px; border-bottom:1px solid #232a31; background:#0d1216">
+          <span style="font-family:'Barlow Condensed',sans-serif; font-size:18px; font-weight:700; letter-spacing:0.16em; color:#d7f5e6">BULLY OFF</span>
+          <span style="width:1px; height:18px; background:#232a31"></span>
+          <sc-for list="{{ nav }}" as="n" hint-placeholder-count="5">
+            <span style="font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:600; letter-spacing:0.1em; color:{{ n.fg }}; border-bottom:2px solid {{ n.bd }}; padding:18px 2px; cursor:pointer">{{ n.label }}</span>
+          </sc-for>
+          <span style="flex:1"></span>
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; color:#5c6b78">SAVED 16:38</span>
+          <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; color:#5c6b78">EN</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:20px; padding:0 24px; border-bottom:1px solid #232a31; background:#0b0f13">
+          <span style="width:34px; height:40px; border-radius:4px 4px 14px 14px; background:#1d3557; border:1px solid #3b4a5c; position:relative; overflow:hidden"><span style="position:absolute; left:0; right:0; top:38%; height:22%; background:#f1faee"></span></span>
+          <div style="display:flex; flex-direction:column; gap:1px">
+            <span style="font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:600; letter-spacing:0.04em; line-height:1.1">Koninklijke Berkendael HC</span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; color:#8b949e">TIER 1 · SEASON 2026 · DAY 7 / 26 · 2ND</span>
+          </div>
+          <span style="width:1px; height:44px; background:#232a31"></span>
+          <div style="display:flex; flex-direction:column; gap:2px">
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.16em; color:#f1c40f">NEXT — SATURDAY, AWAY</span>
+            <span style="font-size:15px; color:#c8d2db">Klaverbeke HC Cranes · they've conceded 20, but never at home</span>
+          </div>
+          <span style="flex:1"></span>
+          <button style="font-family:'Barlow Condensed',sans-serif; font-size:17px; font-weight:700; letter-spacing:0.1em; color:#06080a; background:#1f9a63; border:none; border-radius:6px; padding:12px 22px; cursor:pointer">COACH THE MATCH</button>
+          <button style="font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:600; letter-spacing:0.08em; color:#e6edf3; background:transparent; border:1px solid #2f3a44; border-radius:6px; padding:12px 18px; cursor:pointer">SIM DAY</button>
+          <button style="font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:600; letter-spacing:0.08em; color:#e6edf3; background:transparent; border:1px solid #2f3a44; border-radius:6px; padding:12px 18px; cursor:pointer">SIM TO END</button>
+        </div>
+        <div style="display:grid; grid-template-columns:minmax(0,1fr) 400px; min-height:0">
+          <div style="padding:22px 24px; display:flex; flex-direction:column; gap:14px; min-height:0">
+            <div style="display:flex; gap:8px">
+              <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+                <span style="font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:600; letter-spacing:0.1em; color:{{ t.fg }}; background:{{ t.bg }}; border:1px solid {{ t.bd }}; border-radius:5px; padding:7px 14px; cursor:pointer">{{ t.label }}</span>
+              </sc-for>
+            </div>
+            <div style="background:#0b0f13; border:1px solid #232a31; border-radius:10px; overflow:hidden">
+              <div style="display:grid; grid-template-columns:44px minmax(0,1fr) repeat(7,52px); gap:0; padding:11px 16px; border-bottom:1px solid #232a31; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.14em; color:#5c6b78">
+                <span>#</span><span>CLUB</span><span style="text-align:right">P</span><span style="text-align:right">W</span><span style="text-align:right">D</span><span style="text-align:right">L</span><span style="text-align:right">GF</span><span style="text-align:right">GA</span><span style="text-align:right">PTS</span>
+              </div>
+              <sc-for list="{{ table }}" as="r" hint-placeholder-count="12">
+                <div style="display:grid; grid-template-columns:44px minmax(0,1fr) repeat(7,52px); align-items:center; padding:9px 16px; border-bottom:1px solid #141a20; background:{{ r.bg }}; font-size:14px">
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:{{ r.zone }}">{{ r.pos }}</span>
+                  <span style="display:flex; align-items:center; gap:9px; min-width:0"><span style="width:9px; height:9px; border-radius:2px; flex:none; background:{{ r.c }}"></span><span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:{{ r.fg }}">{{ r.club }}</span></span>
+                  <span style="text-align:right; font-family:'IBM Plex Mono',monospace; font-size:13px; color:#8b949e">{{ r.p }}</span>
+                  <span style="text-align:right; font-family:'IBM Plex Mono',monospace; font-size:13px; color:#8b949e">{{ r.w }}</span>
+                  <span style="text-align:right; font-family:'IBM Plex Mono',monospace; font-size:13px; color:#8b949e">{{ r.d }}</span>
+                  <span style="text-align:right; font-family:'IBM Plex Mono',monospace; font-size:13px; color:#8b949e">{{ r.l }}</span>
+                  <span style="text-align:right; font-family:'IBM Plex Mono',monospace; font-size:13px; color:#8b949e">{{ r.gf }}</span>
+                  <span style="text-align:right; font-family:'IBM Plex Mono',monospace; font-size:13px; color:#8b949e">{{ r.ga }}</span>
+                  <span style="text-align:right; font-family:'IBM Plex Mono',monospace; font-size:14px; color:#e6edf3">{{ r.pts }}</span>
+                </div>
+              </sc-for>
+              <div style="display:flex; gap:18px; padding:11px 16px; font-size:12.5px; color:#5c6b78">
+                <span><span style="display:inline-block; width:8px; height:8px; border-radius:2px; background:#1f9a63; margin-right:6px"></span>title play-offs</span>
+                <span><span style="display:inline-block; width:8px; height:8px; border-radius:2px; background:#f1c40f; margin-right:6px"></span>play-down</span>
+                <span><span style="display:inline-block; width:8px; height:8px; border-radius:2px; background:#e74c3c; margin-right:6px"></span>relegated</span>
+                <span style="flex:1"></span>
+                <span>winter break days 12–14</span>
+              </div>
+            </div>
+          </div>
+          <div style="border-left:1px solid #232a31; background:#0b0f13; padding:22px; display:flex; flex-direction:column; gap:16px; min-height:0; overflow:hidden">
+            <div style="display:flex; flex-direction:column; gap:9px">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#5c6b78">FORM · LAST FIVE</span>
+              <div style="display:flex; gap:6px">
+                <sc-for list="{{ form }}" as="f" hint-placeholder-count="5">
+                  <span style="width:36px; height:36px; border-radius:5px; display:grid; place-items:center; font-family:'Barlow Condensed',sans-serif; font-size:16px; font-weight:700; color:{{ f.fg }}; background:{{ f.bg }}">{{ f.r }}</span>
+                </sc-for>
+                <span style="flex:1"></span>
+                <span style="align-self:center; font-size:13px; color:#8b949e">+2.1 goals / match at home</span>
+              </div>
+            </div>
+            <div style="border-top:1px solid #171d23; padding-top:16px; display:flex; flex-direction:column; gap:10px">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#f1c40f">FROM THE COACHING STAFF</span>
+              <sc-for list="{{ advice }}" as="a" hint-placeholder-count="3">
+                <div style="display:flex; flex-direction:column; gap:3px; border-left:2px solid {{ a.rail }}; padding-left:12px">
+                  <span style="font-family:'Barlow Condensed',sans-serif; font-size:17px; font-weight:600; letter-spacing:0.02em">{{ a.title }}</span>
+                  <span style="font-size:13.5px; color:#a6b2bd; line-height:1.5">{{ a.body }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="border-top:1px solid #171d23; padding-top:16px; display:flex; flex-direction:column; gap:9px; min-height:0">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#5c6b78">TREATMENT ROOM</span>
+              <sc-for list="{{ injuries }}" as="i" hint-placeholder-count="3">
+                <div style="display:flex; align-items:center; gap:10px; font-size:13.5px">
+                  <span style="width:6px; height:6px; border-radius:50%; background:{{ i.c }}"></span>
+                  <span style="color:#c8d2db">{{ i.name }}</span>
+                  <span style="color:#5c6b78">{{ i.role }}</span>
+                  <span style="flex:1"></span>
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:{{ i.c }}">{{ i.out }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SQUAD + PLAYER -->
+    <div data-screen-label="Squad and player" style="display:flex; flex-direction:column; gap:10px">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#5c6b78">06 · SQUAD &amp; PLAYER DETAIL</div>
+      <div style="width:1440px; height:800px; background:#0a0d10; border:1px solid #232a31; border-radius:14px; overflow:hidden; display:grid; grid-template-columns:minmax(0,1fr) 470px">
+        <div style="padding:24px; display:flex; flex-direction:column; gap:14px; min-height:0">
+          <div style="display:flex; align-items:baseline; gap:14px">
+            <span style="font-family:'Barlow Condensed',sans-serif; font-size:28px; font-weight:600; letter-spacing:0.04em">Squad</span>
+            <span style="font-size:14px; color:#8b949e">18 players · 4 youth · wage bill 62 % of a volunteer budget</span>
+          </div>
+          <div style="background:#0b0f13; border:1px solid #232a31; border-radius:10px; overflow:hidden">
+            <div style="display:grid; grid-template-columns:34px minmax(0,1fr) 58px 44px 52px 74px 62px 92px; padding:11px 16px; border-bottom:1px solid #232a31; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.14em; color:#5c6b78">
+              <span>#</span><span>NAME</span><span>ROLE</span><span style="text-align:right">AGE</span><span style="text-align:right">OVR</span><span style="text-align:right">MINUTES</span><span style="text-align:right">GOALS</span><span style="text-align:right">STATUS</span>
+            </div>
+            <sc-for list="{{ squad }}" as="p" hint-placeholder-count="14">
+              <div style="display:grid; grid-template-columns:34px minmax(0,1fr) 58px 44px 52px 74px 62px 92px; align-items:center; padding:8px 16px; border-bottom:1px solid #141a20; font-size:14px; background:{{ p.bg }}">
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#5c6b78">{{ p.n }}</span>
+                <span style="display:flex; align-items:center; gap:8px; min-width:0"><span style="color:{{ p.fg }}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">{{ p.name }}</span><span style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:#7fe3b0">{{ p.badge }}</span></span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.08em; color:#8b949e">{{ p.role }}</span>
+                <span style="text-align:right; font-family:'IBM Plex Mono',monospace; font-size:13px; color:#8b949e">{{ p.age }}</span>
+                <span style="text-align:right; font-family:'IBM Plex Mono',monospace; font-size:14px; color:#e6edf3">{{ p.ovr }}</span>
+                <span style="text-align:right; font-family:'IBM Plex Mono',monospace; font-size:13px; color:#8b949e">{{ p.min }}</span>
+                <span style="text-align:right; font-family:'IBM Plex Mono',monospace; font-size:13px; color:#8b949e">{{ p.goals }}</span>
+                <span style="text-align:right; font-family:'IBM Plex Mono',monospace; font-size:11px; color:{{ p.statusC }}">{{ p.status }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="border-left:1px solid #232a31; background:#0b0f13; display:flex; flex-direction:column; min-height:0">
+          <div style="padding:24px; border-bottom:1px solid #232a31; display:flex; gap:18px; align-items:flex-end">
+            <div style="width:96px; height:112px; border:1px solid #1b2530; border-radius:8px; background:repeating-linear-gradient(135deg,#0d151a 0 9px,#0b1216 9px 18px); display:grid; place-items:center; font-family:'IBM Plex Mono',monospace; font-size:9px; color:#3f4b56; text-align:center; line-height:1.5">PLAYER<br>PORTRAIT</div>
+            <div style="display:flex; flex-direction:column; gap:3px">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#5c6b78">FORWARD · 25 · RIGHT-HANDED</span>
+              <span style="font-family:'Barlow Condensed',sans-serif; font-size:38px; font-weight:700; letter-spacing:0.03em; line-height:1">SANDER MAES</span>
+              <div style="display:flex; gap:8px; margin-top:5px">
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.1em; color:#06080a; background:#7fe3b0; border-radius:3px; padding:3px 7px">OVR 75</span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.1em; color:#f1c40f; border:1px solid #6b5a12; border-radius:3px; padding:3px 7px">7 GOALS</span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.1em; color:#8b949e; border:1px solid #232a31; border-radius:3px; padding:3px 7px">CONTRACT 2028</span>
+              </div>
+            </div>
+          </div>
+          <div style="padding:22px 24px; display:flex; flex-direction:column; gap:18px; min-height:0; overflow:hidden">
+            <div style="display:flex; flex-direction:column; gap:10px">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#5c6b78">ATTRIBUTES</span>
+              <sc-for list="{{ attrs }}" as="a" hint-placeholder-count="7">
+                <div style="display:grid; grid-template-columns:110px minmax(0,1fr) 34px; gap:12px; align-items:center">
+                  <span style="font-size:13.5px; color:#a6b2bd">{{ a.k }}</span>
+                  <span style="height:5px; background:#1b2127; border-radius:3px; position:relative; overflow:hidden"><span style="position:absolute; left:0; top:0; bottom:0; border-radius:3px; width:{{ a.w }}; background:{{ a.c }}"></span></span>
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:#e6edf3; text-align:right">{{ a.v }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="border-top:1px solid #171d23; padding-top:16px; display:flex; flex-direction:column; gap:8px">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#f1c40f">HOW TO USE HIM</span>
+              <span style="font-size:14.5px; color:#c8d2db; line-height:1.6">Quickest first three metres in the squad and comfortable receiving on the reverse — he's a baseline-entry forward, not a target man. Long-ball build-up wastes him: 4 of his 7 goals came from flank entries with a trailing runner.</span>
+              <div style="display:flex; gap:8px; margin-top:6px">
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.1em; color:#7fe3b0; border:1px solid #1f9a63; border-radius:4px; padding:5px 9px">SUGGEST: BUILD-UP → FLANKS</span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.1em; color:#8b949e; border:1px solid #232a31; border-radius:4px; padding:5px 9px">DRILL: 2v1 BASELINE</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MATCH SIMULATION -->
+    <div data-screen-label="Match simulation" style="display:flex; flex-direction:column; gap:10px">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#5c6b78">07 · MATCH SIMULATION — ENGINE VIEW</div>
+      <div style="width:1440px; height:960px; background:#0a0d10; border:1px solid #232a31; border-radius:14px; overflow:hidden; display:grid; grid-template-rows:64px minmax(0,1fr) 208px">
+        <div style="display:flex; align-items:center; gap:0; border-bottom:1px solid #232a31; background:#0d1216">
+          <div style="display:flex; align-items:stretch; height:100%">
+            <span style="width:4px; background:#1d3557"></span>
+            <div style="display:flex; align-items:center; gap:14px; padding:0 20px">
+              <span style="font-family:'Barlow Condensed',sans-serif; font-size:17px; font-weight:600; letter-spacing:0.1em">BERKENDAEL</span>
+              <span style="font-family:'Barlow Condensed',sans-serif; font-size:34px; font-weight:700; letter-spacing:0.04em; line-height:1">2</span>
+              <span style="color:#3d4852">·</span>
+              <span style="font-family:'Barlow Condensed',sans-serif; font-size:34px; font-weight:700; letter-spacing:0.04em; line-height:1; color:#c8d2db">1</span>
+              <span style="font-family:'Barlow Condensed',sans-serif; font-size:17px; font-weight:600; letter-spacing:0.1em; color:#8b949e">SARTCOURT</span>
+            </div>
+            <span style="width:4px; background:#e63946"></span>
+          </div>
+          <div style="display:flex; align-items:center gap:0; border-left:1px solid #232a31; padding:0 20px; height:100%; align-items:center; gap:14px">
+            <div style="display:flex; flex-direction:column">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:16px; letter-spacing:0.04em">41:20</span>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.16em; color:#8b949e">Q3 · PLAY</span>
+            </div>
+            <span style="width:1px; height:30px; background:#232a31"></span>
+            <div style="display:flex; flex-direction:column">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#7fe3b0">TICK 49 600</span>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.14em; color:#5c6b78">SEED 2026 · WATERED</span>
+            </div>
+          </div>
+          <span style="flex:1"></span>
+          <div style="display:flex; align-items:center; gap:6px; padding:0 20px">
+            <sc-for list="{{ simModes }}" as="s" hint-placeholder-count="3">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em; color:{{ s.fg }}; background:{{ s.bg }}; border:1px solid {{ s.bd }}; border-radius:4px; padding:6px 11px; cursor:pointer">{{ s.label }}</span>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:264px minmax(0,1fr) 300px; min-height:0">
+          <div style="border-right:1px solid #232a31; background:#0b0f13; padding:18px; display:flex; flex-direction:column; gap:18px; min-height:0; overflow:hidden">
+            <div style="display:flex; flex-direction:column; gap:9px">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#5c6b78">PHASE OF PLAY</span>
+              <span style="font-family:'Barlow Condensed',sans-serif; font-size:26px; font-weight:600; letter-spacing:0.02em; line-height:1.1">Half-court press,<br>ball in their outlet</span>
+              <span style="font-size:13.5px; color:#a6b2bd; line-height:1.55">Your line sits on the 45.7 m. They must beat it with a pass, not a carry — the engine gives them 2.4 s before your first presser arrives.</span>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px; border-top:1px solid #171d23; padding-top:16px">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#5c6b78">ENGINE INPUTS</span>
+              <sc-for list="{{ inputs }}" as="i" hint-placeholder-count="6">
+                <div style="display:flex; justify-content:space-between; align-items:baseline; font-size:13px; border-bottom:1px solid #141a20; padding-bottom:6px">
+                  <span style="color:#8b949e">{{ i.k }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace; color:#d7f5e6">{{ i.v }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="border-top:1px solid #171d23; padding-top:14px; display:flex; flex-direction:column; gap:6px">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#7fe3b0">DETERMINISTIC</span>
+              <span style="font-size:12.5px; color:#8b949e; line-height:1.5">Same seed, same inputs, byte-identical log. Export this match and anyone can replay the exact 70 minutes.</span>
+            </div>
+          </div>
+
+          <div style="position:relative; background:#08120e; display:grid; place-items:center; min-height:0; overflow:hidden">
+            <dc-import name="Pitch" metre="{{ m9 }}" pad="16" preset="press" overlay="press" home-colour="#1d3557" away-colour="#e63946" tags="{{ tagsSim }}" hint-size="854px,510px"></dc-import>
+            <div style="position:absolute; left:20px; top:18px; display:flex; gap:6px">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#06080a; background:#7fe3b0; border-radius:3px; padding:4px 8px">TACTICAL</span>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#8b949e; background:rgba(6,9,12,0.75); border:1px solid #232a31; border-radius:3px; padding:4px 8px">PRESS LINE</span>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#8b949e; background:rgba(6,9,12,0.75); border:1px solid #232a31; border-radius:3px; padding:4px 8px">PASS OPTIONS</span>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.12em; color:#8b949e; background:rgba(6,9,12,0.75); border:1px solid #232a31; border-radius:3px; padding:4px 8px">STAMINA</span>
+            </div>
+            <div style="position:absolute; right:20px; top:18px; display:flex; flex-direction:column; gap:6px; align-items:flex-end">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.14em; color:#5c6b78">CAMERA · 91.4 × 55 m</span>
+              <div style="display:flex; gap:5px">
+                <sc-for list="{{ camChips }}" as="c" hint-placeholder-count="5">
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.1em; color:{{ c.fg }}; background:{{ c.bg }}; border:1px solid {{ c.bd }}; border-radius:3px; padding:4px 8px; cursor:pointer">{{ c.label }}</span>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+
+          <div style="border-left:1px solid #232a31; background:#0b0f13; padding:18px; display:flex; flex-direction:column; gap:16px; min-height:0; overflow:hidden">
+            <div style="display:flex; flex-direction:column; gap:9px">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#5c6b78">LIVE</span>
+              <sc-for list="{{ simStats }}" as="s" hint-placeholder-count="6">
+                <div style="display:flex; flex-direction:column; gap:4px">
+                  <div style="display:flex; justify-content:space-between; font-size:13px"><span style="font-family:'IBM Plex Mono',monospace; color:#7fe3b0">{{ s.a }}</span><span style="color:#8b949e">{{ s.k }}</span><span style="font-family:'IBM Plex Mono',monospace; color:#c8d2db">{{ s.b }}</span></div>
+                  <div style="display:flex; height:3px; gap:2px">
+                    <span style="width:{{ s.aw }}; background:#1f9a63; border-radius:2px"></span>
+                    <span style="flex:1"></span>
+                    <span style="width:{{ s.bw }}; background:#e63946; border-radius:2px"></span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="border-top:1px solid #171d23; padding-top:14px; display:flex; flex-direction:column; gap:8px; min-height:0">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#5c6b78">EVENT LOG</span>
+              <sc-for list="{{ simLog }}" as="l" hint-placeholder-count="7">
+                <div style="display:grid; grid-template-columns:44px minmax(0,1fr); gap:9px; align-items:baseline; font-size:13px">
+                  <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:#5c6b78">{{ l.t }}</span>
+                  <span style="color:{{ l.c }}; line-height:1.4">{{ l.s }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+
+        <div style="border-top:1px solid #232a31; background:#0d1216; display:grid; grid-template-columns:minmax(0,1fr) 340px">
+          <div style="padding:14px 20px; display:flex; flex-direction:column; gap:10px; min-width:0">
+            <div style="display:flex; align-items:center; gap:12px">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:13px; color:#e6edf3">⏸</span>
+              <sc-for list="{{ speeds }}" as="s" hint-placeholder-count="4">
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:{{ s.fg }}; background:{{ s.bg }}; border:1px solid {{ s.bd }}; border-radius:3px; padding:4px 9px; cursor:pointer">{{ s.label }}</span>
+              </sc-for>
+              <span style="width:1px; height:18px; background:#232a31"></span>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; color:#5c6b78">Q1</span>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; color:#5c6b78">Q2</span>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; color:#7fe3b0">Q3</span>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; color:#3f4b56">Q4</span>
+              <span style="flex:1"></span>
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; color:#5c6b78">41:20 / 70:00</span>
+            </div>
+            <div style="position:relative; height:34px">
+              <div style="position:absolute; left:0; right:0; top:15px; height:4px; background:#171d23; border-radius:2px"></div>
+              <div style="position:absolute; left:0; width:59%; top:15px; height:4px; background:#1f9a63; border-radius:2px"></div>
+              <sc-for list="{{ markers }}" as="k" hint-placeholder-count="8">
+                <div style="position:absolute; left:{{ k.left }}; top:0; display:flex; flex-direction:column; align-items:center; gap:2px">
+                  <span style="width:2px; height:13px; background:{{ k.c }}"></span>
+                  <span style="width:8px; height:8px; border-radius:2px; background:{{ k.c }}"></span>
+                </div>
+              </sc-for>
+              <div style="position:absolute; left:59%; top:6px; width:2px; height:22px; background:#f2f7fa"></div>
+            </div>
+            <div style="display:flex; gap:16px; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.1em; color:#3f4b56">
+              <span><span style="display:inline-block; width:7px; height:7px; border-radius:2px; background:#1f9a63; margin-right:5px"></span>OUR GOAL</span>
+              <span><span style="display:inline-block; width:7px; height:7px; border-radius:2px; background:#e63946; margin-right:5px"></span>THEIRS</span>
+              <span><span style="display:inline-block; width:7px; height:7px; border-radius:2px; background:#f1c40f; margin-right:5px"></span>PC</span>
+              <span><span style="display:inline-block; width:7px; height:7px; border-radius:2px; background:#8b949e; margin-right:5px"></span>CARD / SUB</span>
+            </div>
+          </div>
+          <div style="border-left:1px solid #232a31; padding:14px 20px; display:flex; flex-direction:column; gap:7px">
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#f1c40f">LEARN THIS PHASE</span>
+            <span style="font-family:'Barlow Condensed',sans-serif; font-size:19px; font-weight:600; line-height:1.15">Why the half-court press works on watered turf</span>
+            <span style="font-size:13px; color:#a6b2bd; line-height:1.5">A wet ball travels faster than a player can close, so pressing from the halfway line trades one runner for two passing lanes. Watch their left back: he has no square option.</span>
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em; color:#7fe3b0; margin-top:2px">OPEN THE RULEBOOK →</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- POST MATCH -->
+    <div data-screen-label="Post-match report" style="display:flex; flex-direction:column; gap:10px">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.14em; color:#5c6b78">07 · POST-MATCH REPORT — THE TEACHING SCREEN</div>
+      <div style="width:1440px; height:880px; background:#0a0d10; border:1px solid #232a31; border-radius:14px; overflow:hidden; display:grid; grid-template-rows:150px minmax(0,1fr)">
+        <div style="display:flex; align-items:center; gap:32px; padding:0 32px; background:linear-gradient(105deg, rgba(29,53,87,0.55), rgba(10,13,16,0.2) 60%, rgba(230,57,70,0.18)); border-bottom:1px solid #232a31">
+          <div style="display:flex; align-items:center; gap:20px">
+            <span style="width:44px; height:52px; border-radius:5px 5px 18px 18px; background:#1d3557; border:1px solid #f1faee; position:relative; overflow:hidden"><span style="position:absolute; left:0; right:0; top:38%; height:22%; background:#f1faee"></span></span>
+            <div style="display:flex; flex-direction:column">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#8b949e">FULL TIME · DAY 7 · WATERED</span>
+              <span style="font-family:'Barlow Condensed',sans-serif; font-size:26px; font-weight:600; letter-spacing:0.06em">BERKENDAEL</span>
+            </div>
+            <span style="font-family:'Barlow Condensed',sans-serif; font-size:66px; font-weight:700; letter-spacing:0.04em; line-height:1">3 · 1</span>
+            <div style="display:flex; flex-direction:column">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#8b949e">TIER 1 · 2ND → 1ST</span>
+              <span style="font-family:'Barlow Condensed',sans-serif; font-size:26px; font-weight:600; letter-spacing:0.06em; color:#c8d2db">SARTCOURT</span>
+            </div>
+            <span style="width:44px; height:52px; border-radius:5px 5px 18px 18px; background:#e63946; border:1px solid rgba(255,255,255,0.5)"></span>
+          </div>
+          <span style="flex:1"></span>
+          <div style="display:flex; gap:10px">
+            <button style="font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:600; letter-spacing:0.08em; color:#e6edf3; background:rgba(6,9,12,0.6); border:1px solid #2f3a44; border-radius:6px; padding:11px 18px; cursor:pointer">WATCH HIGHLIGHTS</button>
+            <button style="font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:600; letter-spacing:0.08em; color:#e6edf3; background:rgba(6,9,12,0.6); border:1px solid #2f3a44; border-radius:6px; padding:11px 18px; cursor:pointer">EXPORT REPLAY</button>
+            <button style="font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:700; letter-spacing:0.08em; color:#06080a; background:#1f9a63; border:none; border-radius:6px; padding:11px 22px; cursor:pointer">BACK TO SEASON</button>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:400px minmax(0,1fr) 420px; min-height:0">
+          <div style="border-right:1px solid #232a31; padding:22px; display:flex; flex-direction:column; gap:14px; background:#0b0f13; min-height:0">
+            <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#5c6b78">MATCH SHEET</span>
+            <sc-for list="{{ report }}" as="s" hint-placeholder-count="8">
+              <div style="display:grid; grid-template-columns:44px minmax(0,1fr) 44px; gap:10px; align-items:center">
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:14px; color:{{ s.aC }}; text-align:right">{{ s.a }}</span>
+                <div style="display:flex; flex-direction:column; gap:4px">
+                  <span style="font-size:12.5px; color:#8b949e; text-align:center">{{ s.k }}</span>
+                  <div style="display:flex; height:4px; gap:2px">
+                    <span style="width:{{ s.aw }}; background:#1f9a63; border-radius:2px"></span>
+                    <span style="flex:1"></span>
+                    <span style="width:{{ s.bw }}; background:#e63946; border-radius:2px"></span>
+                  </div>
+                </div>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:14px; color:{{ s.bC }}">{{ s.b }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="padding:22px; display:flex; flex-direction:column; gap:14px; min-height:0">
+            <div style="display:flex; align-items:baseline; gap:12px">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#5c6b78">MOMENTUM</span>
+              <span style="font-size:13px; color:#8b949e">circle entries per five minutes, ours above the line</span>
+            </div>
+            <div style="height:150px; border:1px solid #232a31; border-radius:10px; background:#0b0f13; position:relative; overflow:hidden; display:flex; align-items:flex-end; gap:6px; padding:12px">
+              <sc-for list="{{ momentum }}" as="m" hint-placeholder-count="16">
+                <span style="flex:1; display:flex; flex-direction:column; justify-content:flex-end; height:100%; gap:2px">
+                  <span style="height:{{ m.us }}; background:#1f9a63; border-radius:2px 2px 0 0"></span>
+                  <span style="height:{{ m.them }}; background:#3a2226; border-radius:0 0 2px 2px"></span>
+                </span>
+              </sc-for>
+            </div>
+            <div style="display:flex; align-items:baseline; gap:12px; padding-top:4px">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#5c6b78">KEY MOMENTS</span>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px; min-height:0">
+              <sc-for list="{{ moments }}" as="m" hint-placeholder-count="4">
+                <div style="display:grid; grid-template-columns:100px minmax(0,1fr); gap:14px; background:#0b0f13; border:1px solid #232a31; border-left:2px solid {{ m.rail }}; border-radius:8px; padding:12px 14px; align-items:center">
+                  <div style="height:56px; border:1px solid #1b2530; border-radius:5px; background:repeating-linear-gradient(135deg,#0d151a 0 8px,#0b1216 8px 16px); display:grid; place-items:center; font-family:'IBM Plex Mono',monospace; font-size:9px; color:#3f4b56">{{ m.clock }}</div>
+                  <div style="display:flex; flex-direction:column; gap:3px">
+                    <span style="font-family:'Barlow Condensed',sans-serif; font-size:18px; font-weight:600; letter-spacing:0.02em">{{ m.title }}</span>
+                    <span style="font-size:13.5px; color:#a6b2bd; line-height:1.5">{{ m.body }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="border-left:1px solid #232a31; background:#0b0f13; padding:22px; display:flex; flex-direction:column; gap:16px; min-height:0">
+            <div style="display:flex; flex-direction:column; gap:9px">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#f1c40f">WHAT YOU DID WELL</span>
+              <span style="font-family:'Barlow Condensed',sans-serif; font-size:24px; font-weight:600; letter-spacing:0.02em; line-height:1.15">Switching to the flanks at 33:47 turned the match.</span>
+              <span style="font-size:14px; color:#a6b2bd; line-height:1.6">Before the change: 9 circle entries, 1 shot. After: 6 entries, 5 shots, 2 goals. Sartcourt's zonal block never adjusted its outside backs — against a low block, width beats tempo.</span>
+            </div>
+            <div style="border-top:1px solid #171d23; padding-top:16px; display:flex; flex-direction:column; gap:11px">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#5c6b78">TO WORK ON</span>
+              <sc-for list="{{ lessons }}" as="l" hint-placeholder-count="3">
+                <div style="display:flex; flex-direction:column; gap:3px; border-left:2px solid #2f3a44; padding-left:12px">
+                  <span style="font-family:'Barlow Condensed',sans-serif; font-size:17px; font-weight:600">{{ l.title }}</span>
+                  <span style="font-size:13.5px; color:#a6b2bd; line-height:1.5">{{ l.body }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="border-top:1px solid #171d23; padding-top:16px; display:flex; flex-direction:column; gap:10px">
+              <span style="font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.18em; color:#5c6b78">RULE OF THE MATCH</span>
+              <div style="background:#0d1216; border:1px solid #232a31; border-radius:8px; padding:14px; display:flex; flex-direction:column; gap:6px">
+                <span style="font-family:'Barlow Condensed',sans-serif; font-size:18px; font-weight:600">Self-pass after a free hit inside the 23</span>
+                <span style="font-size:13.5px; color:#a6b2bd; line-height:1.5">You conceded three free hits inside your own 23. The attacker may self-pass, but the ball must travel five metres or be touched by a defender before entering the circle — closing the five metres is what killed their second PC.</span>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em; color:#7fe3b0">READ THE RULE →</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1540,&quot;height&quot;:1000}}">
+const TAGS_A = [
+  { label: 'PRESS LINE 45.7 m', x: 46.6, y: 2, c: '#7fe3b0', bd: 'rgba(31,154,99,0.7)' },
+  { label: 'NO SQUARE OPTION', x: 20, y: 46, c: '#f1c40f', bd: 'rgba(241,196,15,0.6)' },
+];
+const TAGS_SIM = [
+  { label: 'PRESS LINE 45.7 m', x: 46.6, y: 1.5, c: '#7fe3b0', bd: 'rgba(31,154,99,0.7)' },
+  { label: 'BALL · THEIR OUTLET', x: 22, y: 12, c: '#f4f1e8', bd: 'rgba(240,255,248,0.4)' },
+  { label: 'COVER SHADOW', x: 60, y: 47, c: '#8b949e', bd: 'rgba(139,148,158,0.5)' },
+];
+
+class Component extends DCLogic {
+  renderVals() {
+    const stam = (s) => ({ w: Math.round(s * 100) + '%', c: s > 0.6 ? '#1f9a63' : s > 0.35 ? '#f1c40f' : '#e74c3c' });
+    const legs = [['Coppens', 0.34], ['Verhaeghe', 0.31], ['Segers', 0.58], ['Maes', 0.77]]
+      .map(([name, s]) => ({ name, ...stam(s) }));
+
+    const dials = [['press height', 'HALF', '58%'], ['mentality', 'BAL', '50%'], ['tempo', 'NORM', '52%'], ['rotate below', '55 %', '55%']]
+      .map(([k, v, w]) => ({ k, v, w }));
+
+    const liveStats = [['possession', '54 %'], ['circle entries', '14 – 9'], ['shots', '9 – 6'], ['PCs', '4 – 2'], ['tackles won', '18 – 21']]
+      .map(([k, v]) => ({ k, v }));
+
+    const logLines = [
+      ['41:20', 'Penalty corner — ours. Battery set: Dewulf injects.', '#e6edf3'],
+      ['38:04', 'GOAL. Maes, flank entry, trailing runner. 2–1.', '#7fe3b0'],
+      ['33:47', 'You switched build-up to the flanks.', '#f1c40f'],
+    ].map(([t, s, c]) => ({ t, s, c }));
+
+    const menu = [
+      ['01', 'CONTINUE', 'Berkendael · season 2026 · day 7', '#0f1a16', '#1f9a63', '#1f9a63', '#e6edf3'],
+      ['02', 'NEW CAREER', 'generate a world', '#0b0f13', '#232a31', '#2f3a44', '#e6edf3'],
+      ['03', 'MATCH VIEWER', 'replays and scenarios', '#0b0f13', '#232a31', '#2f3a44', '#c8d2db'],
+      ['04', 'THE RULEBOOK', 'FIH rules, illustrated', '#0b0f13', '#232a31', '#2f3a44', '#c8d2db'],
+      ['05', 'SETTINGS', 'offline · no accounts · privacy', '#0b0f13', '#232a31', '#2f3a44', '#8b949e'],
+    ].map(([n, label, meta, bg, rail, bd, fg]) => ({ n, label, meta, bg, rail, bd, fg }));
+
+    const onboard = [
+      ['[ world map — invented towns ]', 'Pick a club nobody has heard of', 'Two tiers of Belgian-flavoured clubs, twenty seasons of invented history. Every name, town and crest is generated — and checked so it belongs to no real club.', '#1f9a63', '#232a31', '#232a31', 'NEXT', '#d7f5e6'],
+      ['[ season calendar ]', 'A season you can actually read', 'Play the match days or simulate them. Watch the table, the play-offs and the play-down; give youth minutes; keep the treatment room short.', '#232a31', '#1f9a63', '#232a31', 'NEXT', '#d7f5e6'],
+      ['[ bench, floodlights ]', 'Coach from the touchline', "Tactics, the penalty-corner battery, rotation on legs. Every instruction is legal hockey, and after full time the game shows you why it worked.", '#232a31', '#232a31', '#1f9a63', "LET'S GO", '#1f9a63'],
+    ].map(([art, title, body, d1, d2, d3, btn, btnBg]) => ({ art, title, body, d1, d2, d3, btn, btnBg }));
+
+    const chip = (label, on) => ({ label, fg: on ? '#06080a' : '#c8d2db', bg: on ? '#1f9a63' : 'transparent', bd: on ? '#1f9a63' : '#2f3a44' });
+    const setup = [
+      { k: 'COMPETITION', hint: 'rules and physics differ', opts: [chip("MEN'S", true), chip("WOMEN'S", false)] },
+      { k: 'REGION FLAVOUR', hint: 'name and town pools', opts: [chip('MIXED', true), chip('VLAANDEREN', false), chip('WALLONIE', false), chip('BRUXELLES', false)] },
+      { k: 'HISTORY', hint: 'champions, promotions, honours', opts: [chip('NONE', false), chip('10 SEASONS', false), chip('20 SEASONS', true)] },
+      { k: 'TURF', hint: 'watered turf is a faster game', opts: [chip('WATERED', true), chip('DRY', false), chip('WET', false)] },
+    ];
+
+    const genStats = [['24', 'CLUBS'], ['432', 'PLAYERS'], ['20', 'SEASONS'], ['0', 'REAL NAMES']]
+      .map(([v, k]) => ({ v, k }));
+
+    const ledger = [
+      [2025, 'Royal Sartcourt HC — regular winner Berkendael', '3–2'],
+      [2024, 'Royal Sartcourt HC — back-to-back', '2–0'],
+      [2023, 'Montville Royal HC — first title since 1998', '1–0 SO'],
+      [2022, 'Koninklijke Berkendael HC', '4–2'],
+      [2021, 'Zavelberg Hockey Club', '2–1'],
+      [2020, 'Koninklijke Berkendael HC', '3–1'],
+      [2019, 'Koninklijke Berkendael HC — the treble year', '5–2'],
+      [2018, 'HC Molenhoek', '1–0'],
+    ].map(([year, line, final]) => ({ year, line, final }));
+
+    const clubCards = [
+      ['Koninklijke Berkendael HC', 'Berkendael · est. 1921 · "Herons"', '#1d3557', '#f1faee', 'TIER 1', 'rgba(31,154,99,0.18)', '#7fe3b0', 'LVL 3.8', '#1f9a63'],
+      ['Royal Sartcourt HC', 'Sartcourt · est. 1934 · champions', '#e63946', '#ffffff', 'TIER 1', 'rgba(31,154,99,0.18)', '#7fe3b0', 'LVL 3.6', '#232a31'],
+      ['Zavelberg Hockey Club', 'Zavelberg · est. 1948', '#2a9d8f', '#ffffff', 'TIER 1', 'rgba(31,154,99,0.18)', '#7fe3b0', 'LVL 3.4', '#232a31'],
+      ['HC Molenhoek', 'Molenhoek · est. 1957 · "Foxes"', '#f4a261', '#264653', 'TIER 1', 'rgba(31,154,99,0.18)', '#7fe3b0', 'LVL 3.3', '#232a31'],
+      ['Montville Royal HC', 'Montville · est. 1912', '#6a0dad', '#ffd166', 'TIER 1', 'rgba(31,154,99,0.18)', '#7fe3b0', 'LVL 3.2', '#232a31'],
+      ['Lindeveld HC Wolves', 'Lindeveld · est. 1966', '#0077b6', '#ffffff', 'TIER 1', 'rgba(31,154,99,0.18)', '#7fe3b0', 'LVL 3.0', '#232a31'],
+      ['Kruisbeke Hockeyclub', 'Kruisbeke · est. 1983 · "Hawks"', '#ffb703', '#023047', 'TIER 2', 'rgba(241,196,15,0.14)', '#f1c40f', 'LVL 2.5', '#232a31'],
+      ['Royal Val-la-Neuve HC', 'Val-la-Neuve · est. 1955', '#8338ec', '#ffffff', 'TIER 2', 'rgba(241,196,15,0.14)', '#f1c40f', 'LVL 2.4', '#232a31'],
+      ['HC Chênesart Otters', 'Chênesart · est. 1947 · rebuilding', '#3a86ff', '#ffbe0b', 'TIER 2', 'rgba(241,196,15,0.14)', '#f1c40f', 'LVL 2.1', '#232a31'],
+    ].map(([name, meta, c1, c2, tag, tagBg, tagFg, level, bd]) => ({ name, meta, c1, c2, tag, tagBg, tagFg, level, bd }));
+
+    const clubKpis = [['5', 'TITLES'], ['3.8', 'SQUAD LEVEL'], ['4/5', 'FACILITIES']].map(([v, k]) => ({ v, k }));
+
+    const nav = [['SEASON', true], ['SQUAD', false], ['TACTICS', false], ['CLUB', false], ['RULEBOOK', false]]
+      .map(([label, on]) => ({ label, fg: on ? '#e6edf3' : '#8b949e', bd: on ? '#1f9a63' : 'transparent' }));
+
+    const tabs = [['TABLE', true], ['FIXTURES', false], ['RESULTS', false], ['HISTORY', false]]
+      .map(([label, on]) => ({ label, fg: on ? '#06080a' : '#c8d2db', bg: on ? '#d7f5e6' : 'transparent', bd: on ? '#d7f5e6' : '#2f3a44' }));
+
+    const T = [
+      ['Royal Sartcourt HC', '#e63946', 7, 6, 1, 0, 24, 9, 19],
+      ['Koninklijke Berkendael HC', '#1d3557', 7, 5, 1, 1, 21, 11, 16],
+      ['Montville Royal HC', '#6a0dad', 7, 4, 2, 1, 18, 12, 14],
+      ['Zavelberg Hockey Club', '#2a9d8f', 7, 4, 1, 2, 17, 13, 13],
+      ['HC Molenhoek', '#f4a261', 7, 3, 2, 2, 14, 13, 11],
+      ['Lindeveld HC Wolves', '#0077b6', 7, 3, 1, 3, 13, 14, 10],
+      ['K. Waterakker HC', '#d00000', 7, 2, 2, 3, 11, 15, 8],
+      ['Fontainerieux HC', '#0b6623', 7, 2, 1, 4, 10, 16, 7],
+      ['Espenhove HC', '#005f73', 7, 1, 3, 3, 9, 14, 6],
+      ['Rochefontaine HC', '#bc6c25', 7, 1, 2, 4, 8, 17, 5],
+      ['Klaverbeke HC Cranes', '#588157', 7, 1, 1, 5, 7, 20, 4],
+      ['Bruyèreville HC', '#7209b7', 7, 0, 3, 4, 6, 19, 3],
+    ];
+    const table = T.map(([club, c, p, w, d, l, gf, ga, pts], i) => {
+      const me = club.includes('Berkendael');
+      return {
+        pos: i + 1, club, c, p, w, d, l, gf, ga, pts,
+        bg: me ? 'rgba(31,154,99,0.10)' : 'transparent',
+        fg: me ? '#e6edf3' : '#c8d2db',
+        zone: i < 4 ? '#1f9a63' : i === T.length - 2 ? '#f1c40f' : i === T.length - 1 ? '#e74c3c' : '#5c6b78',
+      };
+    });
+
+    const form = [['W', '#1f9a63'], ['W', '#1f9a63'], ['D', '#3d4852'], ['L', '#e74c3c'], ['W', '#1f9a63']]
+      .map(([r, bg]) => ({ r, bg, fg: bg === '#3d4852' ? '#e6edf3' : '#06080a' }));
+
+    const advice = [
+      ['Give Delcourt the winter minutes', 'He is 20 and developing fastest of the intake; two starts before the break are worth more than a January signing.', '#1f9a63'],
+      ['Your press is costing you legs', 'Full-court in the third quarter has cost 8 % average stamina and two late goals this season. Half-court after the break.', '#f1c40f'],
+      ['Away at Klaverbeke: their PCs', 'They score 40 % of their penalty corners. Concede fewer free hits inside your 23 and the fixture is yours.', '#2f3a44'],
+    ].map(([title, body, rail]) => ({ title, body, rail }));
+
+    const injuries = [
+      ['Lowie Verhaeghe', 'DEF', '11 d', '#e74c3c'],
+      ['Tom Bogaert', 'DEF', '4 d', '#f1c40f'],
+      ['Ruben Van Acker', 'MID', 'fit — light', '#1f9a63'],
+    ].map(([name, role, out, c]) => ({ name, role, out, c }));
+
+    const squad = [
+      [1, 'Bram Vercruysse', '', 'GK', 29, 74, 630, 0, 'FIT', '#7fe3b0'],
+      [2, 'Thibaut Lammens', '(C)', 'DEF', 26, 71, 615, 3, 'FIT', '#7fe3b0'],
+      [3, 'Wout Segers', '', 'DEF', 31, 69, 540, 1, 'FIT', '#7fe3b0'],
+      [4, 'Lowie Verhaeghe', '', 'DEF', 22, 66, 300, 0, '11 D', '#e74c3c'],
+      [5, 'Jonas Pauwels', '', 'DEF', 27, 68, 480, 0, 'FIT', '#7fe3b0'],
+      [6, 'Jasper Dewulf', '', 'MID', 24, 73, 620, 4, 'FIT', '#7fe3b0'],
+      [7, 'Matthias Coppens', '', 'MID', 28, 70, 585, 2, 'TIRED', '#f1c40f'],
+      [8, 'Ruben Van Acker', '', 'MID', 23, 67, 410, 1, 'FIT', '#7fe3b0'],
+      [9, 'Sander Maes', '', 'FWD', 25, 75, 640, 7, 'FIT', '#7fe3b0'],
+      [10, 'Emile Ghislain', '', 'FWD', 30, 69, 505, 3, 'FIT', '#7fe3b0'],
+      [11, 'Nathan Beauclair', '', 'FWD', 24, 66, 390, 2, 'FIT', '#7fe3b0'],
+      [12, 'Arnaud Delcourt', 'YOUTH', 'MID', 20, 62, 180, 1, 'FIT', '#7fe3b0'],
+      [13, 'Kobe Struyf', 'YOUTH', 'GK', 19, 55, 0, 0, 'FIT', '#7fe3b0'],
+      [14, 'Hugo Marchal', 'YOUTH', 'MID', 18, 52, 45, 0, 'FIT', '#7fe3b0'],
+    ].map(([n, name, badge, role, age, ovr, min, goals, status, statusC]) => ({
+      n, name, badge, role, age, ovr, min, goals, status, statusC,
+      bg: name === 'Sander Maes' ? 'rgba(31,154,99,0.10)' : 'transparent',
+      fg: name === 'Sander Maes' ? '#e6edf3' : '#c8d2db',
+    }));
+
+    const attrs = [
+      ['acceleration', 82], ['top speed', 76], ['stick skill', 79], ['reverse hit', 71],
+      ['aerial', 58], ['work rate', 74], ['drag flick', 44],
+    ].map(([k, v]) => ({ k, v, w: v + '%', c: v >= 75 ? '#1f9a63' : v >= 60 ? '#7fe3b0' : v >= 50 ? '#f1c40f' : '#e74c3c' }));
+
+    const report = [
+      ['goals', 3, 1], ['shots', 12, 7], ['circle entries', 19, 11], ['penalty corners', 5, 3],
+      ['possession', '56 %', '44 %'], ['tackles won', 24, 27], ['cards', 1, 2], ['distance (km)', 92.4, 89.1],
+    ].map(([k, a, b]) => {
+      const na = parseFloat(String(a)), nb = parseFloat(String(b));
+      const tot = na + nb || 1;
+      return { k, a, b, aw: Math.round((na / tot) * 46) + '%', bw: Math.round((nb / tot) * 46) + '%',
+        aC: na >= nb ? '#7fe3b0' : '#8b949e', bC: nb > na ? '#e88' : '#8b949e' };
+    });
+
+    const momentum = [2, 3, 1, 2, 4, 3, 2, 1, 3, 5, 4, 6, 5, 3, 4, 2].map((u, i) => {
+      const t = [3, 2, 4, 3, 1, 2, 3, 4, 2, 1, 2, 1, 1, 2, 1, 3][i];
+      return { us: Math.round((u / 8) * 62) + '%', them: Math.round((t / 8) * 32) + '%' };
+    });
+
+    const moments = [
+      ['12:40', 'Their opener came from your own free hit', 'Segers played square into the press. Under pressure inside your 23, the outlet is the sideline, not the centre.', '#e74c3c'],
+      ['33:47', 'Build-up switched to the flanks', 'The single decision that unlocked a zonal block. Note their outside backs never widened.', '#f1c40f'],
+      ['38:04', 'Maes, baseline entry, trailing runner', 'Textbook: entry wide of the keeper, cut-back to the penalty spot. Two more of these are in this squad.', '#1f9a63'],
+      ['46:12', 'Drag flick, high right', 'Their keeper stayed low all match — the scouting note paid off.', '#1f9a63'],
+    ].map(([clock, title, body, rail]) => ({ clock, title, body, rail }));
+
+    const lessons = [
+      ['Free hits inside your own 23', 'Three conceded, two became penalty corners. Drill the sideline outlet under press.'],
+      ['Third-quarter legs', 'Four of your starters dropped below 40 % stamina before the last break. Rotate at 55 %, not 45 %.'],
+      ['Aerials', 'You lost 7 of 9 aerial receptions. On watered turf the flat ball is faster anyway.'],
+    ].map(([title, body]) => ({ title, body }));
+
+    const tagsA = TAGS_A, tagsSim = TAGS_SIM;
+
+    const simModes = [['DIRECTOR', false], ['TACTICAL', true], ['COACH', false]]
+      .map(([label, on]) => ({ label, fg: on ? '#06080a' : '#8b949e', bg: on ? '#d7f5e6' : 'transparent', bd: on ? '#d7f5e6' : '#2f3a44' }));
+
+    const inputs = [
+      ['profile', "men's"], ['turf', 'watered'], ['formation', '4-3-3'], ['press', 'half-court'],
+      ['mentality', 'balanced'], ['tempo', 'normal'], ['rotate below', '55 %'], ['tick rate', '20 Hz'],
+    ].map(([k, v]) => ({ k, v }));
+
+    const simStats = [
+      ['possession', '54 %', '46 %', 54, 46], ['circle entries', 14, 9, 14, 9], ['shots', 9, 6, 9, 6],
+      ['PCs', 4, 2, 4, 2], ['tackles won', 18, 21, 18, 21], ['avg stamina', '61 %', '68 %', 61, 68],
+    ].map(([k, a, b, na, nb]) => {
+      const tot = na + nb || 1;
+      return { k, a, b, aw: Math.round((na / tot) * 44) + '%', bw: Math.round((nb / tot) * 44) + '%' };
+    });
+
+    const simLog = [
+      ['41:20', 'Free hit Sartcourt, own 23 — outlet under press.', '#e6edf3'],
+      ['40:58', 'Tackle won, Lammens. Turnover in their half.', '#7fe3b0'],
+      ['39:31', 'Rolling sub: Delcourt on for Coppens (stamina 34 %).', '#8b949e'],
+      ['38:04', 'GOAL Berkendael — Maes, baseline entry. 2–1.', '#7fe3b0'],
+      ['36:12', 'Penalty corner Berkendael — drag flick, saved.', '#f1c40f'],
+      ['35:00', 'Quarter 3 begins. You switched build-up to the flanks.', '#c8d2db'],
+      ['33:47', 'Green card, Sartcourt #7 — obstruction.', '#8b949e'],
+    ].map(([t, s, c]) => ({ t, s, c }));
+
+    const speeds = [['1×', true], ['2×', false], ['4×', false], ['SIM TO FT', false]]
+      .map(([label, on]) => ({ label, fg: on ? '#06080a' : '#c8d2db', bg: on ? '#1f9a63' : 'transparent', bd: on ? '#1f9a63' : '#2f3a44' }));
+
+    const markers = [[9, '#e63946'], [17, '#f1c40f'], [24, '#1f9a63'], [33, '#8b949e'], [42, '#f1c40f'], [48, '#1f9a63'], [54, '#8b949e'], [57, '#f1c40f']]
+      .map(([p, c]) => ({ left: p + '%', c }));
+
+    const steps = [
+      ['1', 'Generate a world', 'Two tiers, twenty seasons of invented history. Takes eight seconds.', '#1f9a63'],
+      ['2', 'Pick your club', 'Crest, kit, honours, a squad with real problems. Yours from the first whistle.', '#7fe3b0'],
+      ['3', 'Coach Saturday', 'Tactics, the PC battery, rotation on legs — then the report that teaches.', '#f1c40f'],
+    ].map(([n, title, body, nC]) => ({ n, title, body, nC }));
+
+    const cams = [
+      ['broadcast', 'open', 'none', 'Broadcast 52°', 'The default match camera — the whole pitch, angled like a TV gantry. Shape stays readable.'],
+      ['lowAngle', 'pc', 'circle', 'Low angle', 'Drops to bench height for penalty corners and strokes. Used for the eight seconds before a set piece.'],
+      ['behindGoal', 'pc', 'none', 'Behind the goal', 'The defender\u2019s view of an incoming corner — reads the battery and the runners the way a keeper does.'],
+      ['goalmouth', 'goal', 'none', 'Goal mouth', 'Top-down close on the circle for goals and saves; the replay beat right after the ball crosses.'],
+      ['circle', 'pc', 'circle', 'Shooting circle', 'Tactical crop of the attacking 23 — the coaching-analysis camera, no tilt, true distances.'],
+      ['cornerCam', 'goal', 'none', 'Corner flag', 'Diagonal from the flag for long corners and baseline entries; the most cinematic of the set.'],
+    ].map(([id, preset, overlay, title, body]) => ({ id, preset, overlay, title, body }));
+
+    const camChips = [['FULL', true], ['BROADCAST', false], ['CIRCLE', false], ['GOAL', false], ['BEHIND', false]]
+      .map(([label, on]) => ({ label, fg: on ? '#06080a' : '#8b949e', bg: on ? '#7fe3b0' : 'rgba(6,9,12,0.75)', bd: on ? '#7fe3b0' : '#232a31' }));
+
+    return { m98: 9.8, m59: 5.9, m9: 9, steps, cams, camChips, tagsA, tagsSim, simModes, inputs, simStats, simLog, speeds, markers,
+      legs, dials, liveStats, logLines, menu, onboard, setup, genStats, ledger, clubCards, clubKpis,
+      nav, tabs, table, form, advice, injuries, squad, attrs, report, momentum, moments, lessons };
+  }
+}
+</script>
+</body>
+</html>

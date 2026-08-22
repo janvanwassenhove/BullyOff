@@ -17,5 +17,5 @@ Format: **Context** (the forces) → **Options** (what was seriously considered)
 | [009](ADR-009-i18n.md) | i18n approach — NL/EN/FR from day one | Accepted |
 | [010](ADR-010-testing-strategy.md) | Testing strategy: unit, determinism, calibration, situational | Accepted |
 | [011](ADR-011-multiplayer-posture.md) | Multiplayer posture: server-authoritative, never P2P lockstep | Accepted |
-| [012](ADR-012-art-direction-and-asset-pipeline.md) | Art direction and asset pipeline | Accepted |
+| [012](ADR-012-art-direction-and-asset-pipeline.md) | Art direction and asset pipeline | Accepted · Amendment 1 (2026-08-22): self-hosted Barlow / Barlow Condensed / IBM Plex Mono + commercial token layer |
 | [013](ADR-013-presentation-and-camera.md) | Presentation and camera language | Accepted |

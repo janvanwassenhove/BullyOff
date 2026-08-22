@@ -1,0 +1,24 @@
+{
+  "name": "@bullyoff/insight",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Pure, deterministic match/season analyser: typed findings for the learning layer (coach read, advisories, post-match report). Never rendered strings.",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@bullyoff/engine": "workspace:*",
+    "@bullyoff/rules": "workspace:*",
+    "@bullyoff/season": "workspace:*",
+    "@bullyoff/shared": "workspace:*"
+  }
+}

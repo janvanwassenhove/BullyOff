@@ -41,3 +41,17 @@ Assets needed: a pitch (turf, lines, circles, goals, dugouts, sideline furniture
 - **Open question 5 becomes a hard dependency of Phase 5**: the rigged models must exist before the pose list can be rendered. Placeholder capsule sprites unblock engineering until then — the composition/tint architecture is identical.
 - We accept larger asset payloads than vector art (budget: < 4 MB for all sprite atlases at 1×). Measured in Phase 5.
 - What we explicitly do not build: faces, cloth sim, per-club bespoke art, 3D camera angles.
+
+## Amendment 1 — 2026-08-22: typography and the commercial design layer
+
+**Supersedes §6's "no webfont weight in the perf budget."** The commercial redesign (`docs/design/handoff/README.md`) sets two Google faces plus a mono role, self-hosted:
+
+- `--font-display`: Barlow Condensed 600/700 — wordmark, titles, scores, numerics, buttons (always tracked 0.02–0.16 em, buttons uppercase 0.08–0.10 em).
+- `--font-sans`: Barlow 400/500 — body, tables.
+- `--font-mono`: IBM Plex Mono 400/500 — eyebrows (10 px / 0.18 em / uppercase), clocks, ticks, stat readouts, chips.
+
+Served from `apps/manager/public/fonts` as Google's **latin** subsets (SIL OFL), `font-display: swap`, precached by the PWA like any other asset — no request leaves the app (ADR-006 unchanged). **Measured weight: 6 files, 119 kB total** (Barlow ≈ 22 kB per weight, Plex Mono ≈ 15 kB), not the ~30 kB the handoff estimated; accepted because the faces carry the whole visual identity and the two first-paint faces are preloaded. If the budget bites on phones, drop Barlow 500 and Plex Mono 500 (−37 kB) before anything else.
+
+The redesign also adds a second token layer in `tokens.css` (`--ink/--bg/--panel…`, `--fg-*`, `--accent*`, `--signal`, `--danger`, `--turf/--turf-alt`, radii, motion durations) next to the original `--color-*` tokens, which stay for existing code. Dark theme only: the old light `prefers-color-scheme` override is removed (it painted white panels on the ink page) and `index.html` declares `color-scheme: dark`. Motion: `bo-rise`, `bo-pulse`, `bo-sweep` in `base.css`, disabled under `prefers-reduced-motion`.
+
+§4 (procedural pitch from metre coordinates) and §1–3 (layered, tinted sprites) are unchanged; the handoff's pitch renderer and seven-angle camera are implemented in `packages/render` as a projection (ADR-013), never as CSS transforms.

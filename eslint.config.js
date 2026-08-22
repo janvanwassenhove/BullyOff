@@ -47,7 +47,7 @@ const engineRestrictedGlobals = [
 
 export default defineConfig(
   {
-    ignores: [
+    ignores: ['docs/**',
       '**/node_modules/**',
       '**/dist/**',
       'tools/icons/**',

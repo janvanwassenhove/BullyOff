@@ -178,4 +178,6 @@ export interface RulesState {
   /** How the ball was last touched — stick or body — and whether that touch was inside the toucher's own circle (intent heuristic). */
   lastTouchKind: 'stick' | 'body' | null;
   lastTouchInOwnCircle: boolean;
+  /** Last player of each team to play the ball with the stick — the goal is credited to them even when it deflects in off a defender or the keeper. */
+  lastStickTouch: [PlayerId | null, PlayerId | null];
 }

@@ -18,8 +18,8 @@ export default defineConfig({
         name: 'BULLY OFF — hockey coach',
         short_name: 'BULLY OFF',
         description: 'Field-hockey coach/manager on a deterministic match engine. Fictional world, fully offline.',
-        theme_color: '#0e1116',
-        background_color: '#0e1116',
+        theme_color: '#06080a',
+        background_color: '#06080a',
         display: 'standalone',
         orientation: 'any',
         lang: 'en',
@@ -32,7 +32,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,json,woff2}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,json,woff2,webp}'],
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024, // the engine+season worker chunks are large-ish
         navigateFallback: `${base}index.html`,
         cleanupOutdatedCaches: true,
