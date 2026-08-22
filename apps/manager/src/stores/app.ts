@@ -5,10 +5,11 @@
  */
 import { defineStore } from 'pinia';
 import type { CameraChoice, OverlayId } from '@bullyoff/render';
+import type { TopicId as AcademyTopic } from '../lib/academy';
 
 export type Screen =
   | 'intro' | 'title' | 'newCareer' | 'clubSelect'
-  | 'season' | 'squad' | 'tactics' | 'club' | 'rulebook'
+  | 'season' | 'squad' | 'tactics' | 'club' | 'rulebook' | 'academy'
   | 'coach' | 'report' | 'viewer' | 'about';
 
 interface AppState {
@@ -22,6 +23,8 @@ interface AppState {
   selectedPerson: number | null;
   /** Which club card is selected on the club-selection screen. */
   selectedClub: string | null;
+  /** Academy topic to open the wizard on (from the report's coach hints). */
+  academyFocus: AcademyTopic | null;
   /** Rule card to scroll to when the rulebook opens (e.g. 'rules.selfPass23'). */
   ruleFocus: string | null;
 }
@@ -42,10 +45,11 @@ export const useAppStore = defineStore('app', {
     selectedPerson: null,
     selectedClub: null,
     ruleFocus: null,
+    academyFocus: null,
   }),
   getters: {
     /** The season-hub family of screens shares the app bar + club bar. */
-    inHub: (s): boolean => ['season', 'squad', 'tactics', 'club', 'rulebook'].includes(s.screen),
+    inHub: (s): boolean => ['season', 'squad', 'tactics', 'club', 'rulebook', 'academy'].includes(s.screen),
     savedClock(): string | null {
       if (!this.savedAt) return null;
       const d = new Date(this.savedAt);
@@ -54,6 +58,8 @@ export const useAppStore = defineStore('app', {
   },
   actions: {
     go(screen: Screen): void { this.screen = screen; },
+    /** Open the academy on a topic (from the report's coach hints). */
+    openAcademy(topic: AcademyTopic | null): void { this.academyFocus = topic; this.screen = 'academy'; },
     /** Open the rulebook on a rule (from the report's READ THE RULE → or the engine view). */
     openRule(key: string | null): void { this.ruleFocus = key; this.screen = 'rulebook'; },
     skipIntro(): void { this.intro.seen = true; this.intro.filmPlaying = false; write(KEY_INTRO, '1'); if (this.screen === 'intro') this.screen = 'title'; },

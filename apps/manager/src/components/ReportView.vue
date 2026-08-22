@@ -8,6 +8,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { analyse, matchSheet, momentum, type Finding } from '@bullyoff/insight';
+import { topicForFinding } from '../lib/academy';
 import type { MatchView } from '@bullyoff/render';
 import { useAppStore } from '../stores/app';
 import { useMatchStore } from '../stores/match';
@@ -30,6 +31,17 @@ const findings = computed<Finding[]>(() => (lm.value ? analyse(lm.value.log, lm.
 const well = computed(() => findings.value.filter((f) => f.section === 'well'));
 const lessons = computed(() => findings.value.filter((f) => f.section === 'lesson').slice(0, 3));
 const rule = computed(() => findings.value.find((f) => f.section === 'rule') ?? null);
+/**
+ * Coach hints: the short version. A lesson card explains; a hint tells you the one thing to do next
+ * and hands you the academy topic that covers it. A finding qualifies exactly when it maps to a
+ * topic — `academy.test.ts` holds the two sides together, so every mapped kind has a `hint` string
+ * in all three languages and every hinted kind has somewhere to go.
+ */
+const hints = computed(() => findings.value
+  .filter((f) => f.section === 'lesson' || f.section === 'coachRead')
+  .map((f) => ({ key: `${f.kind}-${f.tick}`, i18nKey: f.i18nKey, params: f.params, topic: topicForFinding(f.kind) }))
+  .filter((h) => h.topic !== null)
+  .slice(0, 3));
 const moments = computed(() => findings.value.filter((f) => f.section === 'moment').slice(0, 6));
 const sheet = computed(() => (lm.value ? matchSheet(lm.value.log, lm.value.coachTeam) : []));
 const mom = computed(() => (lm.value ? momentum(lm.value.log, lm.value.coachTeam) : []));
@@ -209,6 +221,21 @@ onMounted(() => { if (!lm.value) app.go('season'); });
             class="wbody"
           >{{ t('report.didWellNone') }}</span>
         </div>
+        <div
+          v-if="hints.length"
+          class="blk hairline-t"
+        >
+          <span class="eyebrow eyebrow-signal">{{ t('report.hints') }}</span>
+          <button
+            v-for="h in hints"
+            :key="h.key"
+            class="hint"
+            @click="app.openAcademy(h.topic)"
+          >
+            <span class="htext">{{ t(h.i18nKey + '.hint', h.params) }}</span>
+            <span class="hgo">{{ t('academy.fromReport') }} →</span>
+          </button>
+        </div>
         <div class="blk hairline-t">
           <span class="eyebrow">{{ t('report.workOn') }}</span>
           <span
@@ -289,6 +316,10 @@ onMounted(() => { if (!lm.value) app.go('season'); });
 .blk.hairline-t { padding-top: 16px; }
 .wtitle { font-family: var(--font-display); font-size: 24px; font-weight: 600; letter-spacing: 0.02em; line-height: 1.15; }
 .wbody { font-size: 14px; color: var(--fg-3); line-height: 1.6; }
+.hint { display: flex; align-items: baseline; gap: 10px; text-align: left; background: none; border: 0; padding: 7px 0; cursor: pointer; border-bottom: 1px solid var(--line); }
+.hint:last-of-type { border-bottom: 0; }
+.htext { font-size: 13px; color: var(--fg-2); line-height: 1.5; flex: 1; }
+.hgo { font-size: 10.5px; letter-spacing: 0.08em; color: var(--signal); white-space: nowrap; }
 .lesson { display: flex; flex-direction: column; gap: 3px; }
 .ltitle { font-family: var(--font-display); font-size: 17px; font-weight: 600; }
 .lbody { font-size: 13.5px; color: var(--fg-3); line-height: 1.5; }
