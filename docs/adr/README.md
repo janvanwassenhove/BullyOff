@@ -19,3 +19,4 @@ Format: **Context** (the forces) → **Options** (what was seriously considered)
 | [011](ADR-011-multiplayer-posture.md) | Multiplayer posture: server-authoritative, never P2P lockstep | Accepted |
 | [012](ADR-012-art-direction-and-asset-pipeline.md) | Art direction and asset pipeline | Accepted · Amendment 1 (2026-08-22): self-hosted Barlow / Barlow Condensed / IBM Plex Mono + commercial token layer |
 | [013](ADR-013-presentation-and-camera.md) | Presentation and camera language | Accepted |
+| [014](ADR-014-adaptive-play-and-learning.md) | Adaptive play and learning, without giving up determinism | Proposed |
