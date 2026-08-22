@@ -29,7 +29,7 @@ export function createRulesState(firstCentrePassTeam: TeamId, opts: RulesStartOp
     score: live?.score ? [live.score[0], live.score[1]] : [0, 0], restart: null, ballDead: !live, firstCentrePassTeam,
     attackerTouchInCircle: [false, false], suspensions: [], personalFouls: {}, teamFouls: [0, 0],
     lastRestartTaker: null, pcActive: false, pcFirstShot: null, pcTeam: null,
-    psActive: false, psTeam: null, psShotTick: null, pending23: null, lastTouchKind: null, lastTouchInOwnCircle: false,
+    psActive: false, psTeam: null, psShotTick: null, pending23: null, lastTouchKind: null, lastTouchInOwnCircle: false, lastStickTouch: [null, null],
     pcTakenTick: null,
   };
 }
@@ -273,6 +273,7 @@ export function stepRules(s: RulesState, laws: Laws, view: RulesView, sig: TickS
   const lastBody = sig.bodyContacts[sig.bodyContacts.length - 1];
   if (lastStrike) {
     s.lastTouchKind = 'stick';
+    s.lastStickTouch[lastStrike.team] = lastStrike.playerId;
     s.lastTouchInOwnCircle = inCircle(lastStrike.at, attackingEnd(otherTeam(lastStrike.team)));
   } else if (lastBody) {
     s.lastTouchKind = 'body';
@@ -409,7 +410,7 @@ function endPs(s: RulesState, out: Ruling[], scored: boolean): void {
 function scoreGoal(s: RulesState, laws: Laws, view: RulesView, team: TeamId, end: End, out: Ruling[]): void {
   const fromPC = s.pcActive, fromPS = s.psActive;
   s.score[team]++;
-  out.push({ kind: 'goal', team, scorerId: view.ball.lastTouchTeam === team ? view.ball.lastTouch : null, end, fromPC, fromPS });
+  out.push({ kind: 'goal', team, scorerId: view.ball.lastTouchTeam === team ? view.ball.lastTouch : s.lastStickTouch[team], end, fromPC, fromPS });
   if (fromPC) endPc(s, out, 'goal');
   if (fromPS) endPs(s, out, true);
   // Restart: centre pass by the team that conceded. FIH 8.2 / 6.

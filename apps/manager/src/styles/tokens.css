@@ -1,10 +1,15 @@
 /*
  * BULLY OFF design tokens. Hand-rolled — no CSS framework (BRIEF §4.1).
  * Palette is anchored on water-based turf blue/green and the white ball;
- * ADR-012 owns the wider art direction. Only tokens live here, never rules.
+ * ADR-012 (amended 2026-08-22) owns the wider art direction. Only tokens live
+ * here, never rules — @font-face is in fonts.css, keyframes in base.css.
+ *
+ * Two layers: the original `--color-*` / `--text-*` tokens (other code depends
+ * on them, keep them) and the commercial-redesign layer (`--ink`, `--panel`,
+ * `--fg-*`, `--accent*`, `--font-display`, …) from docs/design/handoff/README.md.
  */
 :root {
-  /* colour */
+  /* ── colour (original layer) ─────────────────────────────────────────── */
   --color-turf-900: #0b3d2e;
   --color-turf-700: #146b4a;
   --color-turf-500: #1f9a63;
@@ -22,9 +27,38 @@
   --color-fg-muted: #8b949e;
   --color-border: #30363d;
 
-  /* type */
-  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  /* ── surfaces & lines (commercial layer, dark) ───────────────────────── */
+  --ink: #06080a;            /* page background, outside frames */
+  --bg: #0a0d10;             /* screen frame background */
+  --panel: #0b0f13;          /* panels, rails, cards */
+  --panel-2: #0d1216;        /* header bars, elevated strips */
+  --hairline: #232a31;       /* 1px borders, dividers */
+  --hairline-soft: #171d23;  /* internal section dividers */
+  --row-line: #141a20;       /* table row separators */
+  --line-strong: #2f3a44;    /* secondary button borders */
+
+  /* ── text ────────────────────────────────────────────────────────────── */
+  --fg: #e6edf3;             /* primary text */
+  --fg-2: #c8d2db;           /* table body text */
+  --fg-3: #a6b2bd;           /* paragraph / supporting text */
+  --fg-muted: #8b949e;       /* labels */
+  --fg-dim: #5c6b78;         /* eyebrow / mono labels */
+  --fg-faint: #3f4b56;       /* placeholder captions */
+
+  /* ── semantic ────────────────────────────────────────────────────────── */
+  --accent: #1f9a63;         /* primary action, positive */
+  --accent-soft: #7fe3b0;    /* accent text on dark, links */
+  --accent-pale: #d7f5e6;    /* active pill fill, wordmark */
+  --signal: #f1c40f;         /* attention / learning layer */
+  --danger: #e74c3c;         /* relegation, injury, error */
+  --turf: #0f2b23;           /* pitch base */
+  --turf-alt: #123227;       /* pitch mow stripe */
+  --form-draw: #3d4852;      /* form square: draw */
+
+  /* ── type ────────────────────────────────────────────────────────────── */
+  --font-display: "Barlow Condensed", "Barlow", system-ui, sans-serif;            /* 600/700 — wordmark, titles, scores, numerics, buttons; always tracked 0.02–0.16em */
+  --font-sans: "Barlow", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; /* 400/500 — body, paragraphs, tables */
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;    /* 400/500 — eyebrows, clocks, ticks, stat readouts, chips */
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
   --text-base: 1rem;
@@ -32,8 +66,14 @@
   --text-xl: 1.25rem;
   --text-2xl: 1.5rem;
   --text-3xl: 2rem;
+  /* tracking roles */
+  --track-eyebrow: 0.18em;   /* mono 10px uppercase eyebrows */
+  --track-eyebrow-wide: 0.22em;
+  --track-button: 0.10em;    /* display buttons, uppercase */
+  --track-display: 0.06em;   /* wordmark, nav, chips */
+  --track-tight: 0.02em;
 
-  /* space (4 px grid) */
+  /* ── space (4 px grid) ───────────────────────────────────────────────── */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -42,21 +82,23 @@
   --space-8: 2rem;
   --space-12: 3rem;
 
-  /* radius / shadow */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 14px;
+  /* ── radius / shadow ─────────────────────────────────────────────────── */
+  --radius-chip: 3px;
+  --radius-sm: 4px;          /* small buttons 4–5 */
+  --radius-md: 8px;          /* buttons, cards 6–8 */
+  --radius-panel: 10px;      /* panels 9–10 */
+  --radius-lg: 14px;         /* screen frames 12–14 */
+  --radius-pill: 999px;
   --shadow-1: 0 1px 2px rgb(0 0 0 / 0.4);
   --shadow-2: 0 4px 12px rgb(0 0 0 / 0.45);
+  --shadow-marker: 0 1px 3px rgba(0, 0, 0, 0.5);          /* player markers */
+  --glow-ball: 0 0 10px rgba(244, 241, 232, 0.5);          /* ball glow */
+
+  /* ── motion (restrained, one accent at a time) ───────────────────────── */
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur-screen: 180ms;       /* screen cross-fade */
+  --dur-rise: 500ms;         /* bo-rise */
+  --dur-pulse: 1.6s;         /* bo-pulse */
+  --dur-sweep: 1.8s;         /* bo-sweep */
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    --color-bg: #f7f9fb;
-    --color-bg-elevated: #ffffff;
-    --color-fg: #101418;
-    --color-fg-muted: #57606a;
-    --color-border: #d0d7de;
-    --color-turf-100: #0b3d2e;
-  }
-}

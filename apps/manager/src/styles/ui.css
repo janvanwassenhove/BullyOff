@@ -1,0 +1,78 @@
+/*
+ * Shared UI primitives for the commercial redesign (docs/design/handoff/README.md).
+ * Classes only — values come from tokens.css. Components keep screen-specific
+ * layout in their own <style scoped>; these are the recurring atoms.
+ */
+
+/* ── type roles ─────────────────────────────────────────────────────────── */
+.display { font-family: var(--font-display); font-weight: 600; letter-spacing: var(--track-display); line-height: 1.1; }
+.display-700 { font-family: var(--font-display); font-weight: 700; letter-spacing: var(--track-display); line-height: 1; }
+.mono { font-family: var(--font-mono); }
+.eyebrow { font-family: var(--font-mono); font-size: 10px; letter-spacing: var(--track-eyebrow); text-transform: uppercase; color: var(--fg-dim); }
+.eyebrow-signal { color: var(--signal); }
+.eyebrow-accent { color: var(--accent-soft); }
+.eyebrow-11 { font-size: 11px; letter-spacing: 0.14em; }
+.body-3 { color: var(--fg-3); line-height: 1.5; }
+.muted { color: var(--fg-muted); }
+.dim { color: var(--fg-dim); }
+
+/* ── buttons (display face, uppercase, tracked) ─────────────────────────── */
+.btn { font-family: var(--font-display); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; border-radius: 6px; border: 1px solid transparent; cursor: pointer; font-size: 15px; padding: 12px 18px; line-height: 1; color: var(--fg); background: transparent; transition: border-color 120ms, background 120ms, color 120ms; white-space: nowrap; }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn-primary { color: var(--ink); background: var(--accent); border-color: var(--accent); font-weight: 700; letter-spacing: var(--track-button); }
+.btn-primary:not(:disabled):hover { background: #23ad70; }
+.btn-secondary { color: var(--fg); background: transparent; border-color: var(--line-strong); }
+.btn-secondary:not(:disabled):hover { border-color: var(--accent); }
+.btn-ghost { color: var(--fg); background: rgba(6, 9, 12, 0.6); border-color: var(--line-strong); }
+.btn-pale { color: var(--ink); background: var(--accent-pale); border-color: var(--accent-pale); }
+.btn-hero { font-size: 21px; font-weight: 700; letter-spacing: var(--track-button); padding: 17px 34px; border-radius: 8px; }
+.btn-lg { font-size: 19px; font-weight: 700; letter-spacing: var(--track-button); padding: 15px 24px; border-radius: 7px; }
+.btn-md { font-size: 17px; font-weight: 700; letter-spacing: var(--track-button); padding: 12px 22px; }
+.btn-sm { font-size: 14px; padding: 7px 12px; border-radius: 5px; }
+.btn-xs { font-size: 13px; padding: 6px 0; border-radius: 4px; letter-spacing: 0.06em; }
+.btn-block { width: 100%; }
+
+/* ── chips / pills ──────────────────────────────────────────────────────── */
+.chip { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; border-radius: var(--radius-chip); padding: 3px 6px; border: 1px solid var(--hairline); color: var(--fg-muted); white-space: nowrap; }
+.chip-accent { color: var(--accent-soft); background: rgba(31, 154, 99, 0.18); border-color: transparent; }
+.chip-signal { color: var(--signal); background: rgba(241, 196, 15, 0.14); border-color: transparent; }
+.chip-signal-line { color: var(--signal); border-color: #6b5a12; }
+.chip-fill { color: var(--ink); background: var(--accent-soft); border-color: var(--accent-soft); }
+.chip-line-accent { color: var(--accent-soft); border-color: var(--accent); padding: 5px 9px; }
+.chip-11 { font-size: 11px; letter-spacing: 0.12em; padding: 5px 9px; border-radius: 4px; }
+.chip-on { color: var(--ink); background: var(--accent-pale); border-color: var(--accent-pale); }
+.chip-mode { font-size: 10px; letter-spacing: 0.12em; padding: 4px 8px; background: rgba(6, 9, 12, 0.75); cursor: pointer; }
+.chip-mode.on { color: var(--ink); background: var(--accent-soft); border-color: var(--accent-soft); }
+.pill-tab { font-family: var(--font-display); font-weight: 600; font-size: 14px; letter-spacing: var(--track-button); text-transform: uppercase; color: var(--fg-2); background: transparent; border: 1px solid var(--line-strong); border-radius: 5px; padding: 7px 14px; cursor: pointer; }
+.pill-tab.on { color: var(--ink); background: var(--accent-pale); border-color: var(--accent-pale); }
+.choice { font-family: var(--font-display); font-weight: 600; font-size: 15px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg-2); background: transparent; border: 1px solid var(--line-strong); border-radius: 5px; padding: 8px 14px; cursor: pointer; }
+.choice.on { color: var(--ink); background: var(--accent); border-color: var(--accent); }
+.choice:disabled { opacity: 0.5; cursor: default; }
+
+/* ── surfaces ───────────────────────────────────────────────────────────── */
+.panel { background: var(--panel); border: 1px solid var(--hairline); border-radius: var(--radius-panel); }
+.panel-2 { background: var(--panel-2); border: 1px solid var(--hairline); border-radius: 8px; }
+.frame { background: var(--bg); border: 1px solid var(--hairline); border-radius: var(--radius-lg); overflow: hidden; }
+.hairline-t { border-top: 1px solid var(--hairline-soft); }
+.rail { border-left: 2px solid var(--line-strong); padding-left: 12px; }
+.rail-accent { border-left-color: var(--accent); }
+.rail-signal { border-left-color: var(--signal); }
+.rail-danger { border-left-color: var(--danger); }
+.grow { flex: 1; }
+.vdiv { width: 1px; background: var(--hairline); align-self: stretch; }
+
+/* ── bars ───────────────────────────────────────────────────────────────── */
+.bar { height: 4px; background: #1b2127; border-radius: 2px; position: relative; overflow: hidden; }
+.bar > i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: var(--accent); }
+.bar-3 { height: 3px; }
+.bar-5 { height: 5px; border-radius: 3px; }
+
+/* ── form controls ──────────────────────────────────────────────────────── */
+select.ui, input.ui { font: inherit; font-family: var(--font-mono); font-size: 13px; color: var(--fg); background: var(--bg); border: 1px solid var(--line-strong); border-radius: 6px; padding: 8px 10px; }
+.kit-rail { width: 4px; align-self: stretch; }
+.dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* ── screen transitions (180 ms cross-fade; the score bug never animates during play) ── */
+.fade-enter-active, .fade-leave-active { transition: opacity var(--dur-screen) ease-out; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }

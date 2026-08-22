@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="position:relative; width:{{ boxW }}; height:{{ boxH }}; background:#08120e; overflow:hidden">
+  <div style="position:absolute; left:{{ offX }}; top:{{ offY }}; width:{{ fieldW }}; height:{{ fieldH }}; background:{{ stripes }}; transform:{{ tilt }}; transform-origin:{{ origin }}">
+    <div style="position:absolute; inset:0; border:1px solid rgba(240,255,248,0.55)"></div>
+    <div style="position:absolute; left:{{ centre }}; top:0; bottom:0; width:1px; background:rgba(240,255,248,0.5)"></div>
+    <div style="position:absolute; left:{{ line23a }}; top:0; bottom:0; width:1px; background:rgba(240,255,248,0.5)"></div>
+    <div style="position:absolute; left:{{ line23b }}; top:0; bottom:0; width:1px; background:rgba(240,255,248,0.5)"></div>
+
+    <div style="position:absolute; left:0; top:{{ dTop }}; width:{{ dDepth }}; height:{{ dSpan }}; border:1px solid rgba(240,255,248,0.62); border-left:none; border-radius:0 {{ dRadius }} {{ dRadius }} 0"></div>
+    <div style="position:absolute; right:0; top:{{ dTop }}; width:{{ dDepth }}; height:{{ dSpan }}; border:1px solid rgba(240,255,248,0.62); border-right:none; border-radius:{{ dRadius }} 0 0 {{ dRadius }}"></div>
+    <div style="position:absolute; left:0; top:{{ dashTop }}; width:{{ dashDepth }}; height:{{ dashSpan }}; border:1px dashed rgba(240,255,248,0.26); border-left:none; border-radius:0 {{ dashRadius }} {{ dashRadius }} 0"></div>
+    <div style="position:absolute; right:0; top:{{ dashTop }}; width:{{ dashDepth }}; height:{{ dashSpan }}; border:1px dashed rgba(240,255,248,0.26); border-right:none; border-radius:{{ dashRadius }} 0 0 {{ dashRadius }}"></div>
+
+    <div style="position:absolute; left:{{ goalOut }}; top:{{ goalTop }}; width:{{ goalDepth }}; height:{{ goalSpan }}; background:rgba(240,255,248,0.14); border:1px solid rgba(240,255,248,0.8)"></div>
+    <div style="position:absolute; right:{{ goalOut }}; top:{{ goalTop }}; width:{{ goalDepth }}; height:{{ goalSpan }}; background:rgba(240,255,248,0.14); border:1px solid rgba(240,255,248,0.8)"></div>
+    <div style="position:absolute; left:{{ spotA }}; top:{{ spotY }}; width:{{ spotSize }}; height:{{ spotSize }}; border-radius:50%; background:rgba(240,255,248,0.7)"></div>
+    <div style="position:absolute; left:{{ spotB }}; top:{{ spotY }}; width:{{ spotSize }}; height:{{ spotSize }}; border-radius:50%; background:rgba(240,255,248,0.7)"></div>
+
+    <sc-for list="{{ marks }}" as="m" hint-placeholder-count="0">
+      <div style="position:absolute; left:0; top:{{ m.top }}; width:{{ m.w }}; height:1px; background:rgba(240,255,248,0.4)"></div>
+    </sc-for>
+
+    <sc-for list="{{ overlays }}" as="o" hint-placeholder-count="0">
+      <div style="position:absolute; left:{{ o.left }}; top:{{ o.top }}; width:{{ o.w }}; height:{{ o.h }}; background:{{ o.bg }}; border-left:{{ o.bl }}; border-radius:{{ o.r }}"></div>
+    </sc-for>
+
+    <sc-for list="{{ shadows }}" as="s" hint-placeholder-count="0">
+      <div style="position:absolute; left:{{ s.left }}; top:{{ s.top }}; width:{{ s.d }}; height:{{ s.dh }}; border-radius:50%; background:rgba(0,0,0,0.34)"></div>
+    </sc-for>
+
+    <sc-for list="{{ players }}" as="p" hint-placeholder-count="0">
+      <div style="position:absolute; left:{{ p.left }}; top:{{ p.top }}; width:{{ p.d }}; height:{{ p.d }}; border-radius:50%; background:{{ p.c }}; border:1.5px solid {{ p.bc }}; box-shadow:0 1px 3px rgba(0,0,0,0.5)"></div>
+    </sc-for>
+
+    <div style="position:absolute; left:{{ ballLeft }}; top:{{ ballTop }}; width:{{ ballD }}; height:{{ ballD }}; border-radius:50%; background:#f4f1e8; box-shadow:0 0 0 1px rgba(0,0,0,0.4), 0 0 10px rgba(244,241,232,0.5)"></div>
+  </div>
+
+  <div style="position:absolute; inset:0; background:{{ sheen }}; pointer-events:none"></div>
+
+  <sc-for list="{{ tags }}" as="t" hint-placeholder-count="0">
+    <div style="position:absolute; left:{{ t.left }}; top:{{ t.top }}; font-family:'IBM Plex Mono',ui-monospace,monospace; font-size:10px; letter-spacing:0.14em; color:{{ t.c }}; background:rgba(6,9,12,0.72); border:1px solid {{ t.bd }}; border-radius:3px; padding:3px 7px; white-space:nowrap">{{ t.label }}</div>
+  </sc-for>
+
+  <div style="position:absolute; left:12px; bottom:10px; font-family:'IBM Plex Mono',ui-monospace,monospace; font-size:9px; letter-spacing:0.16em; color:{{ camLabelC }}">{{ camLabel }}</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:880,&quot;height&quot;:530},&quot;camera&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;full&quot;,&quot;half&quot;,&quot;circle&quot;,&quot;goalmouth&quot;,&quot;broadcast&quot;,&quot;lowAngle&quot;,&quot;behindGoal&quot;,&quot;cornerCam&quot;],&quot;default&quot;:&quot;full&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Camera&quot;},&quot;preset&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;open&quot;,&quot;press&quot;,&quot;pc&quot;,&quot;goal&quot;],&quot;default&quot;:&quot;open&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Scene&quot;},&quot;overlay&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;none&quot;,&quot;press&quot;,&quot;channels&quot;,&quot;circle&quot;],&quot;default&quot;:&quot;none&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Scene&quot;},&quot;metre&quot;:{&quot;editor&quot;:&quot;float&quot;,&quot;default&quot;:9,&quot;min&quot;:3,&quot;max&quot;:16,&quot;step&quot;:0.5,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Geometry&quot;},&quot;pad&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:0,&quot;min&quot;:0,&quot;max&quot;:40,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Geometry&quot;},&quot;viewW&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:0,&quot;min&quot;:0,&quot;max&quot;:1440,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Geometry&quot;},&quot;viewH&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:0,&quot;min&quot;:0,&quot;max&quot;:900,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Geometry&quot;},&quot;homeColour&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#1d3557&quot;,&quot;options&quot;:[&quot;#1d3557&quot;,&quot;#1f9a63&quot;,&quot;#6a0dad&quot;,&quot;#0077b6&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Kits&quot;},&quot;awayColour&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#e63946&quot;,&quot;options&quot;:[&quot;#e63946&quot;,&quot;#f4a261&quot;,&quot;#ffb703&quot;,&quot;#111111&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Kits&quot;},&quot;hideCamLabel&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Camera&quot;},&quot;tags&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;{label:string;x:number;y:number;c?:string;bd?:string}[]&quot;}}">
+const L = 91.4, W = 55, D_R = 14.63, GOAL = 3.66, SPOT = 6.4, LINE23 = 22.9;
+
+const PRESETS = {
+  open: {
+    ball: [55, 24],
+    home: [[2, 27.5], [14, 12], [14, 22], [14, 33], [14, 43], [33, 10], [35, 27.5], [33, 45], [52, 16], [54, 27.5], [52, 39]],
+    away: [[89.4, 27.5], [78, 14], [78, 24], [78, 35], [78, 42], [60, 12], [58, 27.5], [60, 43], [40, 18], [38, 27.5], [40, 37]],
+  },
+  press: {
+    ball: [30, 19],
+    home: [[2, 27.5], [24, 14], [26, 24], [26, 34], [24, 43], [40, 11], [42, 27.5], [40, 44], [58, 17], [60, 27.5], [58, 38]],
+    away: [[89.4, 27.5], [70, 16], [70, 27.5], [70, 39], [52, 12], [50, 22], [50, 33], [52, 43], [34, 17], [32, 27.5], [34, 38]],
+  },
+  pc: {
+    ball: [91, 17],
+    home: [[91, 17], [76.8, 27.5], [77.5, 32], [78.5, 23], [79.5, 35], [70, 20], [68, 35], [55, 22], [52, 30], [40, 27.5], [28, 27.5]],
+    away: [[89.4, 27.5], [88.6, 25.4], [88.6, 29.6], [89, 23.4], [89, 31.6], [80, 20], [80, 35], [68, 27.5], [58, 20], [56, 35], [44, 27.5]],
+  },
+  goal: {
+    ball: [90.6, 26.4],
+    home: [[86, 24], [84.5, 30], [82, 21], [80, 33], [74, 27.5], [66, 22], [64, 34], [55, 27.5], [46, 22], [44, 34], [30, 27.5]],
+    away: [[89.4, 29.2], [87, 32.5], [85, 20.5], [83, 34], [78, 24], [76, 33], [68, 20], [66, 36], [58, 27.5], [50, 20], [48, 36]],
+  },
+};
+
+/** Cameras: crop region in metres + optional broadcast tilt / yaw. */
+const CAMERAS = {
+  full:       { r: [0, 0, L, W],          tilt: 0,  yaw: 0,   label: 'CAM · FULL PITCH' },
+  half:       { r: [42, 0, L, W],         tilt: 0,  yaw: 0,   label: 'CAM · HALF COURT' },
+  circle:     { r: [64, 6, L, 49],        tilt: 0,  yaw: 0,   label: 'CAM · SHOOTING CIRCLE' },
+  goalmouth:  { r: [78, 14, L, 41],       tilt: 0,  yaw: 0,   label: 'CAM · GOAL MOUTH' },
+  broadcast:  { r: [8, -2, L, W + 2],     tilt: 52, yaw: 0,   label: 'CAM · BROADCAST 52°' },
+  lowAngle:   { r: [58, 2, L, 53],        tilt: 64, yaw: 0,   label: 'CAM · LOW ANGLE' },
+  behindGoal: { r: [72, 10, L + 2, 45],   tilt: 56, yaw: -90, label: 'CAM · BEHIND THE GOAL' },
+  cornerCam:  { r: [66, 26, L + 2, 55],   tilt: 60, yaw: -34, label: 'CAM · CORNER FLAG' },
+};
+
+class Component extends DCLogic {
+  renderVals() {
+    const preset = PRESETS[this.props.preset ?? 'open'] ?? PRESETS.open;
+    const camKey = this.props.camera ?? 'full';
+    const cam = CAMERAS[camKey] ?? CAMERAS.full;
+    const homeC = this.props.homeColour ?? '#1d3557';
+    const awayC = this.props.awayColour ?? '#e63946';
+    const overlay = this.props.overlay ?? 'none';
+    const pad = Number(this.props.pad ?? 0);
+
+    const [rx0, ry0, rx1, ry1] = cam.r;
+    const regionW = rx1 - rx0, regionH = ry1 - ry0;
+    const rad = (cam.yaw ?? 0) * Math.PI / 180;
+    // footprint of the crop region after the yaw rotation
+    const effW = Math.abs(regionW * Math.cos(rad)) + Math.abs(regionH * Math.sin(rad));
+    const effH = Math.abs(regionW * Math.sin(rad)) + Math.abs(regionH * Math.cos(rad));
+
+    let m, boxW, boxH;
+    if (this.props.viewW) {
+      boxW = Number(this.props.viewW);
+      boxH = Number(this.props.viewH ?? Math.round(boxW * (effH / effW)));
+      const fit = this.props.fit ?? 'contain';
+      const sx = (boxW - pad * 2) / effW, sy = (boxH - pad * 2) / effH;
+      m = fit === 'cover' ? Math.max(sx, sy) : Math.min(sx, sy);
+    } else {
+      m = Number(this.props.metre ?? 9);
+      boxW = L * m + pad * 2;
+      boxH = W * m + pad * 2;
+    }
+
+    const px = (v) => v * m + 'px';
+    const fieldW = L * m, fieldH = W * m;
+    const cx = (rx0 + rx1) / 2, cy = (ry0 + ry1) / 2;
+    const offX = boxW / 2 - cx * m;
+    const offY = boxH / 2 - cy * m;
+
+    let tilt = 'none';
+    if (cam.tilt) {
+      const cos = Math.cos(cam.tilt * Math.PI / 180);
+      const s = Math.min(1.45, 1 / (0.34 + 0.66 * cos));
+      const parts = [`perspective(${Math.round(effW * m * 1.4)}px)`, `rotateX(${cam.tilt}deg)`];
+      if (cam.yaw) parts.push(`rotateZ(${cam.yaw}deg)`);
+      parts.push(`scale(${s.toFixed(3)})`);
+      tilt = parts.join(' ');
+    } else if (cam.yaw) {
+      tilt = `rotateZ(${cam.yaw}deg)`;
+    }
+
+    const dot = 1.9 * m;
+    const players = [];
+    const shadows = [];
+    const add = (list, colour, ring) => list.forEach(([x, y]) => {
+      players.push({ left: (x * m - dot / 2) + 'px', top: (y * m - dot / 2) + 'px', d: dot + 'px', c: colour, bc: ring });
+      shadows.push({ left: (x * m - dot / 2 + 2.5) + 'px', top: (y * m + dot * 0.24) + 'px', d: dot * 1.05 + 'px', dh: dot * 0.5 + 'px' });
+    });
+    add(preset.home, homeC, 'rgba(240,255,248,0.85)');
+    add(preset.away, awayC, 'rgba(10,13,16,0.6)');
+
+    const ballD = Math.max(4, 0.9 * m);
+    const marks = [5.5, 11, 16.5, 22, 27.5, 33, 38.5, 44, 49.5]
+      .map((y) => ({ top: (y * m - 0.5) + 'px', w: (0.3 * m) + 'px' }));
+
+    const overlays = [];
+    if (overlay === 'press') {
+      overlays.push({ left: px(45.7), top: '0px', w: px(L - 45.7), h: px(W), bg: 'rgba(31,154,99,0.13)', bl: '1px dashed rgba(127,227,176,0.55)', r: '0' });
+    } else if (overlay === 'channels') {
+      [0, 18.33, 36.66].forEach((y, i) => overlays.push({
+        left: '0px', top: px(y), w: px(L), h: px(18.33),
+        bg: i === 1 ? 'rgba(31,154,99,0.10)' : 'rgba(240,255,248,0.03)', bl: 'none', r: '0',
+      }));
+    } else if (overlay === 'circle') {
+      overlays.push({ left: px(L - D_R - 2), top: px(27.5 - D_R), w: px(D_R + 2), h: px(D_R * 2), bg: 'rgba(241,196,15,0.10)', bl: 'none', r: px(D_R) + ' 0 0 ' + px(D_R) });
+    }
+
+    const tags = (this.props.tags ?? []).map((t) => ({
+      label: t.label, left: px(t.x - rx0) , top: px(t.y - ry0),
+      c: t.c ?? '#d7f5e6', bd: t.bd ?? 'rgba(31,154,99,0.7)',
+    }));
+
+    return {
+      boxW: boxW + 'px', boxH: boxH + 'px',
+      offX: offX + 'px', offY: offY + 'px',
+      fieldW: fieldW + 'px', fieldH: fieldH + 'px', tilt,
+      origin: (cx * m) + 'px ' + (cy * m) + 'px',
+      stripes: `repeating-linear-gradient(90deg,#0f2b23 0 ${5 * m}px,#123227 ${5 * m}px ${10 * m}px)`,
+      sheen: cam.tilt
+        ? 'radial-gradient(90% 70% at 50% 78%, rgba(127,227,176,0.10), transparent 70%), linear-gradient(180deg, rgba(6,9,12,0.55), rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.42))'
+        : 'radial-gradient(120% 100% at 50% 0%, rgba(127,227,176,0.14), transparent 62%), linear-gradient(180deg, rgba(0,0,0,0.10), rgba(0,0,0,0.32))',
+      centre: px(L / 2), line23a: px(LINE23), line23b: px(L - LINE23),
+      dDepth: px(D_R), dSpan: px(GOAL + D_R * 2), dTop: px(27.5 - GOAL / 2 - D_R), dRadius: px(D_R),
+      dashDepth: px(D_R + 5), dashSpan: px(GOAL + (D_R + 5) * 2), dashTop: px(27.5 - GOAL / 2 - D_R - 5), dashRadius: px(D_R + 5),
+      goalDepth: px(1.2), goalSpan: px(GOAL), goalTop: px(27.5 - GOAL / 2), goalOut: px(-1.2),
+      spotA: (SPOT * m - 0.35 * m) + 'px', spotB: ((L - SPOT) * m - 0.35 * m) + 'px',
+      spotY: (27.5 * m - 0.35 * m) + 'px', spotSize: (0.7 * m) + 'px',
+      marks, overlays, players, shadows, tags,
+      ballLeft: (preset.ball[0] * m - ballD / 2) + 'px',
+      ballTop: (preset.ball[1] * m - ballD / 2) + 'px',
+      ballD: ballD + 'px',
+      camLabel: this.props.hideCamLabel ? '' : cam.label,
+      camLabelC: 'rgba(240,255,248,0.42)',
+    };
+  }
+}
+</script>
+</body>
+</html>

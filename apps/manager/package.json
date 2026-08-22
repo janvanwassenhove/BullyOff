@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@bullyoff/engine": "workspace:*",
+    "@bullyoff/insight": "workspace:*",
     "@bullyoff/render": "workspace:*",
     "@bullyoff/rules": "workspace:*",
     "@bullyoff/season": "workspace:*",

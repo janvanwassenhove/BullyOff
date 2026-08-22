@@ -55,6 +55,8 @@ export const useMatchStore = defineStore('match', {
         this.source = `file · ${name}`; this.error = '';
       } catch (e) { this.error = e instanceof Error ? e.message : String(e); }
     },
+    /** Show a log that came from elsewhere (the user's last match from the season store). */
+    setLog(log: MatchLog, source: string, colours: [number, number] | null = null): void { this.log = markRaw(log); this.source = source; this.colours = colours; this.error = ''; },
     exportReplay(): string | null {
       return this.log ? JSON.stringify(encodeReplay(this.log, 4)) : null;
     },

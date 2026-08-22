@@ -106,6 +106,9 @@ describe('the circle rule (goal scoring)', () => {
     h.step({ bodyContacts: [{ playerId: 12, team: 1, at: { x: 44, y: 1, z: 0 }, ballSpeed: 4, ballHeight: 0 }] }); // GK in own circle: legal
     const out = h.step({ goalLineCrossings: [{ end: 1, inGoal: true, y: 1, z: 0 }], circleExits: [{ end: 1 }] });
     expect(out.some((r) => r.kind === 'goal')).toBe(true);
+    // credited to the attacker who played it, not left anonymous because the keeper got the last touch
+    const goal = out.find((r) => r.kind === 'goal');
+    expect(goal?.kind === 'goal' ? goal.scorerId : null).toBe(10);
 
     const g = live();
     g.ball = { x: 42, y: 0, z: 0 };

@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<style>
+  body { margin:0; background:#080a0d; color:#e6edf3; font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+  a { color:#d7f5e6; } a:hover { color:#1f9a63; }
+</style>
+</helmet>
+<div style="display:flex; flex-direction:column; gap:48px; padding:40px; background:#080a0d">
+
+  <div style="display:flex; flex-direction:column; gap:6px">
+    <div style="font-size:13px; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; color:#8b949e; letter-spacing:0.08em; text-transform:uppercase">Recreation · apps/manager (Vue 3 + Pinia) · tokens.css</div>
+    <div style="font-size:26px; font-weight:800; letter-spacing:0.18em; color:#d7f5e6">BULLY OFF — CURRENT UI</div>
+  </div>
+
+  <!-- ============ SEASON: NEW CAREER ============ -->
+  <section data-screen-label="Season · new career" style="display:flex; flex-direction:column; gap:10px">
+    <div style="font-size:12px; font-family:ui-monospace,Menlo,monospace; color:#8b949e">SeasonView.vue · no world → .panel.setup</div>
+    <div style="width:1280px; height:760px; background:#0e1116; border:1px solid #30363d; border-radius:14px; overflow:hidden; display:grid; grid-template-columns:300px minmax(0,1fr); grid-template-rows:auto minmax(0,1fr); gap:12px; padding:12px">
+      <header style="grid-column:1/-1; display:flex; align-items:baseline; gap:12px; flex-wrap:wrap">
+        <h1 style="margin:0; font-size:20px; letter-spacing:0.18em; font-weight:800; color:#d7f5e6">BULLY OFF</h1>
+        <nav style="display:flex; gap:8px">
+          <button style="background:#161b22; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 10px; font:inherit; cursor:pointer">Season</button>
+          <button style="background:transparent; color:#8b949e; border:1px solid transparent; border-radius:4px; padding:4px 10px; font:inherit; cursor:pointer">Match viewer</button>
+          <button style="background:transparent; color:#8b949e; border:1px solid transparent; border-radius:4px; padding:4px 10px; font:inherit; cursor:pointer">About &amp; privacy</button>
+        </nav>
+        <span style="color:#8b949e; font-size:14px">v1.0 — coach/manager</span>
+        <span style="flex:1"></span>
+        <button style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 8px; font:inherit; font-size:14px; cursor:pointer">Install app</button>
+        <select style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 6px; font:inherit">
+          <option>English</option>
+        </select>
+      </header>
+      <div style="grid-column:1/-1; display:flex; flex-direction:column; gap:12px; min-height:0">
+        <section style="background:#161b22; border:1px solid #30363d; border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:8px; max-width:520px">
+          <h2 style="margin:0; font-size:14px; text-transform:uppercase; letter-spacing:0.08em; color:#8b949e">New career</h2>
+          <label style="display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:14px">Competition <select style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 6px; font:inherit"><option>men's</option><option>women's</option></select></label>
+          <label style="display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:14px">Region flavour <select style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 6px; font:inherit"><option>mixed (nl/fr)</option><option>Vlaanderen</option><option>Wallonie</option><option>Bruxelles/Brussel</option></select></label>
+          <label style="display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:14px">History <select style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 6px; font:inherit"><option>20 seasons</option><option>10 seasons</option><option>none (fresh world)</option></select></label>
+          <label style="display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:14px">World seed <input type="number" value="2026" style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 6px; font:inherit; max-width:60%"></label>
+          <button style="background:#146b4a; border:1px solid #1f9a63; color:#fff; font-weight:700; border-radius:4px; padding:8px 12px; font:inherit; cursor:pointer">Generate world</button>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; font-size:14px">
+            <span>Saved careers:</span>
+            <button style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 8px; font:inherit; font-size:14px; cursor:pointer">slot-1</button>
+            <button style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 8px; font:inherit; font-size:14px; cursor:pointer">autosave</button>
+          </div>
+          <label style="display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:14px">Import save <input type="file" style="font:inherit; font-size:13px; color:#8b949e"></label>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PICK YOUR CLUB ============ -->
+  <section data-screen-label="Pick your club" style="display:flex; flex-direction:column; gap:10px">
+    <div style="font-size:12px; font-family:ui-monospace,Menlo,monospace; color:#8b949e">SeasonView.vue · world without userClub → .clubs grid, worldgen identities</div>
+    <div style="width:1280px; background:#0e1116; border:1px solid #30363d; border-radius:14px; padding:12px; display:flex; flex-direction:column; gap:12px">
+      <header style="display:flex; align-items:baseline; gap:12px">
+        <h1 style="margin:0; font-size:20px; letter-spacing:0.18em; font-weight:800; color:#d7f5e6">BULLY OFF</h1>
+        <span style="color:#8b949e; font-size:14px">v1.0 — coach/manager</span>
+      </header>
+      <p style="margin:0; font-size:14px; color:#d7f5e6">New world (20 seasons of history) — pick your club.</p>
+      <section style="background:#161b22; border:1px solid #30363d; border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:8px">
+        <h2 style="margin:0; font-size:14px; text-transform:uppercase; letter-spacing:0.08em; color:#8b949e">Pick your club</h2>
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:8px">
+          <sc-for list="{{ clubs }}" as="c" hint-placeholder-count="12">
+            <button style="display:grid; grid-template-columns:14px 1fr; gap:2px 8px; text-align:left; background:#0e1116; border:1px solid #30363d; border-radius:4px; padding:8px; cursor:pointer; color:#e6edf3; font:inherit">
+              <span style="width:14px; height:14px; border-radius:3px; grid-row:1 / span 3; background:{{ c.colour }}"></span>
+              <span style="font-weight:700">{{ c.name }}</span>
+              <span style="font-size:12px; color:#8b949e">{{ c.line1 }}</span>
+              <span style="font-size:12px; color:#8b949e">{{ c.line2 }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ============ SEASON HUB ============ -->
+  <section data-screen-label="Season hub · table" style="display:flex; flex-direction:column; gap:10px">
+    <div style="font-size:12px; font-family:ui-monospace,Menlo,monospace; color:#8b949e">SeasonView.vue · .bar + .tabs + table/squad/fixtures/history</div>
+    <div style="width:1280px; background:#0e1116; border:1px solid #30363d; border-radius:14px; padding:12px; display:flex; flex-direction:column; gap:12px">
+      <header style="display:flex; align-items:baseline; gap:12px; flex-wrap:wrap">
+        <h1 style="margin:0; font-size:20px; letter-spacing:0.18em; font-weight:800; color:#d7f5e6">BULLY OFF</h1>
+        <nav style="display:flex; gap:8px">
+          <button style="background:#161b22; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 10px; font:inherit; cursor:pointer">Season</button>
+          <button style="background:transparent; color:#8b949e; border:1px solid transparent; border-radius:4px; padding:4px 10px; font:inherit; cursor:pointer">Match viewer</button>
+          <button style="background:transparent; color:#8b949e; border:1px solid transparent; border-radius:4px; padding:4px 10px; font:inherit; cursor:pointer">About &amp; privacy</button>
+        </nav>
+        <span style="color:#8b949e; font-size:14px">v1.0 — coach/manager</span>
+        <span style="flex:1"></span>
+        <select style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 6px; font:inherit"><option>English</option></select>
+      </header>
+
+      <header style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+        <strong>Koninklijke Berkendael HC</strong>
+        <span style="color:#8b949e">tier 1 · season 2026 · day 7/26</span>
+        <span style="flex:1"></span>
+        <button style="background:#146b4a; border:1px solid #1f9a63; color:#fff; font-weight:700; border-radius:4px; padding:8px 12px; font:inherit; cursor:pointer">Coach today's match</button>
+        <button style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:8px 12px; font:inherit; cursor:pointer">Sim match day (incl. mine)</button>
+        <button style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:8px 12px; font:inherit; cursor:pointer">Sim to season end</button>
+        <button style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:8px 12px; font:inherit; cursor:pointer">Watch my last match</button>
+        <button style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 8px; font:inherit; font-size:14px; cursor:pointer">Save</button>
+        <button style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 8px; font:inherit; font-size:14px; cursor:pointer">Export</button>
+      </header>
+      <p style="margin:0; font-size:14px; color:#d7f5e6">Match day 7 played (6 fixtures).</p>
+      <nav style="display:flex; gap:8px">
+        <button style="background:#0e1116; color:#d7f5e6; border:1px solid #1f9a63; border-radius:4px; padding:4px 8px; font:inherit; font-size:14px; cursor:pointer">table</button>
+        <button style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 8px; font:inherit; font-size:14px; cursor:pointer">squad</button>
+        <button style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 8px; font:inherit; font-size:14px; cursor:pointer">fixtures</button>
+        <button style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 8px; font:inherit; font-size:14px; cursor:pointer">history</button>
+      </nav>
+
+      <section style="background:#161b22; border:1px solid #30363d; border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:8px">
+        <table style="border-collapse:collapse; font-size:14px; width:100%">
+          <thead>
+            <tr>
+              <th style="padding:3px 8px; text-align:left; border-bottom:1px solid #30363d">#</th>
+              <th style="padding:3px 8px; text-align:left; border-bottom:1px solid #30363d">club</th>
+              <th style="padding:3px 8px; text-align:left; border-bottom:1px solid #30363d">P</th>
+              <th style="padding:3px 8px; text-align:left; border-bottom:1px solid #30363d">W</th>
+              <th style="padding:3px 8px; text-align:left; border-bottom:1px solid #30363d">D</th>
+              <th style="padding:3px 8px; text-align:left; border-bottom:1px solid #30363d">L</th>
+              <th style="padding:3px 8px; text-align:left; border-bottom:1px solid #30363d">GF</th>
+              <th style="padding:3px 8px; text-align:left; border-bottom:1px solid #30363d">GA</th>
+              <th style="padding:3px 8px; text-align:left; border-bottom:1px solid #30363d">Pts</th>
+            </tr>
+          </thead>
+          <tbody>
+            <sc-for list="{{ table }}" as="r" hint-placeholder-count="12">
+              <tr style="background:{{ r.bg }}">
+                <td style="padding:3px 8px; border-bottom:1px solid #30363d; color:{{ r.posColour }}; font-weight:{{ r.posWeight }}">{{ r.pos }}</td>
+                <td style="padding:3px 8px; border-bottom:1px solid #30363d">{{ r.club }}</td>
+                <td style="padding:3px 8px; border-bottom:1px solid #30363d">{{ r.p }}</td>
+                <td style="padding:3px 8px; border-bottom:1px solid #30363d">{{ r.w }}</td>
+                <td style="padding:3px 8px; border-bottom:1px solid #30363d">{{ r.d }}</td>
+                <td style="padding:3px 8px; border-bottom:1px solid #30363d">{{ r.l }}</td>
+                <td style="padding:3px 8px; border-bottom:1px solid #30363d">{{ r.gf }}</td>
+                <td style="padding:3px 8px; border-bottom:1px solid #30363d">{{ r.ga }}</td>
+                <td style="padding:3px 8px; border-bottom:1px solid #30363d"><b>{{ r.pts }}</b></td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+        <p style="margin:0; color:#8b949e; font-size:12px">Top 4 → title play-offs · bottom → relegated · second-last → play-down vs tier-2 runner-up. Winter break days 12–14.</p>
+      </section>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px">
+        <section style="background:#161b22; border:1px solid #30363d; border-radius:8px; padding:12px">
+          <table style="border-collapse:collapse; font-size:14px; width:100%">
+            <thead><tr>
+              <th style="padding:3px 8px; text-align:left; border-bottom:1px solid #30363d">name</th>
+              <th style="padding:3px 8px; text-align:left; border-bottom:1px solid #30363d">role</th>
+              <th style="padding:3px 8px; text-align:left; border-bottom:1px solid #30363d">age</th>
+              <th style="padding:3px 8px; text-align:left; border-bottom:1px solid #30363d">ovr</th>
+              <th style="padding:3px 8px; text-align:left; border-bottom:1px solid #30363d">goals</th>
+              <th style="padding:3px 8px; text-align:left; border-bottom:1px solid #30363d">status</th>
+            </tr></thead>
+            <tbody>
+              <sc-for list="{{ squad }}" as="p" hint-placeholder-count="8">
+                <tr>
+                  <td style="padding:3px 8px; border-bottom:1px solid #30363d">{{ p.name }}</td>
+                  <td style="padding:3px 8px; border-bottom:1px solid #30363d">{{ p.role }}</td>
+                  <td style="padding:3px 8px; border-bottom:1px solid #30363d">{{ p.age }}</td>
+                  <td style="padding:3px 8px; border-bottom:1px solid #30363d">{{ p.ovr }}</td>
+                  <td style="padding:3px 8px; border-bottom:1px solid #30363d">{{ p.goals }}</td>
+                  <td style="padding:3px 8px; border-bottom:1px solid #30363d">{{ p.status }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </section>
+        <section style="background:#161b22; border:1px solid #30363d; border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:8px">
+          <table style="border-collapse:collapse; font-size:14px; width:100%">
+            <thead><tr>
+              <th style="padding:3px 8px; text-align:left; border-bottom:1px solid #30363d">day</th>
+              <th style="padding:3px 8px; text-align:left; border-bottom:1px solid #30363d">phase</th>
+              <th style="padding:3px 8px; text-align:left; border-bottom:1px solid #30363d">home</th>
+              <th style="padding:3px 8px; text-align:left; border-bottom:1px solid #30363d">away</th>
+              <th style="padding:3px 8px; text-align:left; border-bottom:1px solid #30363d">result</th>
+            </tr></thead>
+            <tbody>
+              <sc-for list="{{ fixtures }}" as="f" hint-placeholder-count="7">
+                <tr style="outline:{{ f.outline }}">
+                  <td style="padding:3px 8px; border-bottom:1px solid #30363d">{{ f.day }}</td>
+                  <td style="padding:3px 8px; border-bottom:1px solid #30363d">{{ f.phase }}</td>
+                  <td style="padding:3px 8px; border-bottom:1px solid #30363d">{{ f.home }}</td>
+                  <td style="padding:3px 8px; border-bottom:1px solid #30363d">{{ f.away }}</td>
+                  <td style="padding:3px 8px; border-bottom:1px solid #30363d">{{ f.res }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+          <ul style="padding-left:18px; font-size:14px; margin:0; display:flex; flex-direction:column; gap:4px">
+            <sc-for list="{{ history }}" as="h" hint-placeholder-count="3">
+              <li>{{ h }}</li>
+            </sc-for>
+          </ul>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ COACH VIEW ============ -->
+  <section data-screen-label="The touchline · CoachView" style="display:flex; flex-direction:column; gap:10px">
+    <div style="font-size:12px; font-family:ui-monospace,Menlo,monospace; color:#8b949e">CoachView.vue · stage + tools column (300px), briefing overlay, ticker</div>
+    <div style="width:1280px; height:820px; background:#0e1116; border:1px solid #30363d; border-radius:14px; padding:12px; display:grid; grid-template-rows:auto minmax(0,1fr); gap:12px">
+      <header style="display:flex; align-items:baseline; gap:12px">
+        <h1 style="margin:0; font-size:20px; letter-spacing:0.18em; font-weight:800; color:#d7f5e6">BULLY OFF</h1>
+        <span style="color:#8b949e; font-size:14px">v1.0 — coach/manager</span>
+      </header>
+      <div style="display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:12px; min-height:0">
+        <div style="display:grid; grid-template-rows:auto minmax(0,1fr) auto; gap:8px; min-height:0">
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+            <span style="display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap">
+              <span style="display:inline-block; width:14px; height:14px; border-radius:3px; border:1px solid rgba(255,255,255,0.6); background:#1d3557"></span>
+              <strong style="text-decoration:underline; text-decoration-color:#1f9a63; text-underline-offset:3px">Koninklijke Berkendael HC</strong>
+              <span style="font-weight:900; font-size:18px">2 – 1</span>
+              <strong>Royal Sartcourt HC</strong>
+              <span style="display:inline-block; width:14px; height:14px; border-radius:3px; border:1px solid rgba(255,255,255,0.6); background:#e63946"></span>
+              <span style="display:inline-flex; align-items:center; gap:6px; font-size:12px; color:#8b949e; border:1px solid #30363d; border-radius:4px; padding:2px 6px">
+                <span style="display:inline-block; width:14px; height:14px; border-radius:3px; border:1px solid rgba(255,255,255,0.6); background:#1d3557"></span>you
+              </span>
+            </span>
+            <span style="color:#8b949e">play 41:20 · PenaltyCornerAwarded</span>
+            <span style="flex:1"></span>
+            <button style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:3px 8px; font:inherit; font-size:14px; cursor:pointer">⏸ pause</button>
+            <button style="background:#0e1116; color:#d7f5e6; border:1px solid #1f9a63; border-radius:4px; padding:3px 8px; font:inherit; font-size:14px; cursor:pointer">1×</button>
+            <button style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:3px 8px; font:inherit; font-size:14px; cursor:pointer">2×</button>
+            <button style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:3px 8px; font:inherit; font-size:14px; cursor:pointer">4×</button>
+            <button style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:3px 8px; font:inherit; font-size:14px; cursor:pointer">director</button>
+            <button style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:3px 8px; font:inherit; font-size:14px; cursor:pointer">tactical</button>
+            <button style="background:#0e1116; color:#d7f5e6; border:1px solid #1f9a63; border-radius:4px; padding:3px 8px; font:inherit; font-size:14px; cursor:pointer">coach</button>
+            <button style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:3px 8px; font:inherit; font-size:14px; cursor:pointer">sim to full time</button>
+            <button style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:3px 8px; font:inherit; font-size:14px; cursor:pointer">leave (not recorded)</button>
+          </div>
+          <div style="position:relative; min-height:360px; background:#0e1116; border-radius:8px; overflow:hidden">
+            <div style="position:absolute; inset:0; background:repeating-linear-gradient(135deg, #10161b 0 10px, #0d1216 10px 20px); display:grid; place-content:center; gap:6px; justify-items:center">
+              <div style="font-family:ui-monospace,Menlo,monospace; font-size:13px; color:#8b949e">&lt;canvas&gt; — @bullyoff/render PixiJS match view (mode: coach)</div>
+              <div style="font-family:ui-monospace,Menlo,monospace; font-size:12px; color:#57606a">procedural pitch · composed sprites · HUD score bug</div>
+            </div>
+            <div style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); background:rgba(10,14,18,0.94); border:1px solid #30363d; border-radius:8px; padding:12px; min-width:320px; display:flex; flex-direction:column; gap:8px">
+              <h3 style="margin:0; font-size:16px">Quarter 3 briefing</h3>
+              <table style="border-collapse:collapse; font-size:14px">
+                <thead><tr>
+                  <th style="padding:2px 10px; text-align:right; border-bottom:1px solid #30363d"></th>
+                  <th style="padding:2px 10px; text-align:right; border-bottom:1px solid #30363d">us</th>
+                  <th style="padding:2px 10px; text-align:right; border-bottom:1px solid #30363d">them</th>
+                </tr></thead>
+                <tbody>
+                  <sc-for list="{{ briefing }}" as="b" hint-placeholder-count="6">
+                    <tr>
+                      <td style="padding:2px 10px; text-align:left; color:#8b949e; border-bottom:1px solid #30363d">{{ b.k }}</td>
+                      <td style="padding:2px 10px; text-align:right; border-bottom:1px solid #30363d">{{ b.a }}</td>
+                      <td style="padding:2px 10px; text-align:right; border-bottom:1px solid #30363d">{{ b.b }}</td>
+                    </tr>
+                  </sc-for>
+                </tbody>
+              </table>
+              <p style="margin:0; color:#8b949e; font-size:12px">Adjust tactics and rotation on the right, then resume. Tired: Lowie Verhaeghe, Matthias Coppens.</p>
+              <button style="background:#146b4a; border:1px solid #1f9a63; color:#fff; font-weight:700; border-radius:4px; padding:6px 10px; font:inherit; cursor:pointer">Resume →</button>
+            </div>
+          </div>
+          <ul style="list-style:none; margin:0; padding:0; font-size:12px; color:#8b949e; display:flex; gap:12px; flex-wrap:wrap; max-height:3.6em; overflow:hidden">
+            <sc-for list="{{ ticker }}" as="s" hint-placeholder-count="6">
+              <li>{{ s }}</li>
+            </sc-for>
+          </ul>
+        </div>
+
+        <aside style="display:flex; flex-direction:column; gap:8px; overflow:auto; min-height:0">
+          <section style="background:#161b22; border:1px solid #30363d; border-radius:8px; padding:8px; display:flex; flex-direction:column; gap:6px">
+            <h3 style="margin:0 0 4px; font-size:14px; text-transform:uppercase; letter-spacing:0.06em; color:#8b949e">Tactics</h3>
+            <label style="display:grid; grid-template-columns:1fr auto; gap:2px 8px; font-size:14px; align-items:center">system <select style="grid-column:1/-1; background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 6px; font:inherit"><option>4-3-3</option><option>3-4-3</option><option>4-4-2</option><option>5-3-2</option><option>3-3-3-1</option><option>4-2-3-1</option></select></label>
+            <label style="display:grid; grid-template-columns:1fr auto; gap:2px 8px; font-size:14px; align-items:center">press <select style="grid-column:1/-1; background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 6px; font:inherit"><option>full-court press</option><option>half-court press</option><option>split press</option><option>zonal block (own 23)</option></select></label>
+            <label style="display:grid; grid-template-columns:1fr auto; gap:2px 8px; font-size:14px; align-items:center">mentality <select style="grid-column:1/-1; background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 6px; font:inherit"><option>balanced</option><option>defensive</option><option>attacking</option></select></label>
+            <label style="display:grid; grid-template-columns:1fr auto; gap:2px 8px; font-size:14px; align-items:center">build-up <select style="grid-column:1/-1; background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 6px; font:inherit"><option>through the middle</option><option>over the top / long ball</option><option>via the flanks</option></select></label>
+            <label style="display:grid; grid-template-columns:1fr auto; gap:2px 8px; font-size:14px; align-items:center">tempo <select style="grid-column:1/-1; background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 6px; font:inherit"><option>normal</option><option>low</option><option>high</option></select></label>
+            <label style="display:grid; grid-template-columns:1fr auto; gap:2px 8px; font-size:14px; align-items:center">rotate below <span style="font-family:ui-monospace,Menlo,monospace; color:#8b949e">55 %</span><input type="range" min="0.3" max="0.9" step="0.05" value="0.55" style="grid-column:1/-1; accent-color:#1f9a63"></label>
+          </section>
+          <section style="background:#161b22; border:1px solid #30363d; border-radius:8px; padding:8px; display:flex; flex-direction:column; gap:6px">
+            <h3 style="margin:0 0 4px; font-size:14px; text-transform:uppercase; letter-spacing:0.06em; color:#8b949e">Penalty-corner designer</h3>
+            <label style="display:grid; grid-template-columns:1fr auto; gap:2px 8px; font-size:14px; align-items:center">variant <select style="grid-column:1/-1; background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 6px; font:inherit"><option>dragFlick</option><option>lowHit</option><option>slipRight</option><option>slipLeft</option><option>deflection</option></select></label>
+            <label style="display:grid; grid-template-columns:1fr auto; gap:2px 8px; font-size:14px; align-items:center">injector <select style="grid-column:1/-1; background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 6px; font:inherit"><option>AI picks</option><option>Jasper Dewulf (MID)</option></select></label>
+            <label style="display:grid; grid-template-columns:1fr auto; gap:2px 8px; font-size:14px; align-items:center">trapper <select style="grid-column:1/-1; background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 6px; font:inherit"><option>AI picks</option></select></label>
+            <label style="display:grid; grid-template-columns:1fr auto; gap:2px 8px; font-size:14px; align-items:center">striker <select style="grid-column:1/-1; background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 6px; font:inherit"><option>AI picks</option><option>Thibaut Lammens (DEF)</option></select></label>
+          </section>
+          <section style="background:#161b22; border:1px solid #30363d; border-radius:8px; padding:8px; display:flex; flex-direction:column; gap:6px">
+            <h3 style="margin:0 0 4px; font-size:14px; text-transform:uppercase; letter-spacing:0.06em; color:#8b949e">Rotation bar</h3>
+            <ul style="list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px">
+              <sc-for list="{{ onPitch }}" as="p" hint-placeholder-count="11">
+                <li style="display:grid; grid-template-columns:1fr 70px; gap:8px; align-items:center; font-size:14px; padding:2px 6px; border-radius:4px">
+                  <span>{{ p.name }} <em style="color:#8b949e; font-style:normal; font-size:12px">{{ p.role }}</em></span>
+                  <span style="display:block; height:6px; background:rgba(0,0,0,0.4); border-radius:3px; position:relative; overflow:hidden">
+                    <span style="position:absolute; left:0; top:0; bottom:0; border-radius:3px; width:{{ p.w }}; background:{{ p.c }}"></span>
+                  </span>
+                </li>
+              </sc-for>
+            </ul>
+            <p style="margin:0; color:#8b949e; font-size:12px">bench</p>
+            <ul style="list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px">
+              <sc-for list="{{ bench }}" as="p" hint-placeholder-count="5">
+                <li style="display:grid; grid-template-columns:1fr 70px; gap:8px; align-items:center; font-size:14px; padding:2px 6px; border-radius:4px">
+                  <span>{{ p.name }} <em style="color:#8b949e; font-style:normal; font-size:12px">{{ p.role }}</em></span>
+                  <span style="display:block; height:6px; background:rgba(0,0,0,0.4); border-radius:3px; position:relative; overflow:hidden">
+                    <span style="position:absolute; left:0; top:0; bottom:0; border-radius:3px; width:100%; background:#2ecc71"></span>
+                  </span>
+                </li>
+              </sc-for>
+            </ul>
+            <button style="background:#146b4a; border:1px solid #1f9a63; color:#fff; font-weight:700; border-radius:4px; padding:6px 10px; font:inherit; cursor:pointer; opacity:0.5">Substitute … → …</button>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px">
+              <select style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 6px; font:inherit"><option>swap…</option></select>
+              <select style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 6px; font:inherit"><option>with…</option></select>
+              <button style="grid-column:1/-1; background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:3px 8px; font:inherit; font-size:14px; cursor:pointer">swap positions</button>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MATCH VIEWER + ABOUT + ONBOARDING ============ -->
+  <section data-screen-label="Match viewer / About / Onboarding" style="display:flex; flex-direction:column; gap:10px">
+    <div style="font-size:12px; font-family:ui-monospace,Menlo,monospace; color:#8b949e">App.vue viewer layout (300px side) · MatchViewer.vue · AboutView.vue · Onboarding.vue</div>
+    <div style="display:flex; gap:24px; align-items:flex-start; flex-wrap:wrap">
+      <div style="width:1000px; height:620px; background:#0e1116; border:1px solid #30363d; border-radius:14px; padding:12px; display:grid; grid-template-columns:300px minmax(0,1fr); grid-template-rows:auto minmax(0,1fr); gap:12px">
+        <header style="grid-column:1/-1; display:flex; align-items:baseline; gap:12px">
+          <h1 style="margin:0; font-size:20px; letter-spacing:0.18em; font-weight:800; color:#d7f5e6">BULLY OFF</h1>
+          <nav style="display:flex; gap:8px">
+            <button style="background:transparent; color:#8b949e; border:1px solid transparent; border-radius:4px; padding:4px 10px; font:inherit; cursor:pointer">Season</button>
+            <button style="background:#161b22; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 10px; font:inherit; cursor:pointer">Match viewer</button>
+            <button style="background:transparent; color:#8b949e; border:1px solid transparent; border-radius:4px; padding:4px 10px; font:inherit; cursor:pointer">About &amp; privacy</button>
+          </nav>
+          <span style="color:#8b949e; font-size:14px">v1.0 — coach/manager</span>
+        </header>
+        <aside style="display:flex; flex-direction:column; gap:12px; overflow:auto; min-height:0">
+          <section style="background:#161b22; border:1px solid #30363d; border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:8px">
+            <h2 style="margin:0; font-size:14px; text-transform:uppercase; letter-spacing:0.08em; color:#8b949e">Simulate</h2>
+            <label style="display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:14px">Profile <select style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 6px; font:inherit; max-width:60%"><option>men's</option><option>women's</option></select></label>
+            <label style="display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:14px">Turf <select style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 6px; font:inherit; max-width:60%"><option>watered</option><option>dry</option><option>wet</option></select></label>
+            <label style="display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:14px">Seed <input type="number" value="7" style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 6px; font:inherit; max-width:60%"></label>
+            <button style="background:#146b4a; border:1px solid #1f9a63; color:#fff; font-weight:700; border-radius:4px; padding:8px 12px; font:inherit; cursor:pointer">Simulate a match</button>
+          </section>
+          <section style="background:#161b22; border:1px solid #30363d; border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:8px">
+            <h2 style="margin:0; font-size:14px; text-transform:uppercase; letter-spacing:0.08em; color:#8b949e">Scenarios (§6.2)</h2>
+            <select style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 6px; font:inherit"><option>outlet-under-press</option><option>high-press-vs-deep-block</option><option>pc-dragFlick</option><option>last-two-minutes</option></select>
+            <button style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:8px 12px; font:inherit; cursor:pointer">Run scenario</button>
+          </section>
+          <section style="background:#161b22; border:1px solid #30363d; border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:8px">
+            <h2 style="margin:0; font-size:14px; text-transform:uppercase; letter-spacing:0.08em; color:#8b949e">Events</h2>
+            <p style="margin:0; font-size:12px; color:#8b949e">seed 7 · watered · men's</p>
+            <ul style="list-style:none; padding:0; margin:0; font-family:ui-monospace,Menlo,monospace; font-size:12px; display:flex; flex-direction:column; gap:2px">
+              <sc-for list="{{ events }}" as="e" hint-placeholder-count="8">
+                <li>{{ e }}</li>
+              </sc-for>
+            </ul>
+          </section>
+        </aside>
+        <main style="min-height:0; display:grid; grid-template-rows:minmax(0,1fr) auto">
+          <div style="position:relative; min-height:360px; background:#0e1116; border-radius:8px; overflow:hidden">
+            <div style="position:absolute; inset:0; background:repeating-linear-gradient(135deg, #10161b 0 10px, #0d1216 10px 20px); display:grid; place-content:center">
+              <div style="font-family:ui-monospace,Menlo,monospace; font-size:13px; color:#8b949e">&lt;canvas&gt; — replay view (mode: director)</div>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center; padding:8px 0; flex-wrap:wrap">
+            <button style="background:#161b22; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:6px 12px; font:inherit; cursor:pointer">▶</button>
+            <div style="display:flex; gap:4px">
+              <button style="background:#161b22; color:#d7f5e6; border:1px solid #1f9a63; border-radius:4px; padding:4px 8px; font:inherit; font-size:14px; cursor:pointer">1×</button>
+              <button style="background:#161b22; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 8px; font:inherit; font-size:14px; cursor:pointer">2×</button>
+              <button style="background:#161b22; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 8px; font:inherit; font-size:14px; cursor:pointer">4×</button>
+              <button style="background:#161b22; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 8px; font:inherit; font-size:14px; cursor:pointer">8×</button>
+            </div>
+            <input type="range" min="0" max="100" value="38" style="flex:1; min-width:160px; accent-color:#1f9a63">
+            <span style="font-family:ui-monospace,Menlo,monospace; font-size:14px; color:#8b949e; white-space:nowrap">22:45 · play</span>
+            <button style="background:#161b22; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 8px; font:inherit; font-size:14px; cursor:pointer">director</button>
+            <button style="background:#161b22; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:4px 8px; font:inherit; font-size:14px; cursor:pointer">🔇</button>
+          </div>
+        </main>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:24px">
+        <div style="width:560px; background:#0e1116; border:1px solid #30363d; border-radius:14px; padding:12px">
+          <article style="max-width:70ch; line-height:1.55; display:flex; flex-direction:column; gap:8px">
+            <h2 style="margin:0; font-size:22px">About BULLY OFF</h2>
+            <p style="margin:0">A field-hockey coach/manager game built on a deterministic match engine. Everything in it is fictional and everything runs on your device.</p>
+            <h3 style="margin:8px 0 0; font-size:14px; text-transform:uppercase; letter-spacing:0.06em; color:#8b949e">Privacy</h3>
+            <ul style="margin:0; padding-left:18px; display:flex; flex-direction:column; gap:6px">
+              <li>No real clubs and no real people. Clubs, players, coaches and towns are generated from common-name pools and checked against a list of real clubs; no person is modelled, rated or named.</li>
+              <li>No accounts, no telemetry, no analytics, no advertising. The app makes no network requests after it has loaded; your careers live in your browser's storage (IndexedDB) and in the files you export yourself.</li>
+            </ul>
+            <h3 style="margin:8px 0 0; font-size:14px; text-transform:uppercase; letter-spacing:0.06em; color:#8b949e">Offline</h3>
+            <p style="margin:0">Installed as an app, BULLY OFF works without a connection: the engine, the world generator and your saves are local.</p>
+            <p style="margin:0; color:#8b949e; font-size:14px">Engine 1.0.0 · save format v3 · <a href="https://github.com/janvanwassenhove/BullyOff" rel="noopener" target="_blank" style="color:#d7f5e6">github.com/janvanwassenhove/BullyOff</a></p>
+          </article>
+        </div>
+
+        <div style="width:560px; height:300px; position:relative; background:rgba(5,8,11,0.78); border:1px solid #30363d; border-radius:14px; display:grid; place-items:center; padding:12px">
+          <section style="background:#161b22; border:1px solid #30363d; border-radius:8px; padding:16px; max-width:460px; width:100%; display:flex; flex-direction:column; gap:8px">
+            <div style="display:flex; gap:6px">
+              <span style="width:8px; height:8px; border-radius:50%; background:#1f9a63"></span>
+              <span style="width:8px; height:8px; border-radius:50%; background:#30363d"></span>
+              <span style="width:8px; height:8px; border-radius:50%; background:#30363d"></span>
+            </div>
+            <h2 style="margin:0; font-size:22px">Welcome to the touchline</h2>
+            <p style="margin:0; line-height:1.5; color:#8b949e">Generate a fictional world — two tiers of Belgian-flavoured clubs with twenty seasons of history — and pick the club you will coach.</p>
+            <div style="display:flex; gap:8px; align-items:center; margin-top:8px">
+              <button style="background:#0e1116; color:#e6edf3; border:1px solid #30363d; border-radius:4px; padding:8px 14px; font:inherit; cursor:pointer">Skip</button>
+              <span style="flex:1"></span>
+              <button style="background:#146b4a; border:1px solid #1f9a63; color:#fff; font-weight:700; border-radius:4px; padding:8px 14px; font:inherit; cursor:pointer">Next</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const clubs = [
+      ['Koninklijke Berkendael HC', '#1d3557', 'Berkendael · est. 1921 · "Herons"', 'tier 1 · level 3.8 · facilities 4/5 · 5 titles (last 2019)'],
+      ['Royal Sartcourt HC', '#e63946', 'Sartcourt · est. 1934', 'tier 1 · level 3.6 · facilities 3/5 · 2 titles (last 2024)'],
+      ['Zavelberg Hockey Club', '#2a9d8f', 'Zavelberg · est. 1948', 'tier 1 · level 3.4 · facilities 3/5'],
+      ['HC Molenhoek', '#f4a261', 'Molenhoek · est. 1957 · "Foxes"', 'tier 1 · level 3.3 · facilities 2/5 · 1 title (last 2011)'],
+      ['Montville Royal HC', '#6a0dad', 'Montville · est. 1912', 'tier 1 · level 3.2 · facilities 4/5'],
+      ['Lindeveld HC Wolves', '#0077b6', 'Lindeveld · est. 1966', 'tier 1 · level 3.0 · facilities 3/5'],
+      ['K. Waterakker HC', '#d00000', 'Waterakker · est. 1929', 'tier 1 · level 2.9 · facilities 2/5'],
+      ['Fontainerieux HC', '#0b6623', 'Fontainerieux · est. 1971', 'tier 1 · level 2.8 · facilities 3/5'],
+      ['Kruisbeke Hockeyclub', '#ffb703', 'Kruisbeke · est. 1983 · "Hawks"', 'tier 2 · level 2.5 · facilities 2/5'],
+      ['Royal Val-la-Neuve HC', '#8338ec', 'Val-la-Neuve · est. 1955', 'tier 2 · level 2.4 · facilities 3/5'],
+      ['Duinzicht HC', '#ff006e', 'Duinzicht · est. 1990', 'tier 2 · level 2.2 · facilities 1/5'],
+      ['HC Chênesart Otters', '#3a86ff', 'Chênesart · est. 1947', 'tier 2 · level 2.1 · facilities 2/5'],
+    ].map(([name, colour, line1, line2]) => ({ name, colour, line1, line2 }));
+
+    const T = [
+      ['Royal Sartcourt HC', 7, 6, 1, 0, 24, 9, 19],
+      ['Koninklijke Berkendael HC', 7, 5, 1, 1, 21, 11, 16],
+      ['Montville Royal HC', 7, 4, 2, 1, 18, 12, 14],
+      ['Zavelberg Hockey Club', 7, 4, 1, 2, 17, 13, 13],
+      ['HC Molenhoek', 7, 3, 2, 2, 14, 13, 11],
+      ['Lindeveld HC Wolves', 7, 3, 1, 3, 13, 14, 10],
+      ['K. Waterakker HC', 7, 2, 2, 3, 11, 15, 8],
+      ['Fontainerieux HC', 7, 2, 1, 4, 10, 16, 7],
+      ['Espenhove HC', 7, 1, 3, 3, 9, 14, 6],
+      ['Rochefontaine HC', 7, 1, 2, 4, 8, 17, 5],
+      ['Klaverbeke HC Cranes', 7, 1, 1, 5, 7, 20, 4],
+      ['Bruyèreville HC', 7, 0, 3, 4, 6, 19, 3],
+    ];
+    const table = T.map(([club, p, w, d, l, gf, ga, pts], i) => ({
+      pos: i + 1, club, p, w, d, l, gf, ga, pts,
+      bg: club.includes('Berkendael') ? 'rgba(31,154,99,0.18)' : 'transparent',
+      posColour: i < 4 ? '#1f9a63' : i >= T.length - 2 ? '#e74c3c' : '#e6edf3',
+      posWeight: i < 4 || i >= T.length - 2 ? '700' : '400',
+    }));
+
+    const squad = [
+      ['Bram Vercruysse', 'GK', 29, 74, 0, 'fit'],
+      ['Thibaut Lammens', 'DEF', 26, 71, 3, 'fit'],
+      ['Wout Segers', 'DEF', 31, 69, 1, 'fit'],
+      ['Lowie Verhaeghe', 'DEF', 22, 66, 0, 'injured (11d)'],
+      ['Jasper Dewulf', 'MID', 24, 73, 4, 'fit'],
+      ['Matthias Coppens', 'MID', 28, 70, 2, 'fit'],
+      ['Arnaud Delcourt', 'MID', 20, 62, 1, 'fit'],
+      ['Sander Maes', 'FWD', 25, 75, 7, 'fit'],
+    ].map(([name, role, age, ovr, goals, status]) => ({ name, role, age, ovr, goals, status }));
+
+    const fixtures = [
+      [5, 'regular', 'Koninklijke Berkendael HC', 'HC Molenhoek', '3–1'],
+      [6, 'regular', 'Montville Royal HC', 'Koninklijke Berkendael HC', '2–2'],
+      [7, 'regular', 'Koninklijke Berkendael HC', 'Royal Sartcourt HC', '2–1'],
+      [8, 'regular', 'Klaverbeke HC Cranes', 'Koninklijke Berkendael HC', '—'],
+      [9, 'regular', 'Koninklijke Berkendael HC', 'Zavelberg Hockey Club', '—'],
+      [10, 'regular', 'Bruyèreville HC', 'Koninklijke Berkendael HC', '—'],
+      [11, 'regular', 'Koninklijke Berkendael HC', 'K. Waterakker HC', '—'],
+    ].map(([day, phase, home, away, res], i) => ({ day, phase, home, away, res, outline: i === 3 ? '1px solid #1f9a63' : 'none' }));
+
+    const history = [
+      '2025 — champion Royal Sartcourt HC (regular winner Koninklijke Berkendael HC) · final: 3–2 · up: Duinzicht HC · down: Bruyèreville HC',
+      '2024 — champion Royal Sartcourt HC (regular winner Royal Sartcourt HC) · final: 2–0 · up: Kruisbeke Hockeyclub · down: Rochefontaine HC',
+      '2023 — champion Montville Royal HC (regular winner Zavelberg Hockey Club) · final: 1–0 (SO 3–2) · up: Espenhove HC · down: HC Chênesart Otters',
+    ];
+
+    const briefing = [
+      ['goals', 2, 1], ['shots', 9, 6], ['circle entries', 14, 9],
+      ['penalty corners', 4, 2], ['possession', '54 %', '46 %'], ['tackles', 18, 21],
+    ].map(([k, a, b]) => ({ k, a, b }));
+
+    const ticker = [
+      '41:20 PC for us', '38:04 ⚽ GOAL for us 2–1', '33:47 tactics: press → half-court press',
+      '29:12 ↔ Arnaud Delcourt off, Sander Maes on', '24:55 yellow card Wout Segers', '18:30 ⚽ goal against 1–1',
+    ];
+
+    const roster = [
+      ['Bram Vercruysse', 'GK', 0.93], ['Thibaut Lammens', 'DEF', 0.71], ['Wout Segers', 'DEF', 0.64],
+      ['Jonas Pauwels', 'DEF', 0.58], ['Jasper Dewulf', 'MID', 0.49], ['Matthias Coppens', 'MID', 0.34],
+      ['Lowie Verhaeghe', 'MID', 0.31], ['Sander Maes', 'FWD', 0.77], ['Emile Ghislain', 'FWD', 0.62],
+      ['Nathan Beauclair', 'FWD', 0.55], ['Ruben Van Acker', 'MID', 0.68],
+    ];
+    const stam = (s) => ({ w: Math.round(s * 100) + '%', c: s > 0.6 ? '#2ecc71' : s > 0.35 ? '#f1c40f' : '#e74c3c' });
+    const onPitch = roster.map(([name, role, s]) => ({ name, role, ...stam(s) }));
+    const bench = [
+      ['Arnaud Delcourt', 'MID'], ['Tom Bogaert', 'DEF'], ['Victor Lejeune', 'FWD'], ['Kobe Struyf', 'GK'], ['Hugo Marchal', 'MID'],
+    ].map(([name, role]) => ({ name, role }));
+
+    const events = [
+      '48:12  FullTime home 2–1', '44:38  Goal home 2–1', '41:20  PenaltyCornerAwarded home',
+      '37:02  Card yellow #14', '35:00  QuarterStart', '28:44  Goal away 1–1',
+      '15:09  PenaltyStrokeAwarded away', '00:00  QuarterStart',
+    ];
+
+    return { clubs, table, squad, fixtures, history, briefing, ticker, onPitch, bench, events };
+  }
+}
+</script>
+</body>
+</html>
