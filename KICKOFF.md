@@ -23,7 +23,7 @@ Arcade front-end on the same engine worker (`apps/arcade` stub; reuse `CoachInst
 
 **Adaptive play** — the answer to "the engine is deterministic, so does anything ever learn?": **ADR-014** (proposed, needs Jan's acceptance) fixes where learning may live without giving up reproducibility; **`docs/design/adaptive-play.md`** is the build plan, in order: naturalness (commitment, softmax, anticipation, timed runs) → in-match opponent model → fitted policy weights via `pnpm fit` → season learning (experience-driven growth, training focus, familiarity, scouting, adaptive AI clubs). It subsumes open questions 16, 25 and 26 and the PC read-and-counter item above. Nothing starts before v1.0 is tagged.
 
-**`docs/design/hockey-systems.md`** comes first in that plan and is the tactical-correctness half: today the AI presses with "the two players nearest the ball" in every system, has no marking outside its own 23, no free man and no rest-break, and exactly one PC running-out system. It specifies press systems (full / half / split / zone and their variants), the assignment model (man / zone / lane / free / rest-break instead of ball-chasing), PC defence systems (runnerLeads / keeperLeads / doubleCharge / block, with the runner's low-vs-high guess as the read), circle-entry patterns, and stick handedness — all as data. **§10 there: press systems and "all four PC defence systems are played" confirmed 2026-08-22 (so the uitloopsysteem becomes a coach knob, with the counter matrix in §5); handedness still open.**
+**`docs/design/hockey-systems.md`** comes first in that plan and is the tactical-correctness half: today the AI presses with "the two players nearest the ball" in every system, has no marking outside its own 23, no free man and no rest-break, and exactly one PC running-out system. It specifies press systems (full / half / split / zone and their variants), the assignment model (man / zone / lane / free / rest-break instead of ball-chasing), PC defence systems (runnerLeads / keeperLeads / doubleCharge / block), circle-entry patterns, and stick handedness — all as data. **§10 there: all three hockey readings confirmed 2026-08-22** — press systems as written; all four PC defence systems are played and the uitloper guesses *both* his line and his body height (so the uitloopsysteem becomes a coach knob, with the counter matrix in §5); stick handedness gets its own phase at full scope (pressing angle, tackle side, receiving, carrying, striking). Nothing there waits on hockey any more — only on accepting ADR-014 and on order/timing.
 
 ### The still-owed Phase 3 verdict
 
@@ -67,12 +67,12 @@ Carried:
 New from Phase 3:
 
 15. ~~**Substitution policy**~~ — closed in Phase 7: stamina is in the controller view; the AI rotates on `rotateBelowStamina` (default 0.7). Still open: the stamina curve drains too gently for realistic rotation volume (4–8 subs vs dozens).
-16. **PC variants**: five exist (dragFlick, lowHit, slipRight, slipLeft, deflection) and the coach can now pick variant + battery per match. Which two or three matter most for the Belgian game, and what does "the opponent has read you" look like to a coach? (AI read-and-counter still to design.)
+16. **PC variants**: five exist (dragFlick, lowHit, slipRight, slipLeft, deflection) and the coach can now pick variant + battery per match. Which two or three matter most for the Belgian game, and what does "the opponent has read you" look like to a coach? (AI read-and-counter designed in `hockey-systems.md` §5; the uitloper's line + height is what gets read.)
 
 New from Phase 4:
 
-17. **Replace the `EST` calibration rows with transcribed data** — one season of FIH/KBHB match reports (PCs, circle entries, shots, shots on target, cards, restarts). `docs/rules/calibration-data.md` § C lists them; `tools/calibrate/src/targets.ts` is the twin to update.
-18. **PC award frequency** (6.4 vs ≈ 9 real): the AI under-fouls in the D. Coach's view wanted on *why* PCs happen at club level (feet on shots, stick tackles, deliberate over-the-line) so the AI can be steered at the right cause.
+17. **Replace the `EST` calibration rows with transcribed data** — one season of FIH/KBHB match reports (PCs, circle entries, shots, shots on target, cards, restarts). `docs/rules/calibration-data.md` § C lists them; `tools/calibrate/src/targets.ts` is the twin to update. **Blocks the fitting layer from being worth much** (ADR-014 layer A fits against these targets; nine of fourteen are still guesses).
+18. **PC award frequency** (6.4 vs ≈ 9 real): the AI under-fouls in the D. Coach's view wanted on *why* PCs happen at club level (feet on shots, stick tackles, deliberate over-the-line) so the AI can be steered at the right cause. `hockey-systems.md` §6 (tackle sides) is the proposed mechanism.
 19. **`gkSaveScale`** (women 1.6) — a provisional knob for the part of the women's goal gap not explained by shot speed. Accept until defensive organisation is modelled, or prefer a different mechanism?
 20. **Quality spread** in calibration runs (±2 levels): is that the right picture of the Belgian top division's spread (Braxgata/Gantoise vs the rest)? A per-club level table would let calibration mirror the real league.
 
@@ -95,8 +95,14 @@ New from Phase 8:
 
 New from Phase 7:
 
-26. **Tactics knobs a Belgian coach expects** — press triggers, outlet side, man-marking the drag-flicker, "pull the keeper" at the death (the engine supports kicking back; the AI doesn't decide it yet). Which first?
+26. **Tactics knobs a Belgian coach expects** — press triggers, outlet side, man-marking the drag-flicker, "pull the keeper" at the death (the engine supports kicking back; the AI doesn't decide it yet). Which first? (`hockey-systems.md` §3 proposes the press triggers; the PC defence knob is §5.)
 27. **Instruction list in the replay** (`ReplayFile` v2) so coached replays are self-describing — worth the format bump now or at Phase 9?
+
+New from the adaptive-play review (2026-08-22):
+
+31. **Accept ADR-014?** It is `Proposed`. Nothing in `hockey-systems.md` or `adaptive-play.md` gets built until it is accepted.
+32. **Order and timing.** Proposed: systems (10) → handedness (10b) → naturalness (11) → reads (12) → fitting (13) → season (14). But the naturalness pass is ~2 days and changes how every match looks — it may belong first, or even inside v1.0, since it is what the first play-through noticed.
+33. **Complexity budget for the tactics screen.** A `pcDefence` knob plus press-system controls means more for the coach to set. May that screen grow, or is there a ceiling?
 
 ## Decisions log (short form — full argument in `docs/adr/`)
 
