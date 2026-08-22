@@ -9,10 +9,16 @@
  * attacked goal). Pixels only exist in the SVG (CLAUDE.md rule 12).
  */
 
+import type { CameraId } from '@bullyoff/render';
+
 export type TopicId = 'penaltyCorner' | 'buildUp' | 'pressing' | 'circleEntry';
 
-/** Which slice of the pitch a step draws. */
-export type DiagramView = 'full' | 'attackingHalf' | 'circle';
+/**
+ * Which camera the step is drawn through. These are the *same* cameras the match viewer uses
+ * (`@bullyoff/render`), so a lesson is framed the way the game frames the moment: the whole court
+ * for anything about shape, and from behind the goal for anything that happens facing it.
+ */
+export type DiagramView = CameraId;
 
 export interface Marker {
   x: number;
@@ -64,19 +70,19 @@ export const ACADEMY: Topic[] = [
     id: 'penaltyCorner',
     steps: [
       // the battery: injector, trapper, striker — the sequence before any variant exists
-      { id: 'battery', view: 'circle',
+      { id: 'battery', view: 'behindGoal',
         markers: [us(45.7, 9.1, 'I'), us(30.5, 1.5, 'T'), us(29.3, 0.2, 'S'), them(45.7, 0), them(44, -1.4), them(44, 1.4), ball(45.7, 9.1)],
         arrows: [pass([45.7, 9.1], [30.5, 1.5])] },
       // the variants: what each one is for
-      { id: 'variants', view: 'circle',
+      { id: 'variants', view: 'behindGoal',
         markers: [us(30.5, 1.5, 'T'), us(29.3, 0.2, 'S'), us(27, -3.5), them(45.7, 0), them(44, -1.4), them(44, 1.4), ball(30.5, 1.5)],
         arrows: [pass([30.5, 1.5], [27, -3.5]), pass([29.3, 0.2], [45.7, 2.5])] },
       // running out: the flyer leaves on the injection and guesses line and height
-      { id: 'runningOut', view: 'circle',
+      { id: 'runningOut', view: 'behindGoal',
         markers: [us(30.5, 1.5, 'T'), us(29.3, 0.2, 'S'), them(45.7, 0, 'K'), them(45.3, -1.4, 'P'), them(45.3, 1.4, 'P'), them(45.3, 0.2, 'R'), ball(30.5, 1.5)],
         arrows: [run([45.3, 0.2], [31, 0.8])] },
       // wearing a variant out: run the same one all season and the league sets up for it
-      { id: 'wearOut', view: 'circle',
+      { id: 'wearOut', view: 'behindGoal',
         markers: [us(30.5, 1.5, 'T'), us(29.3, 0.2, 'S'), them(45.7, 0, 'K'), them(45.3, 0.2, 'R'), them(43, 3), ball(30.5, 1.5)],
         arrows: [run([45.3, 0.2], [30.6, 1.2]), pass([29.3, 0.2], [45.7, 3.2])] },
     ],
@@ -105,41 +111,55 @@ export const ACADEMY: Topic[] = [
   {
     id: 'pressing',
     steps: [
-      // the four systems on one board
+      // Full-court press: we attack +x, so they build out from their own goal at +45.7 and we go
+      // and get it there. Man-to-man over the whole pitch, nobody spare — the full court is the
+      // only frame that shows what that costs at the back.
       { id: 'systems', view: 'full',
-        markers: [them(-20, 0), us(-14, 0), us(-6, -10), us(-6, 10), us(4, 0), ball(-20, 0)],
-        arrows: [run([-14, 0], [-18, 2])] },
-      // who steps: the channel owner, not the nearest body
+        markers: [them(43, 0, 'K'), them(36, -14), them(34, 0), them(36, 14), them(22, -8), them(20, 9),
+                  us(38, -12), us(37, 2), us(38, 13), us(24, -7), us(23, 10), us(8, 0), us(-6, -6), us(-8, 7), us(-30, 0, 'K'),
+                  ball(36, 14)],
+        arrows: [run([38, 13], [36.5, 13.5]), run([24, -7], [22.5, -8])] },
+      // Who steps out: the ball is in the left channel, so the left-side owner goes and the rest
+      // hold their lanes. The far-side half staying home is the whole point.
       { id: 'channels', view: 'full',
-        markers: [them(-10, -16), us(-2, -14), us(0, 0), us(-1, 14), ball(-10, -16)],
-        arrows: [run([-2, -14], [-8, -16])] },
-      // the free man and the rest-break: what a system costs and what it buys
+        markers: [them(6, -18), them(14, -6), them(2, 8), them(20, 16),
+                  us(-2, -16), us(-4, -4), us(-2, 9), us(0, 20), us(-16, -8), us(-18, 6), us(-34, 0, 'K'),
+                  ball(6, -18)],
+        arrows: [run([-2, -16], [3, -18]), run([-4, -4], [-1, -9])] },
+      // Free man and rest-break, drawn where you can see both ends at once: the spare sits behind
+      // the line at our end, the two who do not come back wait in theirs.
       { id: 'freeManRest', view: 'full',
-        markers: [us(-24, 0, 'F'), us(-10, -8), us(-10, 8), us(18, -6, 'R'), us(20, 8, 'R'), them(-14, 0), them(-6, -12)],
-        arrows: [run([18, -6], [30, -4])] },
-      // splitting: shepherd to the line, slide across, concede the far side
+        markers: [them(-14, -10), them(-20, 4), them(-6, 12), them(-30, -4),
+                  us(-24, -8), us(-26, 5), us(-16, 12), us(-33, 0, 'F'), us(-40, 0, 'K'),
+                  us(26, -8, 'R'), us(29, 9, 'R'),
+                  ball(-14, -10)],
+        arrows: [run([26, -8], [40, -6])] },
+      // The splitting press: shepherd to the touchline, the block slides with it, and the far side
+      // is conceded on purpose. On a full court you can see how much is being given away.
       { id: 'split', view: 'full',
-        markers: [them(-12, -12), us(-6, -14), us(-4, -4), us(0, 4), us(6, -8), ball(-12, -12)],
-        arrows: [run([-6, -14], [-10, -10]), run([0, 4], [-2, -4])] },
+        markers: [them(18, -20), them(24, -6), them(10, 2), them(26, 16),
+                  us(12, -22), us(8, -12), us(2, -3), us(-6, -14), us(-4, 4), us(-20, -6), us(-34, 0, 'K'),
+                  ball(18, -20)],
+        arrows: [run([12, -22], [16, -19]), run([2, -3], [-1, -10]), run([-4, 4], [-6, -2])] },
     ],
   },
   {
     id: 'circleEntry',
     steps: [
       // nothing scores from outside the D — the entry is the whole game
-      { id: 'theLine', view: 'attackingHalf',
+      { id: 'theLine', view: 'half',
         markers: [us(24, 8), us(36, 2), them(32, 4), ball(24, 8)],
         arrows: [carry([24, 8], [34, 6])] },
       // the baseline pull-back
-      { id: 'baseline', view: 'circle',
+      { id: 'baseline', view: 'behindGoal',
         markers: [us(42, 12), us(37, 0), us(33, -4), them(41, 4), them(45.7, 0, 'K'), ball(42, 12)],
         arrows: [carry([38, 14], [43, 9]), pass([43, 9], [37, 0]), run([30, -6], [33, -4])] },
       // switch and slip
-      { id: 'switchSlip', view: 'circle',
+      { id: 'switchSlip', view: 'behindGoal',
         markers: [us(31, -8), us(31, 8), us(40, 5), them(36, -2), them(38, 3), them(45.7, 0, 'K'), ball(31, -8)],
         arrows: [pass([31, -8], [31, 8]), pass([31, 8], [40, 5])] },
       // drawing the foot: how most club-level corners are won
-      { id: 'drawTheFoot', view: 'circle',
+      { id: 'drawTheFoot', view: 'goalmouth',
         markers: [us(36, 2), them(39, 2), them(45.7, 0, 'K'), ball(36, 2)],
         arrows: [pass([36, 2], [39, 2])] },
     ],
