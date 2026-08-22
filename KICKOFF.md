@@ -21,6 +21,10 @@ Earlier phases: 8 worldgen + 20-season history (`phase-8.md`), 7 in-match coachi
 
 Arcade front-end on the same engine worker (`apps/arcade` stub; reuse `CoachInstruction`/`Command`), club mode (ADR-006 option D, local-only), replay v2 with the instruction list, records view, quick-sim toggle, stamina-curve tuning + re-calibration, PC read-and-counter AI, real art assets (ADR-012).
 
+**Adaptive play** — the answer to "the engine is deterministic, so does anything ever learn?": **ADR-014** (proposed, needs Jan's acceptance) fixes where learning may live without giving up reproducibility; **`docs/design/adaptive-play.md`** is the build plan, in order: naturalness (commitment, softmax, anticipation, timed runs) → in-match opponent model → fitted policy weights via `pnpm fit` → season learning (experience-driven growth, training focus, familiarity, scouting, adaptive AI clubs). It subsumes open questions 16, 25 and 26 and the PC read-and-counter item above. Nothing starts before v1.0 is tagged.
+
+**`docs/design/hockey-systems.md`** comes first in that plan and is the tactical-correctness half: today the AI presses with "the two players nearest the ball" in every system, has no marking outside its own 23, no free man and no rest-break, and exactly one PC running-out system. It specifies press systems (full / half / split / zone and their variants), the assignment model (man / zone / lane / free / rest-break instead of ball-chasing), PC defence systems (runnerLeads / keeperLeads / doubleCharge / block, with the runner's low-vs-high guess as the read), circle-entry patterns, and stick handedness — all as data. **§10 there has three hockey readings that need Jan's confirmation before anything is built.**
+
 ### The still-owed Phase 3 verdict
 
 ```bash
