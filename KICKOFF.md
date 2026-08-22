@@ -102,8 +102,8 @@ New from Phase 7:
 
 New from the adaptive-play review (2026-08-22):
 
-31. **Accept ADR-014?** It is `Proposed`. Nothing in `hockey-systems.md` or `adaptive-play.md` gets built until it is accepted.
-32. **Order and timing.** Proposed: systems (11) → handedness (11b) → naturalness (12) → reads (13) → fitting (14) → season (15). But the naturalness pass is ~2 days and changes how every match looks — it may belong first, or even inside v1.0, since it is what the first play-through noticed.
+31. ~~**Accept ADR-014?**~~ — **Accepted 2026-08-22.**
+32. ~~**Phase 11 merged**~~ — **merged 2026-08-22 on Jan's call** (`docs/handoff/phase-11.md`): pressing systems as data + the assignment model. It carries a known regression: mens goals per match 5.49 → 4.33, **outside the calibration band**, because the defensive half landed without §7's attacking patterns. **The next phase is §7** — circle-entry patterns, passing into space, up-back-through — and the gate is goals per match back inside [4.86, 5.94]. Do not reach for the fitting layer first: that would fit weights to a half-built model. Remaining order after §7: handedness (11b) → naturalness (12) → reads (13) → fitting (14) → season (15).
 33. **Complexity budget for the tactics screen.** A `pcDefence` knob plus press-system controls means more for the coach to set. May that screen grow, or is there a ceiling?
 
 ## Decisions log (short form — full argument in `docs/adr/`)
