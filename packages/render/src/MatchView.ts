@@ -88,10 +88,12 @@ export async function createMatchView(canvas: HTMLCanvasElement, log: MatchLog, 
 
   const host = canvas.parentElement;
   let lastW = -1, lastH = -1;
-  const syncSize = (): void => {
-    if (!host) return;
+  /** Resize the renderer to the host element; reports whether the size actually changed. */
+  const syncSize = (): boolean => {
+    if (!host) return false;
     const w = host.clientWidth, h = host.clientHeight;
-    if (w > 0 && h > 0 && (w !== lastW || h !== lastH)) { lastW = w; lastH = h; app.renderer.resize(w, h); }
+    if (w > 0 && h > 0 && (w !== lastW || h !== lastH)) { lastW = w; lastH = h; app.renderer.resize(w, h); return true; }
+    return false;
   };
 
   const homeColour = opts.homeColour ?? 0x1d3557;
@@ -329,7 +331,7 @@ export async function createMatchView(canvas: HTMLCanvasElement, log: MatchLog, 
 
   let last = performance.now();
   app.ticker.add(() => {
-    syncSize();
+    const resized = syncSize();
     const now = performance.now();
     const dtWall = Math.min(0.1, (now - last) / 1000); last = now; wall += dtWall;
     if (playing) {
@@ -339,22 +341,34 @@ export async function createMatchView(canvas: HTMLCanvasElement, log: MatchLog, 
       processEvents(tick);
       if (Math.floor(tick) % 5 === 0) recomputeHud(tick);
     }
-    const s = sampleAt(log.frames, tick, nPlayers);
-    if (s) draw(s, dtWall);
+    // A paused view is a still frame (ADR-013: frame-accurate = a deterministic draw at a tick).
+    // Drawing on the wall clock while paused makes the canvas drift between two reads of the same
+    // tick — the play head has not moved, but interpolation, sheen and banner alpha have — which
+    // breaks frame-accurate read-back and repaints a stationary picture on a phone for nothing.
+    // While paused only an explicit command repaints: renderFrame(), seek(), setMode/setCamera/
+    // setOverlay, or a resize (the camera transform is computed in draw(), so a new size needs one).
+    if (playing || resized) {
+      const s = sampleAt(log.frames, tick, nPlayers);
+      if (s) draw(s, dtWall);
+    }
     for (const cb of frameCbs) cb(tick, hud);
   });
 
+  /** Draw the current tick and present it — what every command has to do while paused. */
+  const renderNow = (): void => { syncSize(); const s = sampleAt(log.frames, tick, nPlayers); if (s) draw(s, 1 / 60); app.render(); };
+
   seekTo(0);
+  renderNow(); // the view starts paused, so the first picture is drawn here rather than by the ticker
 
   return {
     play: () => { if (tick >= lastTick) seekTo(0); playing = true; },
     pause: () => { playing = false; },
     toggle: () => { if (playing) { playing = false; return; } if (tick >= lastTick) seekTo(0); playing = true; },
     setSpeed: (x) => { speed = Math.max(0.25, Math.min(8, x)); },
-    seek: (t) => { seekTo(t); },
-    setMode: (m) => { mode = m; cameraChoice = m === 'director' ? 'director' : 'full'; lastPitchKey = ''; },
-    setCamera: (c) => { cameraChoice = c; lastPitchKey = ''; },
-    setOverlay: (o) => { overlay = o; lastPitchKey = ''; },
+    seek: (t) => { seekTo(t); if (!playing) renderNow(); },
+    setMode: (m) => { mode = m; cameraChoice = m === 'director' ? 'director' : 'full'; lastPitchKey = ''; if (!playing) renderNow(); },
+    setCamera: (c) => { cameraChoice = c; lastPitchKey = ''; if (!playing) renderNow(); },
+    setOverlay: (o) => { overlay = o; lastPitchKey = ''; if (!playing) renderNow(); },
     enableAudio: () => { audio.enable(); },
     get playing() { return playing; },
     get speed() { return speed; },
@@ -364,7 +378,7 @@ export async function createMatchView(canvas: HTMLCanvasElement, log: MatchLog, 
     get camera() { return cameraChoice; },
     get overlay() { return overlay; },
     onFrame: (cb) => { frameCbs.push(cb); },
-    renderFrame: () => { syncSize(); const s = sampleAt(log.frames, tick, nPlayers); if (s) draw(s, 1 / 60); app.render(); },
+    renderFrame: () => { renderNow(); },
     append: (events, frames) => {
       log.events.push(...events); log.frames.push(...frames);
       const lf = log.frames[log.frames.length - 1]?.tick, le = log.events[log.events.length - 1]?.tick;
