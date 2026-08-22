@@ -251,7 +251,7 @@ Also required, and missing today:
 
 ## 6. Handedness — confirmed 2026-08-22: its own phase, full scope
 
-Every stick is right-handed. The engine knows no difference between left and right anywhere: `grep -n "reverse\|openStick\|handed"` over `packages/engine` and `packages/rules` returns only array reversals. Jan has chosen the full version, so this is a phase (10b) rather than a note.
+Every stick is right-handed. The engine knows no difference between left and right anywhere: `grep -n "reverse\|openStick\|handed"` over `packages/engine` and `packages/rules` returns only array reversals. Jan has chosen the full version, so this is a phase of its own (11b — phase 10 is the commercial redesign that landed on main) rather than a note.
 
 **The one idea:** a player's **open stick side is their right**, their **reverse is their left**. Everything below follows from that, and every one of them is an *input* to physics, never a change to physics (Phase 3's rule: attributes scale physics inputs).
 
@@ -331,12 +331,12 @@ And the situational deck gains scenarios named for what they test: `press-full-b
 
 | Phase | Content | Why in this order |
 |---|---|---|
-| **10 — Systems** | §2–§4 assignments + press systems as data; §5 PC defence systems; §7 entry patterns | the action space. Nothing can read or learn without it |
-| **10b — Handedness** | §6, full scope: pressing angle, tackle side, receiving, carrying, striking | confirmed as its own phase. It makes every pressing angle read correctly and is the right cause for the PC shortfall (question 18) |
-| **11 — Naturalness** | `adaptive-play.md` layer D | commitment, softmax, anticipation, timed runs — now applied to real assignments |
-| **12 — Reads** | layer B (`ScoutMemory`) | reads *choose between systems and variants*: trap channel, PC runner line and height, entry pattern |
-| **13 — Fitting** | layer A (`PolicyWeights`, `pnpm fit`) | fit the utility weights **and** the system parameters against calibration |
-| **14 — Season** | layer C | familiarity is now per *system* (§3), which is exactly what a squad drills |
+| **11 — Systems** | §2–§4 assignments + press systems as data; §5 PC defence systems; §7 entry patterns | the action space. Nothing can read or learn without it |
+| **11b — Handedness** | §6, full scope: pressing angle, tackle side, receiving, carrying, striking | confirmed as its own phase. It makes every pressing angle read correctly and is the right cause for the PC shortfall (question 18) |
+| **12 — Naturalness** | `adaptive-play.md` layer D | commitment, softmax, anticipation, timed runs — now applied to real assignments |
+| **13 — Reads** | layer B (`ScoutMemory`) | reads *choose between systems and variants*: trap channel, PC runner line and height, entry pattern |
+| **14 — Fitting** | layer A (`PolicyWeights`, `pnpm fit`) | fit the utility weights **and** the system parameters against calibration |
+| **15 — Season** | layer C | familiarity is now per *system* (§3), which is exactly what a squad drills |
 
 Two things fall out of this ordering that are worth stating plainly. **Familiarity becomes meaningful**: a squad that has drilled the split press for two seasons executes the slide tightly, and switching them to a full press in July costs them for months — that is only expressible once systems exist as objects. And **calibration gets a new lever at the right cause**: open questions 18 (too few PCs — the AI under-fouls in the D) and 20 (quality spread) are both defensive-behaviour problems, and §4's marking positions and §6's tackle sides are where a coach would actually look for them.
 

@@ -103,7 +103,7 @@ New from Phase 7:
 New from the adaptive-play review (2026-08-22):
 
 31. **Accept ADR-014?** It is `Proposed`. Nothing in `hockey-systems.md` or `adaptive-play.md` gets built until it is accepted.
-32. **Order and timing.** Proposed: systems (10) → handedness (10b) → naturalness (11) → reads (12) → fitting (13) → season (14). But the naturalness pass is ~2 days and changes how every match looks — it may belong first, or even inside v1.0, since it is what the first play-through noticed.
+32. **Order and timing.** Proposed: systems (11) → handedness (11b) → naturalness (12) → reads (13) → fitting (14) → season (15). But the naturalness pass is ~2 days and changes how every match looks — it may belong first, or even inside v1.0, since it is what the first play-through noticed.
 33. **Complexity budget for the tactics screen.** A `pcDefence` knob plus press-system controls means more for the coach to set. May that screen grow, or is there a ceiling?
 
 ## Decisions log (short form — full argument in `docs/adr/`)
