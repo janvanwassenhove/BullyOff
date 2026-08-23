@@ -25,16 +25,17 @@
     "back": "Retour",
     "menu": "Menu",
     "version": {
-      "engine": "MOTEUR {v}",
+      "engine": "VERSION DU JEU {v}",
       "save": "SAUVEGARDE v{v}",
       "offline": "HORS LIGNE OK",
       "langs": "NL · EN · FR"
     }
   },
   "intro": {
-    "eyebrow": "HOCKEY SUR GAZON, MODÉLISÉ HONNÊTEMENT",
+    "eyebrow": "LE HOCKEY SUR GAZON, TEL QU'IL SE JOUE",
+    "reel": { "f1": "Samedi matin. On arrose le terrain.", "f2": "Le vestiaire. Votre plan est au mur.", "f3": "Échauffement sur gazon mouillé — le hockey le plus rapide qui soit.", "f4": "Penalty corner. Un choix : flick ou slip.", "f5": "Le banc. Vos mots à la mi-temps.", "f6": "Coup de sifflet final. Le rapport vous dit pourquoi." },
     "headline": "PRENEZ LE BANC\nSAMEDI.",
-    "body": "Coachez un club fictif sur une saison que le moteur simule vraiment. Chaque consigne est du hockey légal — et après le coup de sifflet final, le jeu vous montre pourquoi ça a marché.",
+    "body": "Coachez un club fictif sur une saison réellement jouée, minute après minute. Chaque consigne est du hockey comme votre coach le dit — et après le coup de sifflet final, le jeu vous montre pourquoi ça a marché.",
     "start": "COMMENCER À COACHER",
     "watch": "▶ VOIR L'INTRO DE 60 SECONDES",
     "support": "Pas de compte. Fonctionne hors ligne. 90 secondes avant votre premier match.",
@@ -70,8 +71,8 @@
     }
   },
   "title": {
-    "eyebrow": "HOCKEY SUR GAZON DÉTERMINISTE",
-    "body": "Une saison que le moteur simule vraiment — règle du cercle, changements volants, gazon arrosé. Apprenez le sport en le gagnant.",
+    "eyebrow": "LE HOCKEY SUR GAZON, COMME LE SAMEDI",
+    "body": "Une saison réellement jouée — règle du cercle, changements volants, gazon arrosé. Apprenez le sport en le gagnant.",
     "keyArt": "key art — gardien, projecteurs, gazon arrosé",
     "menu": {
       "continue": "CONTINUER",
@@ -129,9 +130,9 @@
     "watered": "ARROSÉ",
     "dry": "SEC",
     "wet": "MOUILLÉ",
-    "seed": "SEED DU MONDE",
+    "seed": "NUMÉRO DU MONDE",
     "reroll": "RELANCER",
-    "seedNote": "même seed, même monde — toujours",
+    "seedNote": "même numéro, même monde — toujours",
     "generate": "GÉNÉRER LE MONDE",
     "generating": "GÉNÉRATION",
     "idle": "PRÊT",
@@ -147,7 +148,7 @@
     "ledgerRegular": "{champion} — vainqueur de la phase classique {regular}",
     "ledgerDouble": "{champion} — aussi vainqueur de la phase classique",
     "pickTitle": "Choisissez le club que vous allez coacher",
-    "pickSub": "{n} clubs · division 1 & 2 · plus le club est difficile, plus le moteur vous apprend",
+    "pickSub": "{n} clubs · division 1 & 2 · plus le club est difficile, plus vous apprenez",
     "tier": "DIVISION {n}",
     "level": "NIV {n}",
     "est": "fondé en {year}",
@@ -483,9 +484,9 @@
   "sim": {
     "title": "Visionneuse",
     "phase": "PHASE DE JEU",
-    "inputs": "ENTRÉES DU MOTEUR",
-    "deterministic": "DÉTERMINISTE",
-    "deterministicBody": "Même seed, mêmes entrées, journal identique à l'octet. Exportez ce match et n'importe qui peut rejouer exactement ces 70 minutes.",
+    "inputs": "RÉGLAGES DU MATCH",
+    "deterministic": "REJOUABLE À L'IDENTIQUE",
+    "deterministicBody": "Mêmes réglages, même match — à la seconde près. Exportez ce match et n'importe qui peut revoir exactement ces 70 minutes.",
     "inputKeys": {
       "profile": "profil",
       "turf": "terrain",
@@ -500,8 +501,8 @@
     "eventLog": "JOURNAL",
     "learn": "APPRENDRE CETTE PHASE",
     "openRulebook": "OUVRIR LE RÈGLEMENT →",
-    "tick": "TICK {n}",
-    "seed": "SEED {seed} · {turf}",
+    "tick": "PAS {n}",
+    "seed": "MATCH {seed} · {turf}",
     "play": "JEU",
     "paused": "PAUSE",
     "clockOf": "{a} / {b}",
@@ -543,7 +544,7 @@
     "source": "SOURCE",
     "profile": "PROFIL",
     "turf": "TERRAIN",
-    "seedLabel": "SEED",
+    "seedLabel": "NUMÉRO DU MATCH",
     "card": {
       "green": "verte",
       "yellow": "jaune",
@@ -576,9 +577,9 @@
     "keyMoments": "MOMENTS CLÉS",
     "noMoments": "Un match calme — aucun moment décisif dont l'analyse soit sûre.",
     "didWell": "CE QUE VOUS AVEZ BIEN FAIT",
-    "didWellNone": "Rien ne ressort comme une victoire nette cette fois — le journal montre un match équilibré.",
+    "didWellNone": "Rien ne ressort comme une victoire nette cette fois — le match a été équilibré.",
     "workOn": "À TRAVAILLER",
-    "workOnNone": "Pas de leçon claire dans ce journal. Gardez le même plan et surveillez le troisième quart-temps.",
+    "workOnNone": "Pas de leçon claire dans ce match. Gardez le même plan et surveillez le troisième quart-temps.",
     "ruleOfMatch": "RÈGLE DU MATCH",
     "readRule": "LIRE LA RÈGLE →",
     "ruleNone": "Un match propre — pas de règle à relire.",
@@ -748,8 +749,9 @@
     "balance": "solde"
   },
   "rules": {
+    "stageHint": "Cliquez une règle pour la voir sur le terrain — la scène tourne en boucle.", "stageLabel": "SUR LE TERRAIN",
     "title": "Le règlement",
-    "sub": "Les règles FIH telles que le moteur les applique — chacune est une donnée dans packages/rules, pas de la prose.",
+    "sub": "Les règles FIH telles qu'elles s'appliquent sur le terrain — et telles que le jeu les siffle.",
     "feet": {
       "title": "Pied dans le cercle",
       "body": "Une balle qui touche le pied ou le corps d'un défenseur dans le cercle est un penalty corner ; hors du cercle, un coup franc. L'attaquant qui joue sur les pieds reste dans les règles — le défenseur doit garder le corps hors de la ligne."
@@ -842,17 +844,17 @@
   },
   "about": {
     "title": "À propos de BULLY OFF",
-    "intro": "Un jeu de coach/manager de hockey sur gazon bâti sur un moteur de match déterministe. Tout y est fictif et tout tourne sur votre appareil.",
+    "intro": "Un jeu de coach/manager de hockey sur gazon où chaque match est réellement joué. Tout y est fictif et tout tourne sur votre appareil.",
     "privacyTitle": "Vie privée",
     "privacy1": "Aucun vrai club et aucune vraie personne. Clubs, joueurs, coachs et communes sont générés à partir de listes de noms courants et vérifiés contre une liste de clubs réels ; aucune personne n'est modélisée, notée ou nommée.",
     "privacy2": "Pas de compte, pas de télémétrie, pas d'analytics, pas de publicité. L'app ne fait aucune requête réseau une fois chargée ; vos carrières vivent dans le stockage de votre navigateur (IndexedDB) et dans les fichiers que vous exportez vous-même.",
     "privacy3": "Les replays et sauvegardes que vous exportez ne contiennent que des données générées. Les partager ne partage rien de vous.",
     "privacy4": "Le mode club (encoder votre propre noyau) ne fait pas partie de la v1.0 ; quand il arrivera, il restera local et clairement signalé.",
     "offlineTitle": "Hors ligne",
-    "offline": "Installé comme app, BULLY OFF fonctionne sans connexion : moteur, générateur de monde et sauvegardes sont locaux.",
+    "offline": "Installé comme app, BULLY OFF fonctionne sans connexion : le match, le générateur de monde et les sauvegardes sont locaux.",
     "creditsTitle": "Comment c'est construit",
-    "credits": "Open source (MIT). Moteur déterministe, règles FIH en données, IA utilitaire, modèle de saison avec vingt saisons d'historique généré et visionneuse PixiJS — calibré sur les agrégats publics du championnat belge.",
-    "version": "Moteur {engine} · format de sauvegarde v{save}"
+    "credits": "Open source (MIT). Un modèle de match qui rejoue chaque match à l'identique, les règles FIH, des joueurs qui décident eux-mêmes, modèle de saison avec vingt saisons d'historique généré et visionneuse de replays — calibré sur les agrégats publics du championnat belge.",
+    "version": "Version du jeu {engine} · format de sauvegarde v{save}"
   },
   "viewer": {
     "mens": "messieurs",
@@ -885,7 +887,7 @@
   },
   "academy": {
     "title": "Académie",
-    "sub": "Ce que le moteur modélise vraiment — un sujet par minute.",
+    "sub": "Ce qui se passe vraiment sur le terrain — un sujet par minute.",
     "open": "Parcourir",
     "step": "Étape {n} sur {total}",
     "prev": "Retour",

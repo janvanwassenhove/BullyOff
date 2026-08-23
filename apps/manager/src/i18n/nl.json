@@ -25,16 +25,17 @@
     "back": "Terug",
     "menu": "Menu",
     "version": {
-      "engine": "ENGINE {v}",
+      "engine": "SPELVERSIE {v}",
       "save": "SAVE v{v}",
       "offline": "OFFLINE KLAAR",
       "langs": "NL · EN · FR"
     }
   },
   "intro": {
-    "eyebrow": "VELDHOCKEY, EERLIJK GEMODELLEERD",
+    "eyebrow": "VELDHOCKEY, ZOALS HET ECHT IS",
+    "reel": { "f1": "Zaterdagochtend. Het veld wordt besproeid.", "f2": "De kleedkamer. Je plan hangt aan de muur.", "f3": "Opwarmen op nat gras — het snelste hockey dat er is.", "f4": "Strafcorner. Eén beslissing: flick of slip.", "f5": "De bank. Jouw woorden aan de rust.", "f6": "Affluiten. Het rapport vertelt je waarom." },
     "headline": "NEEM ZATERDAG\nPLAATS OP DE BANK.",
-    "body": "Coach een fictieve club door een seizoen dat de engine écht simuleert. Elke instructie is reglementair hockey — en na het affluiten toont het spel je waarom het werkte.",
+    "body": "Coach een fictieve club door een seizoen dat echt gespeeld wordt, minuut na minuut. Elke instructie is hockey zoals je trainer het zegt — en na het affluiten toont het spel je waarom het werkte.",
     "start": "BEGIN MET COACHEN",
     "watch": "▶ BEKIJK DE INTRO VAN 60 SECONDEN",
     "support": "Geen account. Werkt offline. 90 seconden tot je eerste wedstrijd.",
@@ -70,8 +71,8 @@
     }
   },
   "title": {
-    "eyebrow": "DETERMINISTISCH VELDHOCKEY",
-    "body": "Een seizoen dat de engine echt simuleert — cirkelregel, doorlopende wissels, besproeid gras. Leer de sport terwijl je wint.",
+    "eyebrow": "VELDHOCKEY ZOALS OP ZATERDAG",
+    "body": "Een seizoen dat echt gespeeld wordt — cirkelregel, doorlopende wissels, besproeid gras. Leer de sport terwijl je wint.",
     "keyArt": "key art — doelvrouw/doelman, lichtmasten, besproeid gras",
     "menu": {
       "continue": "VERDER",
@@ -129,9 +130,9 @@
     "watered": "BESPROEID",
     "dry": "DROOG",
     "wet": "NAT",
-    "seed": "WERELD-SEED",
+    "seed": "WERELDNUMMER",
     "reroll": "OPNIEUW",
-    "seedNote": "zelfde seed, zelfde wereld — altijd",
+    "seedNote": "zelfde nummer, zelfde wereld — altijd",
     "generate": "WERELD GENEREREN",
     "generating": "BEZIG",
     "idle": "KLAAR",
@@ -147,7 +148,7 @@
     "ledgerRegular": "{champion} — reguliere winnaar {regular}",
     "ledgerDouble": "{champion} — ook reguliere winnaar",
     "pickTitle": "Kies de club die je gaat coachen",
-    "pickSub": "{n} clubs · reeks 1 & reeks 2 · hoe moeilijker de club, hoe meer de engine je leert",
+    "pickSub": "{n} clubs · reeks 1 & reeks 2 · hoe moeilijker de club, hoe meer je leert",
     "tier": "REEKS {n}",
     "level": "NIV {n}",
     "est": "opgericht {year}",
@@ -483,9 +484,9 @@
   "sim": {
     "title": "Wedstrijdkijker",
     "phase": "SPELFASE",
-    "inputs": "ENGINE-INPUT",
-    "deterministic": "DETERMINISTISCH",
-    "deterministicBody": "Zelfde seed, zelfde input, byte-identiek logboek. Exporteer deze wedstrijd en iedereen kan exact dezelfde 70 minuten herspelen.",
+    "inputs": "WEDSTRIJDINSTELLINGEN",
+    "deterministic": "EXACT HERSPEELBAAR",
+    "deterministicBody": "Zelfde instellingen, zelfde wedstrijd — tot op de seconde. Exporteer deze wedstrijd en iedereen kan exact dezelfde 70 minuten herbekijken.",
     "inputKeys": {
       "profile": "profiel",
       "turf": "ondergrond",
@@ -494,14 +495,14 @@
       "mentality": "ingesteldheid",
       "tempo": "tempo",
       "rotate": "wissel onder",
-      "tickRate": "tickfrequentie"
+      "tickRate": "stappen per seconde"
     },
     "live": "LIVE",
     "eventLog": "GEBEURTENISSEN",
     "learn": "LEER DEZE FASE",
     "openRulebook": "OPEN HET REGLEMENT →",
-    "tick": "TICK {n}",
-    "seed": "SEED {seed} · {turf}",
+    "tick": "STAP {n}",
+    "seed": "WEDSTRIJD {seed} · {turf}",
     "play": "SPEL",
     "paused": "GEPAUZEERD",
     "clockOf": "{a} / {b}",
@@ -543,7 +544,7 @@
     "source": "BRON",
     "profile": "PROFIEL",
     "turf": "ONDERGROND",
-    "seedLabel": "SEED",
+    "seedLabel": "WEDSTRIJDNUMMER",
     "card": {
       "green": "Groene",
       "yellow": "Gele",
@@ -576,9 +577,9 @@
     "keyMoments": "SLEUTELMOMENTEN",
     "noMoments": "Een rustige — geen beslissend moment waar de analyse zeker van is.",
     "didWell": "WAT JE GOED DEED",
-    "didWellNone": "Niets sprong er deze keer uit als duidelijke winst — het logboek toont een gelijkopgaande wedstrijd.",
+    "didWellNone": "Niets sprong er deze keer uit als duidelijke winst — het verslag toont een gelijkopgaande wedstrijd.",
     "workOn": "WERKPUNTEN",
-    "workOnNone": "Geen duidelijke les uit dit logboek. Hou hetzelfde plan en let op het derde kwart.",
+    "workOnNone": "Geen duidelijke les uit deze wedstrijd. Hou hetzelfde plan en let op het derde kwart.",
     "ruleOfMatch": "REGEL VAN DE WEDSTRIJD",
     "readRule": "LEES DE REGEL →",
     "ruleNone": "Een propere wedstrijd — geen regel om op na te lezen.",
@@ -748,8 +749,9 @@
     "balance": "saldo"
   },
   "rules": {
+    "stageHint": "Klik op een regel om ze op het veld te zien — de scène herhaalt zich.", "stageLabel": "OP HET VELD",
     "title": "Het reglement",
-    "sub": "FIH-regels zoals de engine ze toepast — elke regel is data in packages/rules, geen proza.",
+    "sub": "De FIH-regels zoals ze op het veld gelden — en zoals het spel ze fluit.",
     "feet": {
       "title": "Voet in de cirkel",
       "body": "Een bal die de voet of het lichaam van een verdediger raakt in de cirkel is een strafcorner; buiten de cirkel een vrije slag. De aanvaller die op de voeten speelt blijft binnen de regels — de verdediger moet het lichaam uit de lijn houden."
@@ -842,17 +844,17 @@
   },
   "about": {
     "title": "Over BULLY OFF",
-    "intro": "Een hockey-coach/managerspel op een deterministische wedstrijdengine. Alles erin is fictief en alles draait op jouw toestel.",
+    "intro": "Een hockey-coach/managerspel waarin elke wedstrijd echt gespeeld wordt. Alles erin is fictief en alles draait op jouw toestel.",
     "privacyTitle": "Privacy",
     "privacy1": "Geen echte clubs en geen echte mensen. Clubs, spelers, coaches en gemeenten worden gegenereerd uit lijsten met gangbare namen en getoetst aan een lijst van echte clubs; geen enkele persoon wordt gemodelleerd, beoordeeld of genoemd.",
     "privacy2": "Geen accounts, geen telemetrie, geen analytics, geen reclame. De app doet geen netwerkverzoeken nadat ze geladen is; je carrières staan in de opslag van je browser (IndexedDB) en in de bestanden die je zelf exporteert.",
     "privacy3": "Herhalingen en saves die je exporteert bevatten enkel gegenereerde gegevens. Ze delen niets over jou.",
     "privacy4": "Clubmodus (je eigen kern ingeven) zit niet in v1.0; wanneer die komt, blijft ze lokaal en duidelijk gemarkeerd.",
     "offlineTitle": "Offline",
-    "offline": "Als app geïnstalleerd werkt BULLY OFF zonder verbinding: engine, wereldgenerator en saves zijn lokaal.",
+    "offline": "Als app geïnstalleerd werkt BULLY OFF zonder verbinding: de wedstrijd, de wereldgenerator en je saves staan op je toestel.",
     "creditsTitle": "Hoe het gebouwd is",
-    "credits": "Open source (MIT). Deterministische engine, FIH-regels als data, een utility-AI, een seizoensmodel met twintig seizoenen gegenereerde geschiedenis en een PixiJS-herhalingskijker — gekalibreerd op publieke cijfers van de Belgische competitie.",
-    "version": "Engine {engine} · save-formaat v{save}"
+    "credits": "Open source (MIT). Een wedstrijdmodel dat elke wedstrijd exact herspeelt, de FIH-regels, spelers die zelf beslissen, een seizoensmodel met twintig seizoenen gegenereerde geschiedenis en een herhalingskijker — gekalibreerd op publieke cijfers van de Belgische competitie.",
+    "version": "Spelversie {engine} · save-formaat v{save}"
   },
   "viewer": {
     "mens": "heren",
@@ -885,7 +887,7 @@
   },
   "academy": {
     "title": "Academie",
-    "sub": "Wat de engine echt modelleert — één onderwerp per minuut.",
+    "sub": "Wat er op het veld echt gebeurt — één onderwerp per minuut.",
     "open": "Doorlopen",
     "step": "Stap {n} van {total}",
     "prev": "Vorige",
