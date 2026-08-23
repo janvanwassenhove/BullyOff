@@ -9,6 +9,7 @@ import { useAppStore, type Screen } from '../stores/app';
 import { useSeasonStore } from '../stores/season';
 import { LOCALES, setLocale, type Locale } from '../i18n';
 import Crest from './ui/Crest.vue';
+import TeamSheet from './ui/TeamSheet.vue';
 import SeasonHub from './SeasonHub.vue';
 import SquadView from './SquadView.vue';
 import TacticsView from './TacticsView.vue';
@@ -42,7 +43,9 @@ async function saveNow(): Promise<void> { const at = await season.save(); if (at
 async function simDay(): Promise<void> { await season.playDay(); await saveNow(); }
 async function simToEnd(): Promise<void> { await season.playToEnd(); await saveNow(); }
 async function nextSeason(): Promise<void> { await season.nextSeason(); await saveNow(); }
-function coach(): void { season.startCoaching(); if (season.coaching) app.go('coach'); }
+const signing = ref(false);
+function coach(): void { signing.value = true; }
+function kickOff(): void { signing.value = false; season.startCoaching(); if (season.coaching) app.go('coach'); }
 function pickLocale(ev: Event): void { setLocale((ev.target as HTMLSelectElement).value as Locale); }
 </script>
 
@@ -203,6 +206,14 @@ function pickLocale(ev: Event): void { setLocale((ev.target as HTMLSelectElement
         {{ t('hub.noCareer.start') }}
       </button>
     </div>
+
+    <TeamSheet
+      v-if="signing"
+      @start="kickOff"
+      @edit="signing = false; app.go('squad')"
+      @tactics="signing = false; app.go('tactics')"
+      @close="signing = false"
+    />
 
     <main class="content">
       <div

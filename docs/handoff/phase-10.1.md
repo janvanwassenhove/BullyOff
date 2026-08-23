@@ -50,6 +50,28 @@ Engine **0.7.0**: the AI change alters every scenario hash; sandbox log is versi
 - **Scale honesty.** The corner shot is drawn to scale (the striker at the top of the circle, 14.6 m from the line); the stroke was already 6.4 m and dangerous play 5 m. The circle line was dropped from the feet and stick-tackle scenes: a side elevation cannot hold the circle line *and* the goal at the right distance, and a wrong scale teaches a wrong picture — those two rules say "in the circle" in the text and show it on the pitch view.
 - **Videos where one exists** (`lib/ruleVideos.ts`): nine links, all from *Field Hockey Umpiring | FHumpires*, each checked against YouTube's oEmbed endpoint on 2026-08-23 so the id resolves and the title and channel are the ones YouTube returns. Nothing is embedded — the card is a link that opens a new tab, so the app still makes no third-party request until someone clicks. The privacy paragraph says so. Rules without a good topical video get no link rather than a generic one.
 
+## 7 · Phase 10.2: the coach picks the team
+
+Jan, on the squad screen: *"how do I substitute players, or decide how we start the next match?"* You could substitute (in the match, behind the TACTICS button) but you could not pick a team: `selectSquad` chose the eleven on a role-weighted rating and you had no say. Four things, all four asked for.
+
+**1 · The team sheet lives on the squad screen.** Three groups — the eleven in formation slots, the bench, the rest of the squad — with the swap you would expect: ⇄ on one player, ⇄ on another. The player card carries the moves (into the eleven, to the bench, rest him). It is stored on the club (`Club.lineup`, save **v4**), so a match day you *simulate* uses it too. Until you touch it the screen shows the assistant's pick for the next fixture, so the list is never empty and never lies.
+
+`selectSquad` honours the sheet slot by slot and falls back to the assistant for every slot you left open and every man who cannot play. `teamSheet()` returns those absentees so the UI can name them.
+
+**2 · You sign the sheet before kick-off.** COACH THE MATCH opens the team sheet: the eleven as they will actually take the field, the bench, anyone you picked who is injured or unavailable this Saturday (replaced by the assistant, said out loud), and the plan in one line. From there: change the line-up, go to tactics, or start.
+
+**3 · The battery and the captain moved to the tactics screen.** They were only settable inside a match, which meant they did nothing on a simulated match day. `Club.pcBattery` holds *person* ids; `tacticsFor()` translates them to the on-pitch ids the engine speaks at kick-off, and a man who did not make the eleven simply drops out of the battery — as on a real Saturday. `Club.captain` is a name on the sheet; the armband has no powers the engine models, and the code says so.
+
+**4 · Findability.** The squad screen has a TACTICS → button, and the in-match drawer button now reads TACTICS & SUBS instead of TACTICS — that button was where substitutions lived and nobody could tell.
+
+### A quirk found while testing
+
+Injuring one player used to change *which team-mates* were available: the availability roll skipped injured players, so removing one shifted the random stream for everyone after him. Harmless while the assistant picked, spooky once you pick a sheet. Every player draws now, injured or not — whether someone can make it on Saturday is about them, not about who else is hurt. Squad selection therefore differs from before for the same seed; no engine golden is affected.
+
+### Watch out
+
+Vite served a **stale transform of the i18n JSON** twice this phase (new keys rendered as raw `squad.group.starters`), the same failure as `packages/render/src/index.ts` in §5. The file on disk and the raw URL were correct; `?import` was not. `touch` the file or restart the dev server.
+
 ## Next
 
 - Re-baseline calibration on 96 matches (`pnpm calibrate:run`) and publish calibration.md § 0.7.0.

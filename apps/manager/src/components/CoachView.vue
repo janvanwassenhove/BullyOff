@@ -284,7 +284,7 @@ onBeforeUnmount(() => { destroyed = true; view.value?.destroy(); client.destroy(
           class="btn btn-secondary btn-xs"
           @click="drawer = !drawer"
         >
-          {{ t('coach.tactics') }}
+          {{ t('coach.tacticsAndSubs') }}
         </button>
         <button
           class="btn btn-pale btn-xs"

@@ -47,6 +47,12 @@ export interface Finances {
 
 export interface ClubBadge { shape: string; motif: string; split: string }
 
+/** A coach's team sheet: person ids in formation-slot order (GK first), and the bench. */
+export interface Lineup { starters: number[]; bench: number[] }
+
+/** Penalty-corner roles as person ids; null = let the assistant pick that role. */
+export interface PcBatteryPicks { injector: number | null; trapper: number | null; striker: number | null }
+
 export interface Club {
   id: ClubId;
   name: string;
@@ -66,6 +72,12 @@ export interface Club {
   reputation: number;   // 0..100
   facilities: number;   // 1..5
   tactics: TeamTactics;
+  /** The coach's team sheet. null = the assistant picks on form and fitness. */
+  lineup: Lineup | null;
+  /** Penalty-corner battery, so it holds for simulated match days too. */
+  pcBattery: PcBatteryPicks | null;
+  /** The captain: a name on the team sheet — the armband has no powers the engine models. */
+  captain: number | null;
   finances: Finances;
   /** Home surface state on match days (home club decision — BRIEF §5.2). */
   surface: SurfaceState;

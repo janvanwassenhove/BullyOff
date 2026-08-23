@@ -243,6 +243,13 @@
     "seasonOver": "Season {year} is over — {champion} are champions. Roll into the next one when you are ready."
   },
   "squad": {
+    "sheetPicked": "YOUR LINE-UP", "sheetAuto": "ASSISTANT PICKS", "sheetReset": "LET THE ASSISTANT PICK", "toTactics": "TACTICS →",
+    "swapHint": "Click ⇄ on one player, then ⇄ on another to swap them. Or select a player and use the buttons on the right.",
+    "swap": "swap", "swapHere": "HERE", "groupEmpty": "nobody", "absent": "NOT SAT",
+    "group": { "starters": "THE ELEVEN", "bench": "BENCH", "rest": "REST OF THE SQUAD" },
+    "moves": "LINE-UP", "place": { "starter": "in the eleven", "bench": "on the bench", "rest": "not selected" },
+    "toEleven": "INTO THE ELEVEN", "toBench": "TO THE BENCH", "toRest": "REST HIM",
+    "whyInjured": "Injured, {d} match days to go — he cannot play on Saturday.", "whyAbsent": "Not available on Saturday: work, exams, or simply not free.",
     "title": "Squad",
     "sub": "{n} players · {youth} youth · wage bill {pct} % of a volunteer budget",
     "cols": {
@@ -352,6 +359,9 @@
     }
   },
   "coach": {
+    "batteryLabel": "PENALTY-CORNER BATTERY", "batteryHint": "holds when you simulate the match day too",
+    "captainLabel": "CAPTAIN", "captainHint": "the armband grants no extra quality",
+    "tacticsAndSubs": "TACTICS & SUBS",
     "pause": "⏸",
     "play": "▶",
     "simToFullTime": "SIM TO FT",
@@ -445,9 +455,9 @@
       "normal": "NORM",
       "high": "HIGH"
     },
-    "pcDesigner": "PENALTY-CORNER BATTERY",
+    "pcDesigner": "PENALTY-CORNER ROUTINE",
     "variant": "variant",
-    "aiPicks": "AI picks",
+    "aiPicks": "assistant picks",
     "injector": "injector",
     "trapper": "trapper",
     "striker": "striker",
@@ -749,6 +759,7 @@
     "travel": "travel",
     "balance": "balance"
   },
+  "sheet": { "title": "TEAM SHEET", "eleven": "THE ELEVEN", "bench": "BENCH", "missing": "UNAVAILABLE", "missingHint": "replaced by the assistant", "edit": "CHANGE THE LINE-UP", "tactics": "TACTICS", "start": "START THE MATCH", "cancel": "BACK", "plan": "{formation} · {press} · {mentality}", "home": "at home to {opp}", "away": "away at {opp}" },
   "rules": {
     "stageHint": "Click a rule to see it on the pitch — the scene loops.", "stageLabel": "ON THE PITCH",
     "view": { "figures": "FIGURES", "pitch": "ON THE PITCH" },

@@ -243,6 +243,13 @@
     "seasonOver": "Seizoen {year} is voorbij — {champion} is kampioen. Rol door naar het volgende wanneer je klaar bent."
   },
   "squad": {
+    "sheetPicked": "JOUW OPSTELLING", "sheetAuto": "ASSISTENT KIEST", "sheetReset": "LAAT DE ASSISTENT KIEZEN", "toTactics": "TACTIEK →",
+    "swapHint": "Klik ⇄ bij een speler en dan ⇄ bij een tweede om ze te ruilen. Of kies een speler en gebruik de knoppen rechts.",
+    "swap": "ruilen", "swapHere": "HIER", "groupEmpty": "niemand", "absent": "NIET ZA",
+    "group": { "starters": "BASISELF", "bench": "BANK", "rest": "REST VAN DE KERN" },
+    "moves": "OPSTELLING", "place": { "starter": "in de basis", "bench": "op de bank", "rest": "niet geselecteerd" },
+    "toEleven": "IN DE BASIS", "toBench": "NAAR DE BANK", "toRest": "RUST GEVEN",
+    "whyInjured": "Geblesseerd, nog {d} speeldagen — hij kan zaterdag niet spelen.", "whyAbsent": "Zaterdag niet beschikbaar: werk, examens, of gewoon niet vrij.",
     "title": "Kern",
     "sub": "{n} spelers · {youth} jeugd · loonmassa {pct} % van een vrijwilligersbudget",
     "cols": {
@@ -352,6 +359,9 @@
     }
   },
   "coach": {
+    "batteryLabel": "STRAFCORNERBATTERIJ", "batteryHint": "geldt ook als je de speeldag simuleert",
+    "captainLabel": "AANVOERDER", "captainHint": "de band geeft geen extra kwaliteiten",
+    "tacticsAndSubs": "TACTIEK & WISSELS",
     "pause": "⏸",
     "play": "▶",
     "simToFullTime": "SIM TOT AFFLUITEN",
@@ -445,9 +455,9 @@
       "normal": "NORM",
       "high": "HOOG"
     },
-    "pcDesigner": "STRAFCORNERBATTERIJ",
+    "pcDesigner": "STRAFCORNERROUTINE",
     "variant": "variant",
-    "aiPicks": "AI kiest",
+    "aiPicks": "assistent kiest",
     "injector": "aangever",
     "trapper": "stopper",
     "striker": "schutter",
@@ -749,6 +759,7 @@
     "travel": "verplaatsingen",
     "balance": "saldo"
   },
+  "sheet": { "title": "WEDSTRIJDBLAD", "eleven": "BASISELF", "bench": "BANK", "missing": "NIET BESCHIKBAAR", "missingHint": "vervangen door de assistent", "edit": "OPSTELLING AANPASSEN", "tactics": "TACTIEK", "start": "START DE WEDSTRIJD", "cancel": "TERUG", "plan": "{formation} · {press} · {mentality}", "home": "thuis tegen {opp}", "away": "uit bij {opp}" },
   "rules": {
     "stageHint": "Klik op een regel om ze op het veld te zien — de scène herhaalt zich.", "stageLabel": "OP HET VELD",
     "view": { "figures": "FIGUREN", "pitch": "OP HET VELD" },

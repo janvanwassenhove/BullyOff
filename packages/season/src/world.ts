@@ -51,6 +51,7 @@ export function createWorld(seed: number, profile: ProfileId, opts: WorldOptions
       honours: { titles: [], promotions: [] },
       tier, level, reputation: clamp(50 + (level - 12) * 8 + rng.gaussian(0, 6), 5, 95), facilities: clamp(Math.round(2.5 + (level - 12) * 0.4 + rng.gaussian(0, 0.5)), 1, 5),
       tactics: clubTactics(rng),
+      lineup: null, pcBattery: null, captain: null,
       finances: { balance: Math.round(20000 + level * 5000 + rng.gaussian(0, 8000)), membershipIncome: 0, sponsorIncome: 0, facilityCosts: 0, travelCosts: 0, coachingCosts: 0 },
       surface: rng.chance(0.75) ? 'watered' : 'dry',
       seasonsInTier: 0,

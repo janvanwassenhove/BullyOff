@@ -243,6 +243,13 @@
     "seasonOver": "La saison {year} est terminée — {champion} est champion. Passez à la suivante quand vous êtes prêt."
   },
   "squad": {
+    "sheetPicked": "VOTRE COMPOSITION", "sheetAuto": "L'ADJOINT CHOISIT", "sheetReset": "LAISSER CHOISIR L'ADJOINT", "toTactics": "TACTIQUE →",
+    "swapHint": "Cliquez ⇄ sur un joueur, puis ⇄ sur un autre pour les échanger. Ou sélectionnez un joueur et utilisez les boutons à droite.",
+    "swap": "échanger", "swapHere": "ICI", "groupEmpty": "personne", "absent": "PAS SAM",
+    "group": { "starters": "LE ONZE", "bench": "BANC", "rest": "RESTE DE L'EFFECTIF" },
+    "moves": "COMPOSITION", "place": { "starter": "dans le onze", "bench": "sur le banc", "rest": "non retenu" },
+    "toEleven": "DANS LE ONZE", "toBench": "SUR LE BANC", "toRest": "LE METTRE AU REPOS",
+    "whyInjured": "Blessé, encore {d} journées — il ne peut pas jouer samedi.", "whyAbsent": "Indisponible samedi : travail, examens, ou simplement pas libre.",
     "title": "Noyau",
     "sub": "{n} joueurs · {youth} jeunes · masse salariale {pct} % d'un budget de bénévoles",
     "cols": {
@@ -352,6 +359,9 @@
     }
   },
   "coach": {
+    "batteryLabel": "BATTERIE DE PENALTY CORNER", "batteryHint": "vaut aussi quand vous simulez la journée",
+    "captainLabel": "CAPITAINE", "captainHint": "le brassard ne donne aucune qualité en plus",
+    "tacticsAndSubs": "TACTIQUE & CHANGEMENTS",
     "pause": "⏸",
     "play": "▶",
     "simToFullTime": "SIM JUSQU'AU COUP DE SIFFLET",
@@ -445,9 +455,9 @@
       "normal": "NORM",
       "high": "HAUT"
     },
-    "pcDesigner": "BATTERIE DE PENALTY CORNER",
+    "pcDesigner": "ROUTINE DE PENALTY CORNER",
     "variant": "variante",
-    "aiPicks": "l'IA choisit",
+    "aiPicks": "l'adjoint choisit",
     "injector": "injecteur",
     "trapper": "stoppeur",
     "striker": "tireur",
@@ -749,6 +759,7 @@
     "travel": "déplacements",
     "balance": "solde"
   },
+  "sheet": { "title": "FEUILLE DE MATCH", "eleven": "LE ONZE", "bench": "BANC", "missing": "INDISPONIBLE", "missingHint": "remplacé par l'adjoint", "edit": "MODIFIER LA COMPOSITION", "tactics": "TACTIQUE", "start": "COMMENCER LE MATCH", "cancel": "RETOUR", "plan": "{formation} · {press} · {mentality}", "home": "à domicile contre {opp}", "away": "en déplacement à {opp}" },
   "rules": {
     "stageHint": "Cliquez une règle pour la voir sur le terrain — la scène tourne en boucle.", "stageLabel": "SUR LE TERRAIN",
     "view": { "figures": "FIGURES", "pitch": "SUR LE TERRAIN" },

@@ -7,7 +7,7 @@ import { Rng, clamp, dmath } from '@bullyoff/shared';
 import { FIH_OUTDOOR_FAST, type Laws } from '@bullyoff/rules';
 import {
   aiController, getProfile, matchStats, simulateMatch, squadsFromSetup, encodeReplay,
-  type MatchLog, type MatchSetup, type MatchStats, type PlayerSetup, type Role, type TeamTactics,
+  type MatchLog, type MatchSetup, type MatchStats, type PcBattery, type PlayerSetup, type Role, type TeamTactics,
 } from '@bullyoff/engine';
 import type { Club, ClubId, Fixture, Person, World } from './model.js';
 import { ageOf, clubPlayers } from './world.js';
@@ -23,12 +23,31 @@ export interface MatchOutcome {
 
 export type MatchRunner = (w: World, f: Fixture, opts: { keepReplay: boolean }) => MatchOutcome;
 
-const FORMATION_ROLES: Role[] = ['GK', 'DEF', 'DEF', 'DEF', 'DEF', 'MID', 'MID', 'MID', 'FWD', 'FWD', 'FWD'];
+export const FORMATION_ROLES: Role[] = ['GK', 'DEF', 'DEF', 'DEF', 'DEF', 'MID', 'MID', 'MID', 'FWD', 'FWD', 'FWD'];
 
-/** Pick 11 starters by formation slot from fit, available players; up to 5 subs. Deterministic. */
-export function selectSquad(w: World, club: ClubId, seed: number): { starters: Person[]; bench: Person[] } {
+/**
+ * Who can actually play on Saturday: not injured, and not one of the amateur-hockey absences
+ * (work, exams, a wedding) that `availability` models. Deterministic in the fixture seed, so the
+ * squad screen can show the same answer before the match that the match day will use.
+ */
+export function availableFor(w: World, club: ClubId, seed: number): Person[] {
   const rng = new Rng(seed, 5000);
-  const fit = clubPlayers(w, club).filter((p) => p.injuredDays === 0 && rng.next() < p.availability + 0.15);
+  // Every player draws, injured or not: whether someone can make it on Saturday is about them, not
+  // about who else is hurt. (Before Phase 10.2 the injured skipped the draw, so one injury shifted
+  // the stream and quietly changed which team-mates were available — spooky once a coach picks a sheet.)
+  return clubPlayers(w, club).filter((p) => { const roll = rng.next(); return p.injuredDays === 0 && roll < p.availability + 0.15; });
+}
+
+/** The seed `selectSquad` uses for a club in a fixture — the squad screen needs the same one. */
+export const squadSeed = (f: Fixture, club: ClubId): number => f.seed + (f.home === club ? 0 : 1);
+
+/**
+ * Pick 11 starters by formation slot and up to 5 subs. Deterministic.
+ * The coach's team sheet (`club.lineup`) wins wherever the player is available; every slot they
+ * left open, and every pick who cannot play, falls back to the assistant's choice on rating.
+ */
+export function selectSquad(w: World, club: ClubId, seed: number): { starters: Person[]; bench: Person[] } {
+  const fit = availableFor(w, club, seed);
   const rating = (p: Person): number => {
     const a = p.attrs;
     return p.role === 'GK'
@@ -36,17 +55,44 @@ export function selectSquad(w: World, club: ClubId, seed: number): { starters: P
       : (a.technical.firstTouch + a.technical.push + a.technical.hit + a.mental.decisions + a.mental.positioning + a.physical.pace + a.physical.stamina) / 7;
   };
   const pool = [...fit].sort((a, b) => rating(b) - rating(a) || a.id - b.id);
+  const byId = new Map(fit.map((p) => [p.id, p]));
+  const sheet = w.clubs[club]?.lineup ?? null;
   const starters: Person[] = [];
   const used = new Set<number>();
-  for (const role of FORMATION_ROLES) {
-    let pick = pool.find((p) => p.role === role && !used.has(p.id));
+  FORMATION_ROLES.forEach((role, slot) => {
+    // the coach's man for this slot, when he can play
+    const wanted = sheet?.starters[slot];
+    let pick = wanted === undefined ? undefined : byId.get(wanted);
+    if (pick && used.has(pick.id)) pick = undefined;
+    pick ??= pool.find((p) => p.role === role && !used.has(p.id));
     // fill from any role if a line is short (a real amateur squad does this every week)
     pick ??= pool.find((p) => !used.has(p.id) && p.role !== 'GK');
     pick ??= pool.find((p) => !used.has(p.id));
     if (pick) { starters.push(pick); used.add(pick.id); }
+  });
+  const named: Person[] = [];
+  for (const id of sheet?.bench ?? []) {
+    const p = byId.get(id);
+    if (p && !used.has(p.id)) { named.push(p); used.add(p.id); }
   }
-  const bench = pool.filter((p) => !used.has(p.id)).slice(0, 5);
+  const bench = [...named, ...pool.filter((p) => !used.has(p.id))].slice(0, 5);
   return { starters, bench };
+}
+
+/**
+ * What the coach will actually have on Saturday: the eleven and the bench as they will be picked,
+ * plus the men on the team sheet who cannot play. The confirmation before a coached match shows it,
+ * so a lineup that quietly lost two players is never a surprise at the first whistle.
+ */
+export function teamSheet(w: World, f: Fixture, club: ClubId): { starters: Person[]; bench: Person[]; missing: Person[] } {
+  const seed = squadSeed(f, club);
+  const { starters, bench } = selectSquad(w, club, seed);
+  const playing = new Set([...starters, ...bench].map((p) => p.id));
+  const wanted = w.clubs[club]?.lineup;
+  const missing = wanted
+    ? [...wanted.starters, ...wanted.bench].filter((id) => !playing.has(id)).map((id) => w.persons[id]).filter((p): p is Person => !!p)
+    : [];
+  return { starters, bench, missing };
 }
 
 /**
@@ -57,7 +103,27 @@ export function fixtureSetup(w: World, f: Fixture, keepFrames = true): { setup: 
   const r = toSetup(w, f, keepFrames);
   const home = w.clubs[f.home], away = w.clubs[f.away];
   if (!home || !away) throw new Error(`fixture ${f.id}: unknown club`);
-  return { ...r, tactics: [{ ...home.tactics }, { ...away.tactics }] };
+  return { ...r, tactics: [tacticsFor(home, r.idMap), tacticsFor(away, r.idMap)] };
+}
+
+/**
+ * The club's tactics for one fixture, with the penalty-corner battery translated from the person
+ * ids a coach picks on the tactics screen to the on-pitch ids the engine speaks. A man who did not
+ * make the eleven simply drops out of the battery and the AI picks that role, which is what happens
+ * on a real Saturday.
+ */
+function tacticsFor(club: Club, idMap: Map<number, number>): TeamTactics {
+  const picks = club.pcBattery;
+  if (!picks) return { ...club.tactics };
+  const local = new Map<number, number>();
+  for (const [id, person] of idMap) local.set(person, id);
+  const battery: PcBattery = {};
+  const set = (role: keyof PcBattery, person: number | null): void => {
+    const id = person === null ? undefined : local.get(person);
+    if (id !== undefined) battery[role] = id;
+  };
+  set('injector', picks.injector); set('trapper', picks.trapper); set('striker', picks.striker);
+  return Object.keys(battery).length > 0 ? { ...club.tactics, pcBattery: battery } : { ...club.tactics };
 }
 
 function toSetup(w: World, f: Fixture, keepFrames: boolean): { setup: MatchSetup; idMap: Map<number, number> } {
@@ -96,7 +162,7 @@ export const engineRunnerWith = (laws: Laws): MatchRunner => (w, f, opts) => {
   setup.laws = laws;
   const home = w.clubs[f.home], away = w.clubs[f.away];
   if (!home || !away) throw new Error(`fixture ${f.id}: unknown club`);
-  const tactics: [TeamTactics, TeamTactics] = [home.tactics, away.tactics];
+  const tactics: [TeamTactics, TeamTactics] = [tacticsFor(home, idMap), tacticsFor(away, idMap)];
   const log = simulateMatch(setup, f.seed, aiController(f.seed, squadsFromSetup(setup.players, tactics), { profile: getProfile(w.profile), surface: setup.surface }));
   const stats = matchStats(log);
   return { home: stats.goals[0], away: stats.goals[1], stats, log, idMap };

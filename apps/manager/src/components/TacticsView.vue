@@ -1,5 +1,9 @@
 <script setup lang="ts">
-/** Tactics board: the club's standing system/press/mentality/build-up/tempo/rotation/PC variant — what the next match starts with. */
+/**
+ * Tactics board: the club's standing system, press, mentality, build-up, tempo, rotation and penalty
+ * corner — what the next match starts with. The battery and the captain are named here rather than in
+ * the match, so they also hold on a match day you simulate. Who plays is the squad screen's job.
+ */
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { FORMATIONS, MENTALITY_LINE, PRESS_HEIGHT, type FormationId, type Mentality, type PcVariant, type PressId, type TeamTactics } from '@bullyoff/engine';
@@ -26,6 +30,11 @@ function patch(p: Partial<TeamTactics>): void {
   void season.save().then((at) => { if (at) app.markSaved(at); });
 }
 const slots = computed(() => (tac.value ? FORMATIONS[tac.value.formation] : []));
+/** Everyone who could take a battery role or the armband: the senior squad, keepers included for the captaincy. */
+const squad = computed(() => season.squad.filter((r) => !r.youth));
+const battery = computed(() => club.value?.pcBattery ?? { injector: null, trapper: null, striker: null });
+const captain = computed(() => club.value?.captain ?? null);
+const pick = (ev: Event): number | null => { const v = (ev.target as HTMLSelectElement).value; return v === '' ? null : Number(v); };
 </script>
 
 <template>
@@ -119,6 +128,51 @@ const slots = computed(() => (tac.value ? FORMATIONS[tac.value.formation] : []))
         </div>
       </div>
       <div class="group">
+        <div class="gh">
+          <span class="eyebrow">{{ t('coach.batteryLabel') }}</span><span class="hint">{{ t('coach.batteryHint') }}</span>
+        </div>
+        <div class="picks">
+          <label
+            v-for="r in (['injector', 'trapper', 'striker'] as const)"
+            :key="r"
+            class="pickrow"
+          >
+            <span class="pl">{{ t('coach.' + r) }}</span>
+            <select
+              class="ui"
+              :value="battery[r] ?? ''"
+              @change="season.setPcBattery(r, pick($event))"
+            >
+              <option value="">{{ t('coach.aiPicks') }}</option>
+              <option
+                v-for="pl in squad"
+                :key="pl.id"
+                :value="pl.id"
+              >{{ pl.name }} ({{ pl.role }})</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div class="group">
+        <div class="gh">
+          <span class="eyebrow">{{ t('coach.captainLabel') }}</span><span class="hint">{{ t('coach.captainHint') }}</span>
+        </div>
+        <label class="pickrow wide">
+          <select
+            class="ui"
+            :value="captain ?? ''"
+            @change="season.setCaptain(pick($event))"
+          >
+            <option value="">{{ t('coach.aiPicks') }}</option>
+            <option
+              v-for="pl in squad"
+              :key="pl.id"
+              :value="pl.id"
+            >{{ pl.name }} ({{ pl.role }})</option>
+          </select>
+        </label>
+      </div>
+      <div class="group">
         <span class="eyebrow">{{ t('coach.pcDesigner') }}</span>
         <div class="chips">
           <button
@@ -165,6 +219,13 @@ const slots = computed(() => (tac.value ? FORMATIONS[tac.value.formation] : []))
 </template>
 
 <style scoped>
+.gh { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.hint { font-size: 11.5px; color: var(--fg-dim); }
+.picks { display: flex; flex-direction: column; gap: 8px; }
+.pickrow { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 10px; align-items: center; }
+.pickrow.wide { grid-template-columns: minmax(0, 1fr); }
+.pl { font-size: 13px; color: var(--fg-3); }
+
 .tac { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 24px; padding: 24px; min-height: 0; overflow: auto; }
 .board { display: flex; flex-direction: column; gap: 20px; }
 .group { display: flex; flex-direction: column; gap: 8px; }

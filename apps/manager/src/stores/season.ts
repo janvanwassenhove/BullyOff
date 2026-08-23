@@ -2,7 +2,7 @@ import { useAppStore } from './app';
 import { defineStore } from 'pinia';
 import { markRaw, toRaw } from 'vue';
 import { ENGINE_VERSION, type CoachInstruction, type MatchLog, type MatchSetup, type TeamTactics } from '@bullyoff/engine';
-import { deserialize, serialize, standings, fixturesToday, fixtureSetup, clubPlayers, ageOf, overall, type ClubId, type Fixture, type Person, type TableRow, type World, type SaveFile } from '@bullyoff/season';
+import { FORMATION_ROLES, availableFor, squadSeed, teamSheet, deserialize, serialize, standings, fixturesToday, fixtureSetup, clubPlayers, ageOf, overall, type ClubId, type Fixture, type Person, type TableRow, type World, type SaveFile } from '@bullyoff/season';
 import type { RegionFlavour } from '@bullyoff/worldgen';
 import SeasonWorker from '../engine/season.worker?worker';
 import type { FromSeason, ToSeason } from '../engine/season.worker';
@@ -135,9 +135,38 @@ export const useSeasonStore = defineStore('season', {
       if (!w?.userClub) return [];
       const uc = w.userClub;
       const ps = clubPlayers(w, uc, true);
-      const captain = [...ps].filter((p) => !p.youth).sort((a, b) => ageOf(b, w.year) - ageOf(a, w.year) || overall(b) - overall(a))[0];
+      const named = w.clubs[uc]?.captain ?? null;
+      const captain = (named !== null ? ps.find((p) => p.id === named) : undefined)
+        ?? [...ps].filter((p) => !p.youth).sort((a, b) => ageOf(b, w.year) - ageOf(a, w.year) || overall(b) - overall(a))[0];
       return ps.map((p, i) => ({ id: p.id, n: i + 1, name: `${p.first} ${p.last}`, role: p.role, age: ageOf(p, w.year), ovr: Math.round(overall(p) * 5), injured: p.injuredDays, goals: p.goals, minutes: p.minutes, youth: p.youth, captain: p.id === captain?.id, person: p }));
     },
+    /**
+     * The team sheet for the next match: the eleven, the bench and the rest of the squad, with the
+     * men who cannot play on Saturday flagged. Either the coach's own sheet or, until they pick one,
+     * the assistant's — the same call the match day makes, so the screen never lies about who plays.
+     */
+    sheet(): { starters: SquadRow[]; bench: SquadRow[]; rest: SquadRow[]; picked: boolean; away: SquadRow[]; missing: SquadRow[] } {
+      const w = this.world; const f = this.todaysUserFixture ?? this.nextUserFixture;
+      const rows = this.squad;
+      if (!w?.userClub || !f) return { starters: [], bench: [], rest: rows, picked: false, away: [], missing: [] };
+      const uc = w.userClub;
+      const raw = toRaw(w);
+      const { starters, bench, missing } = teamSheet(raw, toRaw(f), uc);
+      const byId = new Map(rows.map((r) => [r.id, r]));
+      const pick = (ids: number[]): SquadRow[] => ids.map((id) => byId.get(id)).filter((r): r is SquadRow => !!r);
+      const on = new Set([...starters, ...bench].map((pl) => pl.id));
+      const canPlay = new Set(availableFor(raw, uc, squadSeed(toRaw(f), uc)).map((pl) => pl.id));
+      return {
+        starters: pick(starters.map((pl) => pl.id)),
+        bench: pick(bench.map((pl) => pl.id)),
+        rest: rows.filter((r) => !on.has(r.id)),
+        picked: !!w.clubs[uc]?.lineup,
+        away: rows.filter((r) => !canPlay.has(r.id)),
+        missing: pick(missing.map((pl) => pl.id)),
+      };
+    },
+    /** Formation slot labels for the eleven (GK, DEF ×4, MID ×3, FWD ×3). */
+    slotRoles(): string[] { return FORMATION_ROLES; },
     treatmentRoom(): SquadRow[] { return this.squad.filter((r) => r.injured > 0).sort((a, b) => b.injured - a.injured); },
     clubName(): (id: ClubId) => string { return (id) => this.world?.clubs[id]?.name ?? id; },
     /** The user's fixture on today's match day, if any (coachable). */
@@ -165,6 +194,93 @@ export const useSeasonStore = defineStore('season', {
       } catch (e) { this.error = e instanceof Error ? e.message : String(e); } finally { this.busy = false; }
     },
     pickClub(id: ClubId): void { if (this.world) this.world.userClub = id; },
+    /** Write the current sheet to the club, so an edit starts from what the screen shows. */
+    saveSheet(starters: number[], bench: number[]): void {
+      const w = this.world; const uc = w?.userClub; const club = uc ? w.clubs[uc] : null;
+      if (!club) return;
+      club.lineup = { starters, bench };
+      void this.save();
+    },
+    /**
+     * Swap two players on the sheet. Either can be a starter, a sub or a squad player: the eleven
+     * keeps its formation slots, so swapping a forward for a defender puts each in the other's slot —
+     * which is exactly what a coach means by "you two switch".
+     */
+    swapOnSheet(a: number, b: number): void {
+      const sheet = this.sheet;
+      if (a === b) return;
+      const starters = sheet.starters.map((r) => r.id);
+      const bench = sheet.bench.map((r) => r.id);
+      const place = (id: number): { list: 'starters' | 'bench' | 'rest'; i: number } => {
+        const si = starters.indexOf(id); if (si >= 0) return { list: 'starters', i: si };
+        const bi = bench.indexOf(id); if (bi >= 0) return { list: 'bench', i: bi };
+        return { list: 'rest', i: -1 };
+      };
+      const pa = place(a), pb = place(b);
+      if (pa.list === 'rest' && pb.list === 'rest') return;
+      const put = (where: { list: 'starters' | 'bench' | 'rest'; i: number }, id: number): void => {
+        if (where.list === 'starters') starters[where.i] = id;
+        else if (where.list === 'bench') bench[where.i] = id;
+      };
+      put(pa, b); put(pb, a);
+      this.saveSheet(starters, bench);
+    },
+    /** Into the eleven: he takes the slot of the weakest man in his role (a keeper only ever swaps with the keeper). */
+    promoteToStarters(id: number): void {
+      const sheet = this.sheet;
+      const me = [...sheet.bench, ...sheet.rest].find((r) => r.id === id);
+      if (!me) return;
+      if (me.role === 'GK') { const gk = sheet.starters[0]; if (gk) this.swapOnSheet(id, gk.id); return; }
+      const outfield = sheet.starters.map((r, i) => ({ r, i })).filter((x) => x.i > 0);
+      const sameRole = outfield.filter((x) => this.slotRoles[x.i] === me.role);
+      const target = [...(sameRole.length ? sameRole : outfield)].sort((a, b) => a.r.ovr - b.r.ovr)[0];
+      if (target) this.swapOnSheet(id, target.r.id);
+    },
+    /** To the bench: a reserve of his own role comes in, else the best reserve there is. */
+    demoteToBench(id: number): void {
+      const sheet = this.sheet;
+      const me = sheet.starters.find((r) => r.id === id);
+      if (!me) { // from the rest of the squad: he takes the weakest bench place
+        const weakest = [...sheet.bench].sort((a, b) => a.ovr - b.ovr)[0];
+        if (weakest) this.swapOnSheet(id, weakest.id);
+        return;
+      }
+      const fit = (r: SquadRow): boolean => r.injured === 0;
+      const swapWith = sheet.bench.filter(fit).find((r) => r.role === me.role)
+        ?? sheet.bench.find(fit)
+        ?? sheet.rest.filter(fit).find((r) => r.role === me.role)
+        ?? sheet.rest.find(fit);
+      if (swapWith) this.swapOnSheet(id, swapWith.id);
+    },
+    /** Rest him: off the sheet altogether, the best available man of his role steps in. */
+    restPlayer(id: number): void {
+      const sheet = this.sheet;
+      const me = [...sheet.starters, ...sheet.bench].find((r) => r.id === id);
+      if (!me) return;
+      const fit = (r: SquadRow): boolean => r.injured === 0;
+      const replacement = sheet.rest.filter(fit).find((r) => r.role === me.role) ?? sheet.rest.find(fit);
+      if (replacement) this.swapOnSheet(id, replacement.id);
+    },
+    /** Back to the assistant's pick. */
+    clearLineup(): void {
+      const w = this.world; const uc = w?.userClub; const club = uc ? w.clubs[uc] : null;
+      if (!club) return;
+      club.lineup = null;
+      void this.save();
+    },
+    setPcBattery(role: 'injector' | 'trapper' | 'striker', person: number | null): void {
+      const w = this.world; const uc = w?.userClub; const club = uc ? w.clubs[uc] : null;
+      if (!club) return;
+      const cur = club.pcBattery ?? { injector: null, trapper: null, striker: null };
+      club.pcBattery = { ...cur, [role]: person };
+      void this.save();
+    },
+    setCaptain(person: number | null): void {
+      const w = this.world; const uc = w?.userClub; const club = uc ? w.clubs[uc] : null;
+      if (!club) return;
+      club.captain = person;
+      void this.save();
+    },
     async playDay(): Promise<void> {
       if (!this.world) return;
       this.busy = true; this.error = '';

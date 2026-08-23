@@ -5,7 +5,7 @@
  */
 import type { World } from './model.js';
 
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 export interface SaveFile {
   format: 'bullyoff-save';
@@ -50,6 +50,13 @@ export const MIGRATIONS: Record<number, Migration> = {
       c['tactics'] = tac;
     }
     return { ...d, version: 3, world };
+  },
+  // 3 → 4: the coach picks the team sheet, the PC battery and the captain (older saves let the assistant do it)
+  3: (d) => {
+    const world = d['world'] as Record<string, unknown>;
+    const clubs = world['clubs'] as Record<string, Record<string, unknown>>;
+    for (const c of Object.values(clubs)) { c['lineup'] ??= null; c['pcBattery'] ??= null; c['captain'] ??= null; }
+    return { ...d, version: 4, world };
   },
 };
 
