@@ -751,7 +751,9 @@
   },
   "rules": {
     "stageHint": "Cliquez une règle pour la voir sur le terrain — la scène tourne en boucle.", "stageLabel": "SUR LE TERRAIN",
-    "legend": { "flat": "FACE PLATE", "back": "CÔTÉ ARRONDI", "knee": "hauteur du genou", "backboard": "planche (46 cm)", "circle": "cercle" },
+    "view": { "figures": "FIGURES", "pitch": "SUR LE TERRAIN" },
+    "video": "EXPLICATION VIDÉO", "videoNote": "ouvre YouTube dans un nouvel onglet",
+    "legend": { "flat": "FACE PLATE", "back": "CÔTÉ ARRONDI", "knee": "hauteur du genou", "backboard": "planche (46 cm)" },
     "verdict": { "freeHit": "COUP FRANC", "pc": "PENALTY CORNER", "noGoal": "PAS DE BUT", "goal": "BUT", "card": "CARTE VERTE · 2 MIN", "play": "PAS DE FAUTE" },
     "title": "Le règlement",
     "sub": "Les règles FIH telles qu'elles s'appliquent sur le terrain — et telles que le jeu les siffle.",
@@ -856,7 +858,7 @@
     "offlineTitle": "Hors ligne",
     "offline": "Installé comme app, BULLY OFF fonctionne sans connexion : le match, le générateur de monde et les sauvegardes sont locaux.",
     "creditsTitle": "Comment c'est construit",
-    "credits": "Open source (MIT). Un modèle de match qui rejoue chaque match à l'identique, les règles FIH, des joueurs qui décident eux-mêmes, modèle de saison avec vingt saisons d'historique généré et visionneuse de replays — calibré sur les agrégats publics du championnat belge.",
+    "credits": "Le règlement renvoie à des vidéos explicatives sur YouTube : elles s'ouvrent dans un nouvel onglet seulement si vous cliquez — rien n'est intégré ni chargé d'avance. Open source (MIT). Un modèle de match qui rejoue chaque match à l'identique, les règles FIH, des joueurs qui décident eux-mêmes, modèle de saison avec vingt saisons d'historique généré et visionneuse de replays — calibré sur les agrégats publics du championnat belge.",
     "version": "Version du jeu {engine} · format de sauvegarde v{save}"
   },
   "viewer": {

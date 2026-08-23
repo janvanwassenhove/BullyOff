@@ -6,6 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import { RULE_KEYS } from '@bullyoff/insight';
 import { ruleClip } from './ruleClips';
+import { ruleVideo, videoUrl } from './ruleVideos';
 import { BACKBOARD_Z, FIGURE_RULES, GOAL_Z, KNEE_Z, ballAt, figureScene, poseOf, sampleScene, type FigureScene } from './ruleFigures';
 
 const scene = (k: string): FigureScene => {
@@ -17,12 +18,12 @@ const scene = (k: string): FigureScene => {
 const at = (s: FigureScene, i: number, t: number): number => sampleScene(s, t).figures[i]?.x ?? NaN;
 
 describe('every rule is shown somehow', () => {
-  it('each rule has either a side-elevation scene or a pitch clip, and never both', () => {
+  it('every rule plays on the pitch, and the ones a pitch cannot show also have a side-elevation scene to switch to', () => {
     for (const k of RULE_KEYS) {
-      const fig = figureScene(k);
-      if (fig) { expect(FIGURE_RULES).toContain(k); continue; }
-      expect(() => ruleClip(k)).not.toThrow(); // the spatial rules stay on the pitch
+      expect(() => ruleClip(k), k).not.toThrow();
+      if (figureScene(k)) expect(FIGURE_RULES).toContain(k);
     }
+    expect(FIGURE_RULES.length).toBeGreaterThanOrEqual(9);
   });
 
   it('scenes are authored inside their own frame: the ball stays on the pitch strip and above the ground, and the whistle falls within the scene', () => {
@@ -107,6 +108,21 @@ describe('the scenes say what the rules say', () => {
     expect(sampleScene(s, s.seconds).verdict).toBe('rules.verdict.play');
   });
 
+  it('the aerial keeps five metres at both ends: the lift is not played at a nearby opponent, and the receiver is not closed down', () => {
+    const s = scene('rules.aerial');
+    const lift = 0.95, reception = 3.3;
+    // the rule has two halves and the picture must show both, or it teaches the offence it denies
+    expect(Math.abs(at(s, 1, lift) - at(s, 0, lift))).toBeGreaterThan(5);
+    expect(Math.abs(at(s, 2, reception) - at(s, 1, reception))).toBeGreaterThan(5);
+    expect(s.dimensions?.length).toBe(2);
+    for (const d of s.dimensions ?? []) expect(Math.abs(d.to - d.from)).toBeCloseTo(5, 5);
+  });
+
+  it('the corner shot is drawn to scale: the striker is at the top of the circle, 14.63 m out', () => {
+    const s = scene('rules.pcFirstHit');
+    expect((s.goalX ?? 0) - ballAt(s, 0).x).toBeCloseTo(14.1, 0);
+  });
+
   it('the card scene: the umpire holds it up and the offender walks off', () => {
     const s = scene('rules.cards');
     const umpire = sampleScene(s, s.seconds).figures[0];
@@ -132,5 +148,24 @@ describe('pose geometry', () => {
     expect(p.head.z).toBeGreaterThan(1.6);
     expect(p.head.z).toBeLessThan(1.95);
     expect(Math.hypot(p.hands.x - p.stickHead.x, p.hands.z - p.stickHead.z)).toBeLessThan(1);
+  });
+});
+
+describe('the video links', () => {
+  it('every video belongs to a real rule and looks like a YouTube id', () => {
+    for (const k of RULE_KEYS) {
+      const v = ruleVideo(k);
+      if (!v) continue;
+      expect(v.id, k).toMatch(/^[A-Za-z0-9_-]{11}$/);
+      expect(videoUrl(v)).toBe(`https://www.youtube.com/watch?v=${v.id}`);
+      expect(v.title.length, k).toBeGreaterThan(8);
+      expect(v.channel.length, k).toBeGreaterThan(3);
+    }
+  });
+
+  it('the rules that are hardest to picture all have one', () => {
+    for (const k of ['rules.backStick', 'rules.dangerous', 'rules.obstruction', 'rules.aerial', 'rules.stroke'] as const) {
+      expect(ruleVideo(k), k).not.toBeNull();
+    }
   });
 });

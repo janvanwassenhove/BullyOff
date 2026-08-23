@@ -152,20 +152,6 @@ const insetFace = computed(() => frame.value.figures.find((f) => f.face === 'bac
       />
 
       <!-- the geometry that makes the rule readable -->
-      <template v-if="has('circleLine') && scene.circleX !== undefined">
-        <line
-          :x1="X(scene.circleX)"
-          :y1="groundY"
-          :x2="X(scene.circleX)"
-          :y2="Y(scene.height * 0.8)"
-          class="guide"
-        />
-        <text
-          :x="X(scene.circleX) + 6"
-          :y="Y(scene.height * 0.8) + 12"
-          class="tag"
-        >{{ tr('rules.legend.circle') }}</text>
-      </template>
       <template v-if="has('kneeLine')">
         <line
           :x1="0"
@@ -217,16 +203,19 @@ const insetFace = computed(() => frame.value.figures.find((f) => f.face === 'bac
           class="tag"
         >{{ tr('rules.legend.backboard') }}</text>
       </template>
-      <template v-if="scene.dimension">
+      <template
+        v-for="(d, di) in scene.dimensions ?? []"
+        :key="di"
+      >
         <line
-          :x1="X(scene.dimension.from)"
+          :x1="X(d.from)"
           :y1="Y(scene.height * 0.86)"
-          :x2="X(scene.dimension.to)"
+          :x2="X(d.to)"
           :y2="Y(scene.height * 0.86)"
           class="dim"
         />
         <line
-          v-for="e in [scene.dimension.from, scene.dimension.to]"
+          v-for="e in [d.from, d.to]"
           :key="e"
           :x1="X(e)"
           :y1="Y(scene.height * 0.86) - 6"
@@ -235,10 +224,10 @@ const insetFace = computed(() => frame.value.figures.find((f) => f.face === 'bac
           class="dim"
         />
         <text
-          :x="(X(scene.dimension.from) + X(scene.dimension.to)) / 2"
+          :x="(X(d.from) + X(d.to)) / 2"
           :y="Y(scene.height * 0.86) - 8"
           class="tag mid"
-        >{{ scene.dimension.label }}</text>
+        >{{ d.label }}</text>
       </template>
 
       <!-- figures -->

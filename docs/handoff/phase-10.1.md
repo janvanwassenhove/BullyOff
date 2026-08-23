@@ -43,6 +43,13 @@ Engine **0.7.0**: the AI change alters every scenario hash; sandbox log is versi
 - **The hub was a dead end without a career.** The nav offered Season / Squad / Tactics / Club with nothing behind them. Those four are disabled without a club now, the club bar becomes a start bar (continue your save · pick your club · new career), and the screen itself says what to start — with the rulebook and the academy called out as open to everyone.
 - **Title footer**: the save format, "offline ready" and the language list carried no information. It is the game version plus clickable NL / EN / FR now, and the continue line follows the language.
 
+## 6 · Third pass: two views per rule, scenes checked against the rule text, videos
+
+- **The stroke needed both views**, and so does every rule with a figure scene: the flick under the crossbar is a side elevation, the cleared circle is a pitch. The stage now carries two chips (FIGURES / ON THE PITCH) for the nine figure rules and opens on the figures; the six spatial rules keep the pitch alone.
+- **The aerial scene taught the offence it denies.** The rule has two halves — a raised ball may not be played *at* an opponent inside five metres, and opponents must stay five metres off the receiver until the ball is controlled — and the first cut showed only the receiver's five metres while lifting the ball over an opponent three metres away. The scene is 13 m wide now with **two** five-metre dimensions, the defender outside both. `dimension` became `dimensions`. A test asserts both distances at the lift and at the reception, because this was a content bug that typechecks.
+- **Scale honesty.** The corner shot is drawn to scale (the striker at the top of the circle, 14.6 m from the line); the stroke was already 6.4 m and dangerous play 5 m. The circle line was dropped from the feet and stick-tackle scenes: a side elevation cannot hold the circle line *and* the goal at the right distance, and a wrong scale teaches a wrong picture — those two rules say "in the circle" in the text and show it on the pitch view.
+- **Videos where one exists** (`lib/ruleVideos.ts`): nine links, all from *Field Hockey Umpiring | FHumpires*, each checked against YouTube's oEmbed endpoint on 2026-08-23 so the id resolves and the title and channel are the ones YouTube returns. Nothing is embedded — the card is a link that opens a new tab, so the app still makes no third-party request until someone clicks. The privacy paragraph says so. Rules without a good topical video get no link rather than a generic one.
+
 ## Next
 
 - Re-baseline calibration on 96 matches (`pnpm calibrate:run`) and publish calibration.md § 0.7.0.

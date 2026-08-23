@@ -47,12 +47,11 @@ export interface FigureScene {
   figures: Figure[];
   ball: BallKey[];
   /** Furniture that makes the rule readable. */
-  show?: ('goal' | 'backboard' | 'kneeLine' | 'circleLine' | 'stickInset')[];
-  /** Where the goal line / circle line sits, metres. */
+  show?: ('goal' | 'backboard' | 'kneeLine' | 'stickInset')[];
+  /** Where the goal line sits, metres. */
   goalX?: number;
-  circleX?: number;
-  /** A dimension line with its measurement (a distance, not prose — the same in every language). */
-  dimension?: { from: number; to: number; label: string };
+  /** Dimension lines with their measurement (a distance, not prose — the same in every language). */
+  dimensions?: { from: number; to: number; label: string }[];
   /** The card the umpire holds up. */
   card?: 'green' | 'yellow' | 'red';
   /** The whistle: from this second the verdict band shows (i18n key). */
@@ -160,7 +159,7 @@ export const GOAL_Z = 2.14;
 const SCENES: Partial<Record<RuleKey, FigureScene>> = {
   // The attacker drives at the defender and plays the ball into their foot: penalty corner.
   'rules.feet': {
-    seconds: 3.6, width: 9, height: 2.6, show: ['circleLine'], circleX: 3.4,
+    seconds: 3.6, width: 9, height: 2.6,
     figures: [
       { side: 'us', keys: [{ t: 0, x: 2.2, stick: -18, dir: 1 }, { t: 0.9, x: 2.4, stick: 22 }, { t: 1.4, x: 3.2, stick: 10 }, { t: 3.6, x: 4.2, stick: 6 }] },
       { side: 'them', keys: [{ t: 0, x: 6.2, stick: -12, dir: -1 }, { t: 1.4, x: 5.9, stick: -20 }, { t: 1.85, x: 5.9, stick: -20, mark: 'foot' }, { t: 3.6, x: 5.9, stick: -14, mark: 'foot' }] },
@@ -170,7 +169,7 @@ const SCENES: Partial<Record<RuleKey, FigureScene>> = {
   },
   // A raised ball played at an opponent inside five metres, above the knee.
   'rules.dangerous': {
-    seconds: 3.6, width: 9, height: 3, show: ['kneeLine'], dimension: { from: 1.6, to: 6.6, label: '5 m' },
+    seconds: 3.6, width: 9, height: 3, show: ['kneeLine'], dimensions: [{ from: 1.6, to: 6.6, label: '5 m' }],
     figures: [
       { side: 'us', keys: [{ t: 0, x: 1.6, stick: -34, dir: 1 }, { t: 0.7, x: 1.6, stick: -46 }, { t: 1.0, x: 1.7, stick: 26 }, { t: 3.6, x: 1.9, stick: 14 }] },
       { side: 'them', keys: [{ t: 0, x: 5.4, stick: -10, dir: -1 }, { t: 1.6, x: 5.4, stick: -6, lean: 6 }, { t: 1.75, x: 5.4, stick: -4, lean: 10, mark: 'body' }, { t: 3.6, x: 5.5, stick: -8, lean: 4, mark: 'body' }] },
@@ -199,7 +198,7 @@ const SCENES: Partial<Record<RuleKey, FigureScene>> = {
   },
   // A lunge that hits the stick instead of the ball, inside the circle.
   'rules.stickTackle': {
-    seconds: 3.4, width: 9, height: 2.6, show: ['circleLine'], circleX: 2.6,
+    seconds: 3.4, width: 9, height: 2.6,
     figures: [
       { side: 'us', keys: [{ t: 0, x: 4.8, stick: 20, dir: 1 }, { t: 1.4, x: 5.0, stick: 16 }, { t: 1.65, x: 5.0, stick: 16, mark: 'stick' }, { t: 3.4, x: 5.0, stick: 20, mark: 'stick' }] },
       { side: 'them', keys: [{ t: 0, x: 7.0, stick: -8, dir: -1 }, { t: 1.2, x: 6.5, stick: -34 }, { t: 1.65, x: 6.3, stick: -58, mark: 'stick' }, { t: 3.4, x: 6.3, stick: -50, mark: 'stick' }] },
@@ -209,12 +208,13 @@ const SCENES: Partial<Record<RuleKey, FigureScene>> = {
   },
   // The first shot at a penalty corner crosses the line above the backboard.
   'rules.pcFirstHit': {
-    seconds: 3.4, width: 10, height: 3, show: ['goal', 'backboard'], goalX: 9.0,
+    // to scale: the shot is taken at the top of the circle, 14.63 m from the goal line
+    seconds: 3.4, width: 16, height: 3, show: ['goal', 'backboard'], goalX: 15.5,
     figures: [
-      { side: 'us', keys: [{ t: 0, x: 2.2, stick: -30, dir: 1 }, { t: 0.8, x: 2.2, stick: -44 }, { t: 1.15, x: 2.4, stick: 24 }, { t: 3.4, x: 2.6, stick: 12 }] },
-      { side: 'them', keys: [{ t: 0, x: 8.4, stick: -6, dir: -1, arm: 0.5 }, { t: 1.7, x: 8.4, stick: -4, arm: 0.8 }, { t: 3.4, x: 8.4, stick: -6, arm: 0.5 }] },
+      { side: 'us', keys: [{ t: 0, x: 0.9, stick: -30, dir: 1 }, { t: 0.8, x: 0.9, stick: -44 }, { t: 1.15, x: 1.1, stick: 24 }, { t: 3.4, x: 1.3, stick: 12 }] },
+      { side: 'them', keys: [{ t: 0, x: 14.9, stick: -6, dir: -1, arm: 0.5 }, { t: 1.7, x: 14.9, stick: -4, arm: 0.85 }, { t: 3.4, x: 14.9, stick: -6, arm: 0.5 }] },
     ],
-    ball: [{ t: 0, x: 2.7, z: 0 }, { t: 1.15, x: 2.7, z: 0 }, { t: 1.9, x: 9.0, z: 0.92 }, { t: 2.2, x: 9.6, z: 0.9 }, { t: 3.4, x: 9.6, z: 0 }],
+    ball: [{ t: 0, x: 1.4, z: 0 }, { t: 1.15, x: 1.4, z: 0 }, { t: 1.9, x: 15.5, z: 0.92 }, { t: 2.2, x: 15.9, z: 0.88 }, { t: 3.4, x: 15.9, z: 0 }],
     verdict: { t: 1.95, key: 'rules.verdict.noGoal' },
   },
   // One flick from the spot; the keeper commits the other way.
@@ -239,13 +239,14 @@ const SCENES: Partial<Record<RuleKey, FigureScene>> = {
   },
   // A lifted ball over the press, taken down with everyone five metres clear.
   'rules.aerial': {
-    seconds: 4.4, width: 12, height: 5, dimension: { from: 4.6, to: 9.6, label: '5 m' },
+    seconds: 4.4, width: 13, height: 5,
+    dimensions: [{ from: 1.0, to: 6.0, label: '5 m' }, { from: 7.0, to: 12.0, label: '5 m' }],
     figures: [
-      { side: 'us', keys: [{ t: 0, x: 1.2, stick: -26, dir: 1 }, { t: 0.6, x: 1.2, stick: -40 }, { t: 0.95, x: 1.4, stick: 18 }, { t: 4.4, x: 1.6, stick: 8 }] },
-      { side: 'them', keys: [{ t: 0, x: 4.6, stick: -10, dir: -1 }, { t: 1.6, x: 4.6, stick: -30, arm: 0.3 }, { t: 4.4, x: 4.8, stick: -12 }] },
-      { side: 'us', keys: [{ t: 0, x: 10.2, stick: -8, dir: -1 }, { t: 2.6, x: 10.1, stick: -18 }, { t: 3.3, x: 10.0, stick: -34 }, { t: 4.4, x: 9.9, stick: -10 }] },
+      { side: 'us', keys: [{ t: 0, x: 1.0, stick: -26, dir: 1 }, { t: 0.6, x: 1.0, stick: -40 }, { t: 0.95, x: 1.2, stick: 18 }, { t: 4.4, x: 1.4, stick: 8 }] },
+      { side: 'them', keys: [{ t: 0, x: 6.4, stick: -10, dir: -1 }, { t: 1.6, x: 6.4, stick: -30, arm: 0.3 }, { t: 4.4, x: 6.6, stick: -12 }] },
+      { side: 'us', keys: [{ t: 0, x: 12.1, stick: -8, dir: -1 }, { t: 2.6, x: 12.0, stick: -18 }, { t: 3.3, x: 11.9, stick: -34 }, { t: 4.4, x: 11.8, stick: -10 }] },
     ],
-    ball: [{ t: 0, x: 1.7, z: 0.02 }, { t: 0.95, x: 1.7, z: 0.05 }, { t: 1.7, x: 4.8, z: 2.7 }, { t: 2.4, x: 7.2, z: 3.9 }, { t: 3.3, x: 9.9, z: 0.45 }, { t: 3.6, x: 10.0, z: 0 }, { t: 4.4, x: 10.0, z: 0 }],
+    ball: [{ t: 0, x: 1.5, z: 0.02 }, { t: 0.95, x: 1.5, z: 0.05 }, { t: 1.7, x: 5.0, z: 2.8 }, { t: 2.4, x: 8.2, z: 4.0 }, { t: 3.3, x: 11.7, z: 0.45 }, { t: 3.6, x: 11.8, z: 0 }, { t: 4.4, x: 11.8, z: 0 }],
     verdict: { t: 3.7, key: 'rules.verdict.play' },
   },
 };

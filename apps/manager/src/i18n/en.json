@@ -751,7 +751,9 @@
   },
   "rules": {
     "stageHint": "Click a rule to see it on the pitch — the scene loops.", "stageLabel": "ON THE PITCH",
-    "legend": { "flat": "FLAT FACE", "back": "ROUNDED BACK", "knee": "knee height", "backboard": "backboard (46 cm)", "circle": "circle" },
+    "view": { "figures": "FIGURES", "pitch": "ON THE PITCH" },
+    "video": "VIDEO EXPLAINER", "videoNote": "opens YouTube in a new tab",
+    "legend": { "flat": "FLAT FACE", "back": "ROUNDED BACK", "knee": "knee height", "backboard": "backboard (46 cm)" },
     "verdict": { "freeHit": "FREE HIT", "pc": "PENALTY CORNER", "noGoal": "NO GOAL", "goal": "GOAL", "card": "GREEN CARD · 2 MIN", "play": "NO OFFENCE" },
     "title": "The rulebook",
     "sub": "The FIH rules as they apply on the pitch — and as the game whistles them.",
@@ -856,7 +858,7 @@
     "offlineTitle": "Offline",
     "offline": "Installed as an app, BULLY OFF works without a connection: the match, the world generator and your saves are local.",
     "creditsTitle": "How it is built",
-    "credits": "Open source (MIT). A match model that replays every match exactly, the FIH rules, players who make their own decisions, a season model with twenty seasons of generated history, and a replay viewer — calibrated against public Belgian League aggregates.",
+    "credits": "The rulebook links to explainer videos on YouTube: they open in a new tab only when you click one — nothing is embedded and nothing is loaded up front. Open source (MIT). A match model that replays every match exactly, the FIH rules, players who make their own decisions, a season model with twenty seasons of generated history, and a replay viewer — calibrated against public Belgian League aggregates.",
     "version": "Game version {engine} · save format v{save}"
   },
   "viewer": {

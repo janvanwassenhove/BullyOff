@@ -751,7 +751,9 @@
   },
   "rules": {
     "stageHint": "Klik op een regel om ze op het veld te zien — de scène herhaalt zich.", "stageLabel": "OP HET VELD",
-    "legend": { "flat": "PLATTE KANT", "back": "BOLLE KANT", "knee": "kniehoogte", "backboard": "plank (46 cm)", "circle": "cirkel" },
+    "view": { "figures": "FIGUREN", "pitch": "OP HET VELD" },
+    "video": "VIDEO-UITLEG", "videoNote": "opent YouTube in een nieuw tabblad",
+    "legend": { "flat": "PLATTE KANT", "back": "BOLLE KANT", "knee": "kniehoogte", "backboard": "plank (46 cm)" },
     "verdict": { "freeHit": "VRIJE SLAG", "pc": "STRAFCORNER", "noGoal": "GEEN DOELPUNT", "goal": "DOELPUNT", "card": "GROENE KAART · 2 MIN", "play": "GEEN OVERTREDING" },
     "title": "Het reglement",
     "sub": "De FIH-regels zoals ze op het veld gelden — en zoals het spel ze fluit.",
@@ -856,7 +858,7 @@
     "offlineTitle": "Offline",
     "offline": "Als app geïnstalleerd werkt BULLY OFF zonder verbinding: de wedstrijd, de wereldgenerator en je saves staan op je toestel.",
     "creditsTitle": "Hoe het gebouwd is",
-    "credits": "Open source (MIT). Een wedstrijdmodel dat elke wedstrijd exact herspeelt, de FIH-regels, spelers die zelf beslissen, een seizoensmodel met twintig seizoenen gegenereerde geschiedenis en een herhalingskijker — gekalibreerd op publieke cijfers van de Belgische competitie.",
+    "credits": "Het reglement linkt naar uitlegvideo's op YouTube: die openen pas in een nieuw tabblad als je erop klikt — er wordt niets ingesloten en niets vooraf geladen. Open source (MIT). Een wedstrijdmodel dat elke wedstrijd exact herspeelt, de FIH-regels, spelers die zelf beslissen, een seizoensmodel met twintig seizoenen gegenereerde geschiedenis en een herhalingskijker — gekalibreerd op publieke cijfers van de Belgische competitie.",
     "version": "Spelversie {engine} · save-formaat v{save}"
   },
   "viewer": {
