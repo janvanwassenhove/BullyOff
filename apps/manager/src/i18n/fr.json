@@ -170,6 +170,7 @@
     "importFile": "Importer un fichier de sauvegarde"
   },
   "hub": {
+    "noCareer": { "title": "PAS ENCORE DE CARRIÈRE", "meta": "générez un monde et choisissez un club", "headline": "Lancez une carrière pour remplir cet écran", "body": "Le classement, l'effectif, la tactique et la page du club appartiennent à un club. Le règlement et l'académie sont déjà accessibles.", "start": "NOUVELLE CARRIÈRE", "pick": "CHOISIR VOTRE CLUB", "continue": "REPRENDRE VOTRE SAUVEGARDE", "locked": "lancez d'abord une carrière" },
     "tier": "DIVISION {n}",
     "season": "SAISON {year}",
     "day": "JOURNÉE {d} / {n}",
@@ -750,6 +751,8 @@
   },
   "rules": {
     "stageHint": "Cliquez une règle pour la voir sur le terrain — la scène tourne en boucle.", "stageLabel": "SUR LE TERRAIN",
+    "legend": { "flat": "FACE PLATE", "back": "CÔTÉ ARRONDI", "knee": "hauteur du genou", "backboard": "planche (46 cm)", "circle": "cercle" },
+    "verdict": { "freeHit": "COUP FRANC", "pc": "PENALTY CORNER", "noGoal": "PAS DE BUT", "goal": "BUT", "card": "CARTE VERTE · 2 MIN", "play": "PAS DE FAUTE" },
     "title": "Le règlement",
     "sub": "Les règles FIH telles qu'elles s'appliquent sur le terrain — et telles que le jeu les siffle.",
     "feet": {

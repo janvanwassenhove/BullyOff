@@ -1,21 +1,26 @@
 <script setup lang="ts">
 /**
  * The rulebook: the FIH rules the game applies, one card each, deep-linked from the report
- * ("READ THE RULE →"). The selected rule plays as a looping scene on the real pitch renderer
- * (lib/ruleClips.ts) in the stage at the top (the renderer loops it); click any card to see that rule.
+ * ("READ THE RULE →"). The selected rule plays as a looping scene in the stage at the top, in the
+ * view that actually shows it: rules about where the ball and the players are run on the real pitch
+ * renderer (lib/ruleClips.ts); rules about the stick face, the ball height or a card are drawn from
+ * the sideline with figures (lib/ruleFigures.ts). Click any card to see that rule.
  */
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { RULE_KEYS, type RuleKey } from '@bullyoff/insight';
 import { useAppStore } from '../stores/app';
 import { ruleClip } from '../lib/ruleClips';
+import { figureScene } from '../lib/ruleFigures';
 import PitchCanvas from './ui/PitchCanvas.vue';
+import RuleFigure from './ui/RuleFigure.vue';
 
 const { t } = useI18n();
 const app = useAppStore();
 const isRule = (k: string | null): k is RuleKey => k !== null && (RULE_KEYS as readonly string[]).includes(k);
 const selected = ref<RuleKey>(isRule(app.ruleFocus) ? app.ruleFocus : RULE_KEYS[0]);
-const clip = computed(() => ruleClip(selected.value));
+const figure = computed(() => figureScene(selected.value));
+const clip = computed(() => (figure.value ? null : ruleClip(selected.value)));
 const cards = ref<HTMLElement | null>(null);
 const stage = ref<HTMLElement | null>(null);
 
@@ -37,7 +42,13 @@ watch(() => app.ruleFocus, (k) => { if (isRule(k)) selected.value = k; });
       class="stage panel"
     >
       <div class="scene">
+        <RuleFigure
+          v-if="figure"
+          :key="selected"
+          :scene="figure"
+        />
         <PitchCanvas
+          v-else-if="clip"
           :log="clip.log"
           :camera="clip.camera"
           :overlay="clip.overlay"

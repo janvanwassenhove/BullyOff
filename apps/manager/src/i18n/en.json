@@ -170,6 +170,7 @@
     "importFile": "Import a save file"
   },
   "hub": {
+    "noCareer": { "title": "NO CAREER YET", "meta": "generate a world and pick a club", "headline": "Start a career to fill this screen", "body": "The table, the squad, the tactics and the club page all belong to a club. The rulebook and the academy are open to you now.", "start": "NEW CAREER", "pick": "PICK YOUR CLUB", "continue": "CONTINUE YOUR SAVE", "locked": "start a career first" },
     "tier": "TIER {n}",
     "season": "SEASON {year}",
     "day": "DAY {d} / {n}",
@@ -750,6 +751,8 @@
   },
   "rules": {
     "stageHint": "Click a rule to see it on the pitch — the scene loops.", "stageLabel": "ON THE PITCH",
+    "legend": { "flat": "FLAT FACE", "back": "ROUNDED BACK", "knee": "knee height", "backboard": "backboard (46 cm)", "circle": "circle" },
+    "verdict": { "freeHit": "FREE HIT", "pc": "PENALTY CORNER", "noGoal": "NO GOAL", "goal": "GOAL", "card": "GREEN CARD · 2 MIN", "play": "NO OFFENCE" },
     "title": "The rulebook",
     "sub": "The FIH rules as they apply on the pitch — and as the game whistles them.",
     "feet": {
