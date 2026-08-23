@@ -41,6 +41,8 @@ export interface MatchViewOptions {
   autoPauseOn?: MatchEvent['t'][];
   /** Live mode (Phase 7): the log grows via `append`; reaching the last frame waits for data instead of stopping. */
   live?: boolean;
+  /** Rewind and keep playing at the last frame (rulebook scenes, demo loops). */
+  loop?: boolean;
   /** The coach's team (0/1) for the coach view highlight and the overlays' attacking end. */
   coachTeam?: 0 | 1;
 }
@@ -108,6 +110,7 @@ export async function createMatchView(canvas: HTMLCanvasElement, log: MatchLog, 
   { const seen = new Set<number>(); teams.forEach((tm, i) => { if (!seen.has(tm)) { seen.add(tm); gkIndex.add(i); } }); }
   let lastTick = log.frames.length ? (log.frames[log.frames.length - 1]?.tick ?? 0) : (log.events[log.events.length - 1]?.tick ?? 0);
   const live = opts.live ?? false;
+  const loop = opts.loop ?? false;
   const coachTeam = opts.coachTeam ?? 0;
   const attackingEnd: 1 | -1 = coachTeam === 0 ? 1 : -1;
   const surface = log.header.surface;
@@ -352,7 +355,7 @@ export async function createMatchView(canvas: HTMLCanvasElement, log: MatchLog, 
     if (playing) {
       const slow = wall < slowmoUntil ? 0.25 : 1;
       tick += dtWall * 20 * speed * slow;
-      if (tick >= lastTick) { tick = lastTick; if (!live) playing = false; }
+      if (tick >= lastTick) { if (loop && lastTick > 0) seekTo(0); else { tick = lastTick; if (!live) playing = false; } }
       processEvents(tick);
       if (Math.floor(tick) % 5 === 0) recomputeHud(tick);
     }

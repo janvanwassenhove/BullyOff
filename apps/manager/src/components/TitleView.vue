@@ -3,21 +3,21 @@
 import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { ENGINE_VERSION } from '@bullyoff/engine';
-import { SAVE_VERSION } from '@bullyoff/season';
 import { useAppStore } from '../stores/app';
 import { useSeasonStore } from '../stores/season';
+import { LOCALES, setLocale } from '../i18n';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const app = useAppStore();
 const season = useSeasonStore();
 const base = import.meta.env.BASE_URL;
-const saveMeta = ref<string | null>(null);
+const saveMeta = ref<{ club: string; year: number; day: number } | null>(null); // raw values: the label follows the locale
 const keyArt = ref(true);
 
 onMounted(async () => {
   const doc = await season.peekSave('autosave');
   const w = doc?.world; const uc = w?.userClub;
-  if (w && uc) saveMeta.value = t('title.menu.continueMeta', { club: w.clubs[uc]?.name ?? '', year: w.year, day: w.season.day + 1 });
+  if (w && uc) saveMeta.value = { club: w.clubs[uc]?.name ?? '', year: w.year, day: w.season.day + 1 };
 });
 async function onContinue(): Promise<void> {
   if (season.world?.userClub) { app.go('season'); return; }
@@ -73,12 +73,23 @@ const items = [
           <span class="idx mono">{{ m.n }}</span>
           <span class="label">{{ t(`title.menu.${m.key}`) }}</span>
           <span class="grow" />
-          <span class="meta">{{ m.key === 'continue' ? (saveMeta ?? t('title.menu.noSave')) : t(`title.menu.${m.key}Meta`) }}</span>
+          <span class="meta">{{ m.key === 'continue' ? (saveMeta ? t('title.menu.continueMeta', saveMeta) : t('title.menu.noSave')) : t(`title.menu.${m.key}Meta`) }}</span>
         </button>
       </nav>
     </div>
     <div class="version mono">
-      <span>{{ t('app.version.engine', { v: ENGINE_VERSION }) }}</span><span>{{ t('app.version.save', { v: SAVE_VERSION }) }}</span><span>{{ t('app.version.offline') }}</span><span>{{ t('app.version.langs') }}</span>
+      <span>{{ t('app.version.engine', { v: ENGINE_VERSION }) }}</span>
+      <span class="langs">
+        <button
+          v-for="l in LOCALES"
+          :key="l.id"
+          class="lang mono"
+          :class="{ on: l.id === locale }"
+          @click="setLocale(l.id)"
+        >
+          {{ l.id.toUpperCase() }}
+        </button>
+      </span>
     </div>
   </section>
 </template>
@@ -106,7 +117,11 @@ const items = [
 .idx { font-size: 11px; color: var(--fg-dim); }
 .label { font-family: var(--font-display); font-size: 23px; font-weight: 600; letter-spacing: 0.08em; }
 .meta { font-size: 13px; color: var(--fg-dim); text-align: right; }
-.version { position: absolute; right: 70px; bottom: 28px; display: flex; gap: 22px; font-size: 11px; letter-spacing: 0.12em; color: var(--fg-dim); }
+.version { position: absolute; right: 70px; bottom: 28px; display: flex; align-items: center; gap: 22px; font-size: 11px; letter-spacing: 0.12em; color: var(--fg-dim); }
+.langs { display: flex; gap: 4px; }
+.lang { font-size: 11px; letter-spacing: 0.12em; color: var(--fg-dim); background: transparent; border: 1px solid transparent; border-radius: 4px; padding: 4px 7px; cursor: pointer; }
+.lang:hover { color: var(--fg-2); border-color: var(--hairline); }
+.lang.on { color: var(--accent-soft); border-color: var(--line-strong); }
 @media (max-width: 1100px) {
   .art { position: relative; right: auto; top: auto; width: 100%; max-width: 640px; margin: 24px auto 0; }
   .left { position: relative; left: auto; top: auto; bottom: auto; width: auto; padding: 24px 16px; }

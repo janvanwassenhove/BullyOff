@@ -2,12 +2,11 @@
 /**
  * The rulebook: the FIH rules the game applies, one card each, deep-linked from the report
  * ("READ THE RULE →"). The selected rule plays as a looping scene on the real pitch renderer
- * (lib/ruleClips.ts) in the stage at the top; click any card to see that rule on the pitch.
+ * (lib/ruleClips.ts) in the stage at the top (the renderer loops it); click any card to see that rule.
  */
-import { computed, onMounted, ref, shallowRef, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { RULE_KEYS, type RuleKey } from '@bullyoff/insight';
-import type { MatchView } from '@bullyoff/render';
 import { useAppStore } from '../stores/app';
 import { ruleClip } from '../lib/ruleClips';
 import PitchCanvas from './ui/PitchCanvas.vue';
@@ -17,13 +16,9 @@ const app = useAppStore();
 const isRule = (k: string | null): k is RuleKey => k !== null && (RULE_KEYS as readonly string[]).includes(k);
 const selected = ref<RuleKey>(isRule(app.ruleFocus) ? app.ruleFocus : RULE_KEYS[0]);
 const clip = computed(() => ruleClip(selected.value));
-const view = shallowRef<MatchView | null>(null);
 const cards = ref<HTMLElement | null>(null);
 const stage = ref<HTMLElement | null>(null);
 
-function onReady(v: MatchView): void { view.value = v; }
-// the scene loops: when the last frame is reached, play() rewinds and continues
-function onFrame(tick: number): void { const v = view.value; if (v && tick >= v.lastTick) v.play(); }
 function pick(k: RuleKey): void { selected.value = k; app.ruleFocus = k; stage.value?.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
 onMounted(() => { if (app.ruleFocus) cards.value?.querySelector<HTMLElement>(`[data-rule="${app.ruleFocus}"]`)?.scrollIntoView({ block: 'center' }); });
 watch(() => app.ruleFocus, (k) => { if (isRule(k)) selected.value = k; });
@@ -49,8 +44,7 @@ watch(() => app.ruleFocus, (k) => { if (isRule(k)) selected.value = k; });
           mode="tactical"
           :colours="[0x1f9a63, 0xe63946]"
           fit="cover"
-          @ready="onReady"
-          @frame="onFrame"
+          loop
         />
         <span class="eyebrow eyebrow-signal tag">{{ t('rules.stageLabel') }}</span>
       </div>
