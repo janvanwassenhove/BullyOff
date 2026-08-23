@@ -1,10 +1,9 @@
 <script setup lang="ts">
 /**
  * 00 · Intro landing — a cinematic way in with exactly one obvious next action.
- * The film is a muted looping <video> with a poster (public/intro/film.mp4 +
- * public/intro/poster.webp); until the assets exist the poster frame alone plays
- * with a slow push-in. prefers-reduced-motion shows the poster only. Skip fires
- * on click, any key or a scroll.
+ * The film is a slideshow of six generated stills (ui/IntroFilm.vue) that plays
+ * ambiently behind the hero and fullscreen with captions on "watch the intro".
+ * Skip fires on click, any key or a scroll.
  */
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -12,16 +11,13 @@ import { useAppStore } from '../stores/app';
 import { useSeasonStore } from '../stores/season';
 import { LOCALES, setLocale, type Locale } from '../i18n';
 import Crest from './ui/Crest.vue';
+import IntroFilm from './ui/IntroFilm.vue';
 
 const { t, locale } = useI18n();
 const app = useAppStore();
 const season = useSeasonStore();
-const base = import.meta.env.BASE_URL;
-const video = ref<HTMLVideoElement | null>(null);
-const hasFilm = ref(true);
 const continueCard = ref<{ club: string; colours: [number, number]; shape: string; split: string; year: number; day: number; time: string } | null>(null);
 
-const reduced = typeof globalThis.matchMedia === 'function' && globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const steps = computed(() => [0, 1, 2].map((i) => ({ n: i + 1, title: t(`intro.steps.${i}.title`), body: t(`intro.steps.${i}.body`) })));
 const stepColours = ['var(--accent)', 'var(--accent-soft)', 'var(--signal)'];
 
@@ -35,18 +31,17 @@ async function loadContinue(): Promise<void> {
 }
 async function onContinue(): Promise<void> { if (await season.load('autosave')) { app.skipIntro(); app.go('season'); } }
 function start(): void { app.skipIntro(); app.go('newCareer'); }
-function onKey(): void { app.skipIntro(); }
+function onKey(): void { if (!app.intro.filmPlaying) app.skipIntro(); }
 function onScroll(): void { if (window.scrollY > 40) app.skipIntro(); }
-function watchFilm(): void { app.intro.filmPlaying = true; const v = video.value; if (v) { v.muted = app.intro.muted; void v.play(); } }
-function toggleSound(): void { app.toggleMuted(); if (video.value) video.value.muted = app.intro.muted; }
+function watchFilm(): void { app.intro.filmPlaying = true; }
+function closeFilm(): void { app.intro.filmPlaying = false; }
+function toggleSound(): void { app.toggleMuted(); }
 function pickLocale(ev: Event): void { setLocale((ev.target as HTMLSelectElement).value as Locale); }
 
 onMounted(() => {
   void loadContinue();
   window.addEventListener('keydown', onKey);
   window.addEventListener('scroll', onScroll, { passive: true });
-  const v = video.value;
-  if (v && !reduced) { v.muted = true; v.play().catch(() => { hasFilm.value = false; }); }
 });
 onBeforeUnmount(() => { window.removeEventListener('keydown', onKey); window.removeEventListener('scroll', onScroll); });
 </script>
@@ -54,29 +49,7 @@ onBeforeUnmount(() => { window.removeEventListener('keydown', onKey); window.rem
 <template>
   <section class="intro">
     <div class="film">
-      <video
-        v-if="!reduced"
-        ref="video"
-        class="video"
-        :poster="base + 'intro/poster.webp'"
-        :src="base + 'intro/film.mp4'"
-        loop
-        playsinline
-        muted
-        preload="metadata"
-        @error="hasFilm = false"
-      />
-      <img
-        v-else
-        class="video"
-        :src="base + 'intro/poster.webp'"
-        alt=""
-      >
-      <div
-        class="still"
-        :class="{ kenburns: !reduced }"
-        :style="{ backgroundImage: `url(${base}intro/poster.webp)` }"
-      />
+      <IntroFilm :seconds="9" />
       <button
         v-if="!app.intro.filmPlaying"
         class="playbtn"
@@ -87,6 +60,12 @@ onBeforeUnmount(() => { window.removeEventListener('keydown', onKey); window.rem
       </button>
       <div class="scrim" />
     </div>
+    <IntroFilm
+      v-if="app.intro.filmPlaying"
+      fullscreen
+      :seconds="7"
+      @close="closeFilm"
+    />
 
     <header class="top">
       <span class="mark"><i /></span>
@@ -211,11 +190,6 @@ onBeforeUnmount(() => { window.removeEventListener('keydown', onKey); window.rem
 <style scoped>
 .intro { position: relative; min-height: 100dvh; background: var(--ink); overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; }
 .film { position: absolute; left: 0; right: 0; top: 0; height: min(560px, 62dvh); border-bottom: 1px solid #1b2530; background: repeating-linear-gradient(135deg, #0e171c 0 14px, #0b1216 14px 28px); overflow: hidden; }
-.video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.still { position: absolute; inset: -4%; background-size: cover; background-position: center; opacity: 0.92; }
-.still.kenburns { animation: bo-kenburns 45s ease-in-out infinite alternate; }
-@keyframes bo-kenburns { from { transform: scale(1); } to { transform: scale(1.08) translate(-1%, -1%); } }
-.video:not([poster=""]) ~ .still { opacity: 0; }
 .playbtn { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 64px; height: 64px; border-radius: 50%; border: 1px solid rgba(215, 245, 230, 0.4); background: rgba(6, 9, 12, 0.5); display: grid; place-items: center; cursor: pointer; }
 .tri { width: 0; height: 0; border-left: 16px solid rgba(215, 245, 230, 0.85); border-top: 10px solid transparent; border-bottom: 10px solid transparent; margin-left: 5px; }
 .scrim { position: absolute; left: 0; right: 0; bottom: 0; height: 60%; background: linear-gradient(180deg, rgba(6, 8, 10, 0), rgba(6, 8, 10, 0.86) 70%, #06080a); pointer-events: none; }

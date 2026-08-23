@@ -2,7 +2,9 @@
 
 > Read this first. Then `BRIEF.md`, then `docs/adr/`, then the latest `docs/handoff/`.
 
-## Current phase: **v1.0 candidate with the commercial UI — ship when the phone pass is done** (phases 0–10 built; human/device reviews owed)
+## Current phase: **v1.0 candidate with the commercial UI — ship when the phone pass is done** (phases 0–10.1 built; human/device reviews owed)
+
+Phase 10.1 (`docs/handoff/phase-10.1.md`): Jan's second look — intro film as six generated stills with captions, all engineering jargon rewritten into hockey language (NL/EN/FR), tempo measured and tuned (passes arrive at 6.5–10 m/s, broadcast camera by default, ball speed trail; engine **0.7.0**, golden `cec18ab670a0562b`, `tempo.test.ts` guards it), rulebook scenes: spatial rules on the pitch renderer, stick/height/card rules as side-elevation figures (lib/ruleFigures.ts); the hub tells you to start a career instead of showing dead menus. `pnpm check` 171 tests green. Owed: 96-match calibration re-baseline.
 
 Phase 10 (`docs/handoff/phase-10.md`): the commercial redesign from `docs/design/handoff/` shipped end to end — tokens + self-hosted type, projected pitch cameras in `packages/render`, app shell + season hub, `packages/insight` + post-match report with replay-rendered thumbnails, club select / world generation / title / onboarding / intro, and the touchline instrument panel. Generated imagery (key art, intro poster, onboarding, portraits) lives in `apps/manager/public/` as webp. Play-through fixes: kit clash → away second kit, coached match completes the round, scorer credit on deflected goals (engine **0.6.1**, golden `d25ed4f0e573169c`), 1-based matchdays, i18n leaks. `pnpm check` 167 tests green.
 

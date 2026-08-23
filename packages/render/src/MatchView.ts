@@ -41,6 +41,8 @@ export interface MatchViewOptions {
   autoPauseOn?: MatchEvent['t'][];
   /** Live mode (Phase 7): the log grows via `append`; reaching the last frame waits for data instead of stopping. */
   live?: boolean;
+  /** Rewind and keep playing at the last frame (rulebook scenes, demo loops). */
+  loop?: boolean;
   /** The coach's team (0/1) for the coach view highlight and the overlays' attacking end. */
   coachTeam?: 0 | 1;
 }
@@ -108,6 +110,7 @@ export async function createMatchView(canvas: HTMLCanvasElement, log: MatchLog, 
   { const seen = new Set<number>(); teams.forEach((tm, i) => { if (!seen.has(tm)) { seen.add(tm); gkIndex.add(i); } }); }
   let lastTick = log.frames.length ? (log.frames[log.frames.length - 1]?.tick ?? 0) : (log.events[log.events.length - 1]?.tick ?? 0);
   const live = opts.live ?? false;
+  const loop = opts.loop ?? false;
   const coachTeam = opts.coachTeam ?? 0;
   const attackingEnd: 1 | -1 = coachTeam === 0 ? 1 : -1;
   const surface = log.header.surface;
@@ -137,6 +140,7 @@ export async function createMatchView(canvas: HTMLCanvasElement, log: MatchLog, 
   let evCursor = 0;
   let hud: HudState = { score: [0, 0], quarter: 1, clockSeconds: 0, phase: 'pre-match', lastEvent: '' };
   let slowmoUntil = -1, bannerUntil = -1, punchAt = -Infinity, wall = 0;
+  const trail: { x: number; y: number; z: number; tick: number }[] = [];
   const audio = new AudioLayer();
   const frameCbs: ((tick: number, hud: HudState) => void)[] = [];
   const autoPause = new Set(opts.autoPauseOn ?? []);
@@ -165,6 +169,7 @@ export async function createMatchView(canvas: HTMLCanvasElement, log: MatchLog, 
 
   function seekTo(t: number): void {
     tick = Math.max(0, Math.min(lastTick, t));
+    trail.length = 0; // never draw a trail across a seek
     evCursor = log.events.findIndex((e) => e.tick > tick);
     if (evCursor < 0) evCursor = log.events.length;
     recomputeHud(tick);
@@ -314,6 +319,19 @@ export async function createMatchView(canvas: HTMLCanvasElement, log: MatchLog, 
     const g = p.project(s.ball.x + s.ball.z * 0.25, s.ball.y);
     const b = p.project(s.ball.x, s.ball.y, s.ball.z);
     const br = Math.max(2.5, BALL_R * p.metre * b.k);
+    // Speed cue: a short fading trail behind a ball travelling faster than a jog. On a full-pitch camera a 12 m/s
+    // push crosses a tenth of the screen per second, which without a cue reads slower than the real thing (Jan, 10.1).
+    if (trail.length === 0 || trail[trail.length - 1]?.tick !== s.tick) { trail.push({ x: s.ball.x, y: s.ball.y, z: s.ball.z, tick: s.tick }); if (trail.length > 7) trail.shift(); }
+    const t0 = trail[0], t1 = trail[trail.length - 1];
+    const span = t0 && t1 ? (t1.tick - t0.tick) * DT : 0;
+    const vTrail = t0 && t1 && span > 0 ? Math.hypot(t1.x - t0.x, t1.y - t0.y) / span : 0;
+    if (vTrail > 5) {
+      for (let i = 0; i < trail.length - 1; i++) {
+        const q = trail[i]; if (!q) continue;
+        const f = (i + 1) / trail.length; const pr = p.project(q.x, q.y, q.z);
+        actorsG.circle(pr.x, pr.y, br * (0.3 + 0.6 * f)).fill({ color: PITCH_COLOURS.ball, alpha: 0.06 + 0.3 * f });
+      }
+    }
     shadowG.ellipse(g.x, g.y, br * 1.1 * (1 + s.ball.z * 0.15), br * 0.6).fill({ color: 0x000000, alpha: Math.max(0.12, 0.35 - s.ball.z * 0.08) });
     actorsG.circle(b.x, b.y, br * 2.2).fill({ color: PITCH_COLOURS.ball, alpha: 0.12 });
     actorsG.circle(b.x, b.y, br).fill(PITCH_COLOURS.ball).stroke({ width: 1, color: 0x000000, alpha: 0.4 });
@@ -337,7 +355,7 @@ export async function createMatchView(canvas: HTMLCanvasElement, log: MatchLog, 
     if (playing) {
       const slow = wall < slowmoUntil ? 0.25 : 1;
       tick += dtWall * 20 * speed * slow;
-      if (tick >= lastTick) { tick = lastTick; if (!live) playing = false; }
+      if (tick >= lastTick) { if (loop && lastTick > 0) seekTo(0); else { tick = lastTick; if (!live) playing = false; } }
       processEvents(tick);
       if (Math.floor(tick) % 5 === 0) recomputeHud(tick);
     }

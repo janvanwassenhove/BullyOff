@@ -25,16 +25,17 @@
     "back": "Back",
     "menu": "Menu",
     "version": {
-      "engine": "ENGINE {v}",
+      "engine": "GAME VERSION {v}",
       "save": "SAVE v{v}",
       "offline": "OFFLINE READY",
       "langs": "NL · EN · FR"
     }
   },
   "intro": {
-    "eyebrow": "FIELD HOCKEY, MODELLED HONESTLY",
+    "eyebrow": "FIELD HOCKEY, THE WAY IT IS PLAYED",
+    "reel": { "f1": "Saturday morning. The pitch is being watered.", "f2": "The dressing room. Your plan is on the wall.", "f3": "Warming up on wet turf — the fastest hockey there is.", "f4": "Penalty corner. One call: flick or slip.", "f5": "The bench. Your words at half-time.", "f6": "Full time. The report tells you why." },
     "headline": "TAKE THE BENCH\nON SATURDAY.",
-    "body": "Coach a fictional club through a season the engine truly simulates. Every instruction is legal hockey — and after full time the game shows you why it worked.",
+    "body": "Coach a fictional club through a season that is really played, minute by minute. Every instruction is hockey the way your coach says it — and after full time the game shows you why it worked.",
     "start": "START COACHING",
     "watch": "▶ WATCH THE 60-SECOND INTRO",
     "support": "No account. Works offline. 90 seconds to your first match.",
@@ -70,8 +71,8 @@
     }
   },
   "title": {
-    "eyebrow": "DETERMINISTIC FIELD HOCKEY",
-    "body": "A season the engine actually simulates — circle rule, rolling subs, watered turf. Learn the sport while you win it.",
+    "eyebrow": "FIELD HOCKEY, SATURDAY-REAL",
+    "body": "A season that is really played — circle rule, rolling subs, watered turf. Learn the sport while you win it.",
     "keyArt": "key art — goalkeeper, floodlit, watered turf",
     "menu": {
       "continue": "CONTINUE",
@@ -129,9 +130,9 @@
     "watered": "WATERED",
     "dry": "DRY",
     "wet": "WET",
-    "seed": "WORLD SEED",
+    "seed": "WORLD NUMBER",
     "reroll": "RE-ROLL",
-    "seedNote": "same seed, same world — always",
+    "seedNote": "same number, same world — always",
     "generate": "GENERATE WORLD",
     "generating": "GENERATING",
     "idle": "READY",
@@ -147,7 +148,7 @@
     "ledgerRegular": "{champion} — regular winner {regular}",
     "ledgerDouble": "{champion} — regular winner too",
     "pickTitle": "Pick the club you'll coach",
-    "pickSub": "{n} clubs · tier 1 & tier 2 · the harder the club, the more the engine teaches you",
+    "pickSub": "{n} clubs · tier 1 & tier 2 · the harder the club, the more you learn",
     "tier": "TIER {n}",
     "level": "LVL {n}",
     "est": "est. {year}",
@@ -169,6 +170,7 @@
     "importFile": "Import a save file"
   },
   "hub": {
+    "noCareer": { "title": "NO CAREER YET", "meta": "generate a world and pick a club", "headline": "Start a career to fill this screen", "body": "The table, the squad, the tactics and the club page all belong to a club. The rulebook and the academy are open to you now.", "start": "NEW CAREER", "pick": "PICK YOUR CLUB", "continue": "CONTINUE YOUR SAVE", "locked": "start a career first" },
     "tier": "TIER {n}",
     "season": "SEASON {year}",
     "day": "DAY {d} / {n}",
@@ -483,9 +485,9 @@
   "sim": {
     "title": "Match viewer",
     "phase": "PHASE OF PLAY",
-    "inputs": "ENGINE INPUTS",
-    "deterministic": "DETERMINISTIC",
-    "deterministicBody": "Same seed, same inputs, byte-identical log. Export this match and anyone can replay the exact 70 minutes.",
+    "inputs": "MATCH SETTINGS",
+    "deterministic": "REPLAYS EXACTLY",
+    "deterministicBody": "Same settings, same match — to the second. Export this match and anyone can watch the exact same 70 minutes.",
     "inputKeys": {
       "profile": "profile",
       "turf": "turf",
@@ -494,14 +496,14 @@
       "mentality": "mentality",
       "tempo": "tempo",
       "rotate": "rotate below",
-      "tickRate": "tick rate"
+      "tickRate": "steps per second"
     },
     "live": "LIVE",
     "eventLog": "EVENT LOG",
     "learn": "LEARN THIS PHASE",
     "openRulebook": "OPEN THE RULEBOOK →",
-    "tick": "TICK {n}",
-    "seed": "SEED {seed} · {turf}",
+    "tick": "STEP {n}",
+    "seed": "MATCH {seed} · {turf}",
     "play": "PLAY",
     "paused": "PAUSED",
     "clockOf": "{a} / {b}",
@@ -543,7 +545,7 @@
     "source": "SOURCE",
     "profile": "PROFILE",
     "turf": "TURF",
-    "seedLabel": "SEED",
+    "seedLabel": "MATCH NUMBER",
     "card": {
       "green": "Green",
       "yellow": "Yellow",
@@ -576,9 +578,9 @@
     "keyMoments": "KEY MOMENTS",
     "noMoments": "A quiet one — no decisive moment the analyser is sure about.",
     "didWell": "WHAT YOU DID WELL",
-    "didWellNone": "Nothing stood out as a clear win this time — the log shows an even match.",
+    "didWellNone": "Nothing stood out as a clear win this time — the match shows an even match.",
     "workOn": "TO WORK ON",
-    "workOnNone": "No clear lesson from this log. Keep the same plan and watch the third quarter.",
+    "workOnNone": "No clear lesson from this match. Keep the same plan and watch the third quarter.",
     "ruleOfMatch": "RULE OF THE MATCH",
     "readRule": "READ THE RULE →",
     "ruleNone": "A clean match — no rule to read up on.",
@@ -748,8 +750,11 @@
     "balance": "balance"
   },
   "rules": {
+    "stageHint": "Click a rule to see it on the pitch — the scene loops.", "stageLabel": "ON THE PITCH",
+    "legend": { "flat": "FLAT FACE", "back": "ROUNDED BACK", "knee": "knee height", "backboard": "backboard (46 cm)", "circle": "circle" },
+    "verdict": { "freeHit": "FREE HIT", "pc": "PENALTY CORNER", "noGoal": "NO GOAL", "goal": "GOAL", "card": "GREEN CARD · 2 MIN", "play": "NO OFFENCE" },
     "title": "The rulebook",
-    "sub": "FIH rules as the engine applies them — each one is data in packages/rules, not prose.",
+    "sub": "The FIH rules as they apply on the pitch — and as the game whistles them.",
     "feet": {
       "title": "Feet in the circle",
       "body": "A ball that hits a defender's foot or body inside the circle is a penalty corner; outside the circle it is a free hit. The attacker who plays the ball at feet is within the rules — the defender must keep the body out of the line."
@@ -842,17 +847,17 @@
   },
   "about": {
     "title": "About BULLY OFF",
-    "intro": "A field-hockey coach/manager game built on a deterministic match engine. Everything in it is fictional and everything runs on your device.",
+    "intro": "A field-hockey coach/manager game in which every match is really played. Everything in it is fictional and everything runs on your device.",
     "privacyTitle": "Privacy",
     "privacy1": "No real clubs and no real people. Clubs, players, coaches and towns are generated from common-name pools and checked against a list of real clubs; no person is modelled, rated or named.",
     "privacy2": "No accounts, no telemetry, no analytics, no advertising. The app makes no network requests after it has loaded; your careers live in your browser's storage (IndexedDB) and in the files you export yourself.",
     "privacy3": "Replays and saves you export contain only generated data. Sharing them shares nothing about you.",
     "privacy4": "Club mode (entering your own squad) is not part of v1.0; when it comes it will be local-only and clearly marked.",
     "offlineTitle": "Offline",
-    "offline": "Installed as an app, BULLY OFF works without a connection: the engine, the world generator and your saves are local.",
+    "offline": "Installed as an app, BULLY OFF works without a connection: the match, the world generator and your saves are local.",
     "creditsTitle": "How it is built",
-    "credits": "Open source (MIT). Deterministic engine, FIH rules as data, a utility AI, a season model with twenty seasons of generated history, and a PixiJS replay viewer — calibrated against public Belgian League aggregates.",
-    "version": "Engine {engine} · save format v{save}"
+    "credits": "Open source (MIT). A match model that replays every match exactly, the FIH rules, players who make their own decisions, a season model with twenty seasons of generated history, and a replay viewer — calibrated against public Belgian League aggregates.",
+    "version": "Game version {engine} · save format v{save}"
   },
   "viewer": {
     "mens": "men's",
@@ -885,7 +890,7 @@
   },
   "academy": {
     "title": "Academy",
-    "sub": "What the engine actually models — one topic a minute.",
+    "sub": "What really happens on the pitch — one topic a minute.",
     "open": "Walk through",
     "step": "Step {n} of {total}",
     "prev": "Back",

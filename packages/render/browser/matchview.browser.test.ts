@@ -122,3 +122,26 @@ it('live mode (Phase 7): the log grows through append(), the coach view draws nu
   }
   view.destroy();
 });
+
+it('loop: a looping view rewinds at the last frame and keeps playing; a second view needs a fresh canvas', async () => {
+  const setup = aiMatchSetup('mens', 'watered', FIH_OUTDOOR_FAST); setup.frameEvery = 2;
+  const log = simulateMatch(setup, 3, aiController(3, squadsFromSetup(setup.players), { profile: MENS, surface: 'watered' }), 20 * 4); // 4 s
+  const host = document.createElement('div'); host.style.width = '400px'; host.style.height = '225px'; host.style.position = 'relative';
+  const canvas = document.createElement('canvas'); host.appendChild(canvas); document.body.appendChild(host);
+  const view = await createMatchView(canvas, log, { mode: 'tactical', camera: 'half', loop: true });
+  view.setSpeed(8); view.play();
+  const seen: number[] = [];
+  view.onFrame((t) => { seen.push(t); });
+  await new Promise((r) => setTimeout(r, 1500)); // 8× speed: ~12 s of match in 1.5 s, i.e. the 4 s clip three times over
+  expect(view.playing).toBe(true);
+  expect(seen.some((t, i) => i > 0 && t < (seen[i - 1] ?? 0))).toBe(true); // the play head wrapped at least once
+  expect(Math.max(...seen)).toBeLessThanOrEqual(view.lastTick);
+  view.destroy();
+  // the rulebook swaps scenes: the next view gets a new canvas element (PitchCanvas keys it), and plays
+  const canvas2 = document.createElement('canvas'); host.appendChild(canvas2);
+  const view2 = await createMatchView(canvas2, log, { mode: 'tactical', camera: 'half', loop: true });
+  view2.setSpeed(8); view2.play();
+  await new Promise((r) => setTimeout(r, 400));
+  expect(view2.tick).toBeGreaterThan(0);
+  view2.destroy(); host.remove();
+});

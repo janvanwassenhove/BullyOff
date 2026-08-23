@@ -355,8 +355,11 @@ function bestOption(c: Ctx, me: PlayerView, restart: boolean): Option {
     let u = 0.15 + 1.2 * gain + 0.35 * open - riskW * risk - lengthPen + intoD - backwards + vision - intoOwnD + c.rng.gaussian(0, noise);
     if (restart) u += 0.2; // restarts want to be taken
     const angle = dmath.atan2(lead.y - ball.y, lead.x - ball.x);
-    // arrive at a trappable ~6 m/s (a bit quicker when the receiver is pressed and needs it early)
-    const vArr = 5.5 + 3 * (1 - open);
+    // Arrive firmly: on water a push is played to reach the receiver at 6.5–10 m/s (quicker when the receiver is
+    // pressed and needs it early). Trapping costs nothing up to 8 m/s in the model and little at 10; the 5.5–8.5 m/s
+    // of the first build read as training-ground rolls and made the game feel pedestrian (Jan, Phase 10.1).
+    // Measured in tempo.test.ts: +0.9 m/s on the launch speed, more circle entries and shots, goals still in band.
+    const vArr = 6.5 + 3.5 * (1 - open);
     const need = passSpeedFor(d, vArr, c.profile, c.surface);
     let strike: 'push' | 'slap' | 'hit' | 'aerial' = need <= c.profile.strike.pushSpeed * strikeSpeedFactor(a, 'push') ? 'push' : need <= c.profile.strike.slapSpeed * strikeSpeedFactor(a, 'slap') ? 'slap' : 'hit';
     // long ball over a press: aerial when the lane is blocked but the target is free
