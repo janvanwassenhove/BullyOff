@@ -1,13 +1,28 @@
 <script setup lang="ts">
 /**
- * A step's diagram: a slice of pitch with markers and arrows, drawn from academy data.
- * Metres in, pixels out — the conversion happens here and nowhere else (CLAUDE.md rule 12).
+ * A step's play, drawn through the same cameras the match viewer uses (`@bullyoff/render`): the
+ * whole court for anything about shape, from behind the goal for anything that happens facing it.
+ * Metres in, pixels out — the projector is the only place that conversion happens (rule 12).
  */
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
-import { frameAt, stepDuration, type Arrow, type DiagramView, type Marker, type Step } from '../../lib/academy';
+import { CAMERAS, PITCH_COLOURS, dShape, makeProjector, pitchLines, type Projector } from '@bullyoff/render';
+import { CIRCLE_RADIUS } from '@bullyoff/shared';
+import { frameAt, stepDuration, type Arrow, type Marker, type Step } from '../../lib/academy';
 
 const props = defineProps<{ step: Step }>();
 const emit = defineEmits<{ playing: [v: boolean] }>();
+
+const W = 560, H = 340;
+const proj = computed<Projector>(() => makeProjector(CAMERAS[props.step.view], W, H, 'contain', 10));
+const px = (x: number, y: number): number => proj.value.project(x, y).x;
+const py = (x: number, y: number): number => proj.value.project(x, y).y;
+/** Perspective factor: markers shrink with depth exactly as they do in the match view. */
+const pk = (x: number, y: number): number => proj.value.project(x, y).k;
+
+const hex = (n: number): string => '#' + n.toString(16).padStart(6, '0');
+const path = (pts: [number, number][]): string => pts.map((p) => `${px(p[0], p[1])},${py(p[0], p[1])}`).join(' ');
+const lines = computed(() => pitchLines().map((l) => ({ d: path(l.points), alpha: l.alpha })));
+const circles = computed(() => [dShape(1, CIRCLE_RADIUS), dShape(-1, CIRCLE_RADIUS)].map((c) => path(c)));
 
 /**
  * The clock. The engine may not touch wall time (CLAUDE.md rule 4) — this is the app, where a
@@ -39,54 +54,18 @@ function play(): void {
   raf = requestAnimationFrame(tick);
 }
 
-// a new step is a new play
 watch(() => props.step, () => { play(); }, { immediate: true });
 onBeforeUnmount(stop);
 defineExpose({ play });
 
 const frame = computed(() => frameAt(props.step, t.value));
-const markers = computed(() => frame.value.markers);
+const markers = computed<Marker[]>(() => frame.value.markers);
 const arrows = computed<Arrow[]>(() => props.step.arrows);
-const view = computed(() => props.step.view);
 
-/** [minX, maxX, minY, maxY] in metres for each slice. */
-const BOX: Record<DiagramView, [number, number, number, number]> = {
-  full: [-45.7, 45.7, -27.4, 27.4],
-  attackingHalf: [0, 45.7, -27.4, 27.4],
-  circle: [26, 46.7, -16.5, 16.5],
-};
-/**
- * How a coach draws it. A whole-pitch board is landscape with the attack going right; anything at
- * circle level is drawn with the goal at the top and the play coming up the page. Same data, two
- * projections — the engine frame never changes (ADR-001).
- */
-const UPFIELD: Record<DiagramView, boolean> = { full: false, attackingHalf: true, circle: true };
-const W = 520;
-const box = computed(() => BOX[view.value]);
-const up = computed(() => UPFIELD[view.value]);
-const spanX = computed(() => box.value[1] - box.value[0]);
-const spanY = computed(() => box.value[3] - box.value[2]);
-const scale = computed(() => W / (up.value ? spanY.value : spanX.value));
-const H = computed(() => Math.round((up.value ? spanX.value : spanY.value) * scale.value));
-/** Screen x: across the pitch when the goal is at the top, along it otherwise. */
-const px = (x: number, y: number): number => (up.value ? (y - box.value[2]) : (x - box.value[0])) * scale.value;
-/** Screen y: down the page towards our own end when the goal is at the top. */
-const py = (x: number, y: number): number => (up.value ? (box.value[1] - x) : (y - box.value[2])) * scale.value;
-
-/**
- * The shooting circle: two quarter-arcs off the posts joined by a straight top. Sampled rather than
- * an SVG arc so it is projection-agnostic — the same points work goal-at-top and attack-to-the-right.
- */
-const circlePath = computed(() => {
-  const pts: string[] = [];
-  const R = 14.63, GH = 1.83, GX = 45.7;
-  for (let i = 0; i <= 24; i++) { const a = (Math.PI / 2) * (i / 24); pts.push(`${px(GX - R * Math.sin(a), -GH - R * Math.cos(a))},${py(GX - R * Math.sin(a), -GH - R * Math.cos(a))}`); }
-  for (let i = 24; i >= 0; i--) { const a = (Math.PI / 2) * (i / 24); pts.push(`${px(GX - R * Math.sin(a), GH + R * Math.cos(a))},${py(GX - R * Math.sin(a), GH + R * Math.cos(a))}`); }
-  return pts.join(' ');
-});
-
-const colour = (s: Marker['side']): string => (s === 'us' ? 'var(--accent)' : s === 'them' ? 'var(--danger)' : 'var(--fg-1)');
-const dash = (k: Arrow['kind']): string => (k === 'run' ? '5 4' : k === 'carry' ? '2 3' : '0');
+const colour = (s: Marker['side']): string => (s === 'us' ? 'var(--accent)' : s === 'them' ? 'var(--danger)' : hex(PITCH_COLOURS.ball));
+const dash = (k: Arrow['kind']): string => (k === 'run' ? '6 5' : k === 'carry' ? '2 4' : '0');
+/** A revealed arrow's tip, so the trail ends exactly where the thing that draws it has got to. */
+const tip = (a: Arrow, u: number): [number, number] => [a.from[0] + (a.to[0] - a.from[0]) * u, a.from[1] + (a.to[1] - a.from[1]) * u];
 </script>
 
 <template>
@@ -114,46 +93,26 @@ const dash = (k: Arrow['kind']): string => (k === 'run' ? '5 4' : k === 'carry' 
     <rect
       :width="W"
       :height="H"
-      class="turf"
-    />
-    <!-- the goal line, the 23 and the circle: the geometry a coach reads the picture by -->
-    <line
-      :x1="px(45.7, box[2])"
-      :y1="py(45.7, box[2])"
-      :x2="px(45.7, box[3])"
-      :y2="py(45.7, box[3])"
-      class="line"
-    />
-    <line
-      :x1="px(22.9, box[2])"
-      :y1="py(22.9, box[2])"
-      :x2="px(22.9, box[3])"
-      :y2="py(22.9, box[3])"
-      class="line soft"
-    />
-    <line
-      :x1="px(0, box[2])"
-      :y1="py(0, box[2])"
-      :x2="px(0, box[3])"
-      :y2="py(0, box[3])"
-      class="line soft"
+      :fill="hex(PITCH_COLOURS.turf)"
     />
     <polyline
-      :points="circlePath"
-      class="line circle"
+      v-for="(l, i) in lines"
+      :key="'l' + i"
+      :points="l.d"
+      class="line"
+      :stroke-opacity="l.alpha"
     />
-    <line
-      :x1="px(45.7, -1.83)"
-      :y1="py(45.7, -1.83)"
-      :x2="px(45.7, 1.83)"
-      :y2="py(45.7, 1.83)"
-      class="goal"
+    <polyline
+      v-for="(c, i) in circles"
+      :key="'c' + i"
+      :points="c"
+      class="line"
+      stroke-opacity="0.55"
     />
     <g
       v-for="(a, i) in arrows"
       :key="'a' + i"
     >
-      <!-- the whole path, faint: where the movement is going -->
       <line
         :x1="px(a.from[0], a.from[1])"
         :y1="py(a.from[0], a.from[1])"
@@ -162,13 +121,12 @@ const dash = (k: Arrow['kind']): string => (k === 'run' ? '5 4' : k === 'carry' 
         class="arrow ghost"
         :stroke-dasharray="dash(a.kind)"
       />
-      <!-- and the part already travelled, solid, with the head arriving on the last frame -->
       <line
         v-if="(frame.reveal[i] ?? 0) > 0.02"
         :x1="px(a.from[0], a.from[1])"
         :y1="py(a.from[0], a.from[1])"
-        :x2="px(a.from[0] + (a.to[0] - a.from[0]) * (frame.reveal[i] ?? 0), a.from[1] + (a.to[1] - a.from[1]) * (frame.reveal[i] ?? 0))"
-        :y2="py(a.from[0] + (a.to[0] - a.from[0]) * (frame.reveal[i] ?? 0), a.from[1] + (a.to[1] - a.from[1]) * (frame.reveal[i] ?? 0))"
+        :x2="px(tip(a, frame.reveal[i] ?? 0)[0], tip(a, frame.reveal[i] ?? 0)[1])"
+        :y2="py(tip(a, frame.reveal[i] ?? 0)[0], tip(a, frame.reveal[i] ?? 0)[1])"
         class="arrow"
         :stroke-dasharray="dash(a.kind)"
         :marker-end="(frame.reveal[i] ?? 0) > 0.98 ? 'url(#ah)' : undefined"
@@ -178,32 +136,38 @@ const dash = (k: Arrow['kind']): string => (k === 'run' ? '5 4' : k === 'carry' 
       v-for="(m, i) in markers"
       :key="'m' + i"
     >
+      <ellipse
+        v-if="m.side !== 'ball'"
+        :cx="px(m.x, m.y)"
+        :cy="py(m.x, m.y) + 2"
+        :rx="9 * pk(m.x, m.y)"
+        :ry="3.5 * pk(m.x, m.y)"
+        class="shadow"
+      />
       <circle
         :cx="px(m.x, m.y)"
         :cy="py(m.x, m.y)"
-        :r="m.side === 'ball' ? 4 : 8"
+        :r="(m.side === 'ball' ? 4.5 : 9) * pk(m.x, m.y)"
         :fill="colour(m.side)"
         :class="{ ball: m.side === 'ball' }"
       />
       <text
         v-if="m.tag"
         :x="px(m.x, m.y)"
-        :y="py(m.x, m.y) + 3.5"
+        :y="py(m.x, m.y) + 3.5 * pk(m.x, m.y)"
         class="tag"
+        :style="{ fontSize: 10 * pk(m.x, m.y) + 'px' }"
       >{{ m.tag }}</text>
     </g>
   </svg>
 </template>
 
 <style scoped>
-.diag { width: 100%; height: auto; border-radius: 10px; display: block; }
-.turf { fill: color-mix(in srgb, var(--accent) 13%, var(--surface-2)); }
-.line { stroke: var(--line-strong); stroke-width: 1.6; fill: none; }
-.line.soft { stroke: var(--line); }
-.circle { stroke-width: 1.5; }
-.goal { stroke: var(--fg-1); stroke-width: 4.5; stroke-linecap: round; }
-.arrow { stroke: var(--fg-2); stroke-width: 2; }
-.arrow.ghost { stroke: color-mix(in srgb, var(--fg-2) 28%, transparent); stroke-width: 1.5; }
-.ball { stroke: var(--bg); stroke-width: 1.5; }
-.tag { font-family: var(--font-mono, monospace); font-size: 9px; fill: var(--bg); text-anchor: middle; font-weight: 700; }
+.diag { width: 100%; height: auto; border-radius: 10px; display: block; background: var(--surface-2); }
+.line { stroke: #f0fff8; stroke-width: 1.4; fill: none; }
+.arrow { stroke: #f4f1e8; stroke-width: 2.2; }
+.arrow.ghost { stroke: #f4f1e8; stroke-opacity: 0.25; stroke-width: 1.5; }
+.ball { stroke: #0a0d10; stroke-width: 1.2; }
+.shadow { fill: #000; fill-opacity: 0.34; }
+.tag { fill: #0a0d10; text-anchor: middle; font-weight: 700; font-family: var(--font-mono, monospace); }
 </style>
