@@ -122,6 +122,13 @@ export const PRESS_HEIGHT: Record<PressId, Scalar> = { full: 0.9, half: 0.55, sp
 /** Defensive line per mentality (0 = edge of own D, 1 = halfway). */
 export const MENTALITY_LINE: Record<Mentality, Scalar> = { defensive: 0.25, balanced: 0.45, attacking: 0.65 };
 
+/**
+ * Where a system puts the two lines, in metres from our own backline. The AI reads these and so does
+ * the tactics board: a press is a place on the pitch, and both have to mean the same place.
+ */
+export const pressLineM = (pressHeight: Scalar): Scalar => 22 + pressHeight * 55;
+export const backLineM = (defensiveLine: Scalar): Scalar => 14 + defensiveLine * 30;
+
 /** Apply a preset choice (press/mentality) to the numeric knobs — what the UI and the AI both use. */
 export function presetPatch(p: Partial<TeamTactics>): Partial<TeamTactics> {
   const out: Partial<TeamTactics> = { ...p };

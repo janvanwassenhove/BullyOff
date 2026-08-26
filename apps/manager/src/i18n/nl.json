@@ -359,6 +359,8 @@
     }
   },
   "coach": {
+    "planLabel": "Opstelling en presslijnen op het veld", "pressLine": "presslijn", "backLine": "verdedigingslijn",
+    "pcWho": "{name} neemt hem ({rating})", "pcNow": "nu: {variant}",
     "batteryLabel": "STRAFCORNERBATTERIJ", "batteryHint": "geldt ook als je de speeldag simuleert",
     "captainLabel": "AANVOERDER", "captainHint": "de band geeft geen extra kwaliteiten",
     "tacticsAndSubs": "TACTIEK & WISSELS",
@@ -760,6 +762,7 @@
     "balance": "saldo"
   },
   "sheet": { "title": "WEDSTRIJDBLAD", "eleven": "BASISELF", "bench": "BANK", "missing": "NIET BESCHIKBAAR", "missingHint": "vervangen door de assistent", "edit": "OPSTELLING AANPASSEN", "tactics": "TACTIEK", "start": "START DE WEDSTRIJD", "cancel": "TERUG", "plan": "{formation} · {press} · {mentality}", "home": "thuis tegen {opp}", "away": "uit bij {opp}" },
+  "scout": { "title": "SCOUTING", "planLabel": "PLAN", "unseen": "Nog niet gezien dit seizoen — geen rapport.", "system": "Ze spelen {formation}, {press}, {mentality}.", "form": "Gespeeld: {played} · {gf} goals per match, {ga} tegen.", "pc": "{pcs} strafcorners per match, {share} % daarvan gaat binnen.", "discipline": "{fouls} vrije slagen per match weggegeven, {cards} kaarten.", "dangerMan": "{name} ({role}) maakte er {goals}.", "leaky": "Ze slikken {ga} goals per match.", "plan": { "disciplineInD": "Hun strafcorner is hun wapen. Blijf uit de fout in je eigen cirkel: geen stick, geen voet, geen risico.", "attackEarly": "Hun verdediging lekt. Zet er vroeg druk op en zoek snel de cirkel.", "overTheTop": "Ze pressen full-court. Speel eroverheen — lange bal of aerial — in plaats van erdoorheen.", "patientWide": "Ze zakken in een zone. Geduld en breedte: verleg het spel en zoek de cirkelrand.", "switchSides": "Split press: ze sturen je naar één kant. Kantel snel naar de andere flank." } },
   "rules": {
     "stageHint": "Klik op een regel om ze op het veld te zien — de scène herhaalt zich.", "stageLabel": "OP HET VELD",
     "view": { "figures": "FIGUREN", "pitch": "OP HET VELD" },

@@ -72,6 +72,18 @@ Injuring one player used to change *which team-mates* were available: the availa
 
 Vite served a **stale transform of the i18n JSON** twice this phase (new keys rendered as raw `squad.group.starters`), the same failure as `packages/render/src/index.ts` in §5. The file on disk and the raw URL were correct; `?import` was not. `touch` the file or restart the dev server.
 
+## 8 · Phase 10.3: the tactics board says where, the corner says who, and you scout them first
+
+**1 · A press is a place on the pitch.** The board's mini rectangle became a real pitch — FIH geometry to scale, both circles as 14.63 m arcs off the posts, the 23 m lines, the goals — with the eleven in their formation slots, the press line and the back line drawn where the AI actually puts them, and the block between them shaded (`ui/PitchPlan.vue`). Change the press and you watch the line move.
+
+That exposed a bug in the first cut: the two knobs are on **different scales** and the drawing treated both as a fraction of pitch length. The AI reads `ballXp < 22 + pressHeight · 55` and `line = 14 + defensiveLine · 30` — both metres from our own backline. So the board had the back line *ahead* of the press line, which is not hockey. The formulas are now exported as `pressLineM` / `backLineM` and the AI calls them, so the board cannot drift from the pitch again; `press.test.ts` pins the metres and asserts every system engages ahead of its own line.
+
+**2 · The corner is a decision, not a default.** In the match drawer the routine is now picked from the men who are actually on the pitch: the five variants ranked by who could take them (`pcCandidates` in `packages/insight`, drag flick off `dragFlick`, low hit off `hit`, a slip off elimination + push, a deflection off 3D skills + first touch), each with its rating, plus the line naming the taker. The timed call at the corner offers the top three rather than a fixed flick/slip pair. The old plain variant picker in the drawer is gone — one picker, with the read attached.
+
+**3 · You scout them before you choose.** `scoutOpponent` (`packages/insight/src/scout.ts`) reads the opponent's played fixtures — form, goals for and against, penalty corners a match and how many go in, free hits given away, cards, their top scorer — plus the system a coach can see from the sideline. Every line is an i18n key with numbers, nothing invented; a side nobody has played yet gets one honest line and no plan. The counter it argues for is standard coaching and names the observation it follows from: over the top of a full-court press, patience and width against a zone, switch against a split press, discipline in your own D against a corner side, attack early against a leaky one. The report sits on the tactics screen beside the board, so the plan and the knobs are on the same page.
+
+Ten tests: the report counts only matches that were played, mirrors home/away when it reads their half of the stats, and never cites a line it does not have.
+
 ## Next
 
 - Re-baseline calibration on 96 matches (`pnpm calibrate:run`) and publish calibration.md § 0.7.0.

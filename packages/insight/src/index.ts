@@ -5,3 +5,4 @@
 export const PACKAGE_NAME = '@bullyoff/insight' as const;
 export { analyse, momentum, matchSheet, ruleFor, type Finding, type Severity, type Section, type AnalyseOptions } from './analyse.js';
 export { adviseSeason, playerRead, attributeRows, RULE_KEYS, isFinding, type Advice, type RuleKey } from './season.js';
+export { scoutOpponent, pcCandidates, type ScoutReport, type ScoutLine, type PcCandidate } from './scout.js';

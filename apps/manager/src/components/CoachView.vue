@@ -9,7 +9,7 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref, shallowRef } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { FRAME_PLAYER_STRIDE, MENTALITY_LINE, PRESS_HEIGHT, quarterStats, type CoachInstruction, type FormationId, type Frame, type MatchEvent, type MatchLog, type Mentality, type PcVariant, type PressId, type QuarterStats, type TeamTactics } from '@bullyoff/engine';
-import { analyse, type Finding } from '@bullyoff/insight';
+import { analyse, pcCandidates, type Finding } from '@bullyoff/insight';
 import { createMatchView, type CameraChoice, type HudState, type MatchView, type OverlayId } from '@bullyoff/render';
 import { inCircle } from '@bullyoff/shared';
 import { EngineClient } from '../engine/client';
@@ -51,7 +51,6 @@ const CAMS: CameraChoice[] = ['full', 'broadcast', 'circle', 'director'];
 const FORMATION_IDS: FormationId[] = ['4-3-3', '3-4-3', '4-4-2', '5-3-2', '3-3-3-1', '4-2-3-1'];
 const PRESS_IDS: PressId[] = ['full', 'half', 'split', 'zone'];
 const MENTALITIES: Mentality[] = ['defensive', 'balanced', 'attacking'];
-const PCS: PcVariant[] = ['dragFlick', 'lowHit', 'slipRight', 'slipLeft', 'deflection'];
 const tempoWord = (x: number): 'low' | 'normal' | 'high' => (x < 0.4 ? 'low' : x > 0.65 ? 'high' : 'normal');
 const TEMPO = { low: 0.25, normal: 0.5, high: 0.8 } as const;
 
@@ -67,6 +66,13 @@ const fmt = (s: number): string => `${String(Math.floor(s / 60)).padStart(2, '0'
 const pct = (x: number): string => `${Math.round(x * 100)} %`;
 const hex = (c: number): string => '#' + c.toString(16).padStart(6, '0');
 const progress = computed(() => Math.min(100, (100 * hud.value.clockSeconds) / (60 * 60)));
+/**
+ * Which corner routine the men on the pitch can play. The coach picks the variant; this says who
+ * would take it and how good he is at it, so the choice is a hockey decision rather than a guess.
+ */
+const pcRead = computed(() => pcCandidates(
+  myOutfield.value.flatMap((p) => (p.attributes ? [{ id: p.id, name: nameOf(p.id), attrs: p.attributes }] : [])),
+));
 const dials = computed(() => [
   { k: 'press', v: t('coach.pressShort.' + tactics.press), w: tactics.pressHeight },
   { k: 'mentality', v: t('coach.mentalityShort.' + tactics.mentality), w: tactics.defensiveLine },
@@ -423,18 +429,7 @@ onBeforeUnmount(() => { destroyed = true; view.value?.destroy(); client.destroy(
             </div>
           </div>
           <div class="dgroup">
-            <span class="eyebrow">{{ t('coach.pcDesigner') }}</span>
-            <div class="chips">
-              <button
-                v-for="v in PCS"
-                :key="v"
-                class="choice"
-                :class="{ on: tactics.pcVariant === v }"
-                @click="setTactic('pcVariant', v)"
-              >
-                {{ t('coach.pc.' + v) }}
-              </button>
-            </div>
+            <span class="eyebrow">{{ t('coach.batteryLabel') }}</span>
             <div class="chips">
               <label
                 v-for="r in (['injector', 'trapper', 'striker'] as const)"
@@ -453,6 +448,27 @@ onBeforeUnmount(() => { destroyed = true; view.value?.destroy(); client.destroy(
                 >{{ nameOf(p.id) }} ({{ roleOf(p.id) }})</option>
               </select></label>
             </div>
+          </div>
+          <div class="dgroup">
+            <div class="dgh">
+              <span class="eyebrow">{{ t('coach.pcDesigner') }}</span>
+              <span class="dghint">{{ t('coach.pcNow', { variant: t('coach.pc.' + tactics.pcVariant) }) }}</span>
+            </div>
+            <div class="chips">
+              <button
+                v-for="c in pcRead"
+                :key="c.variant"
+                class="chip chip-mode"
+                :class="{ on: tactics.pcVariant === c.variant }"
+                @click="setTactic('pcVariant', c.variant)"
+              >
+                {{ t('coach.pc.' + c.variant) }} <em v-if="c.name">{{ c.rating }}</em>
+              </button>
+            </div>
+            <span
+              v-if="pcRead[0]?.name"
+              class="dghint"
+            >{{ t('coach.pcWho', { name: pcRead[0].name, rating: pcRead[0].rating }) }}</span>
           </div>
           <div class="dgroup">
             <span class="eyebrow">{{ t('coach.rotation') }}</span>
@@ -537,18 +553,20 @@ onBeforeUnmount(() => { destroyed = true; view.value?.destroy(); client.destroy(
           <span class="dtext">{{ t('coach.pcCall', { style: theirStyle }) }}</span>
           <div class="dbtns">
             <button
-              class="btn btn-primary btn-xs"
-              @click="decide('dragFlick')"
+              v-for="(c, i) in pcRead.slice(0, 3)"
+              :key="c.variant"
+              class="btn btn-xs"
+              :class="i === 0 ? 'btn-primary' : 'btn-secondary'"
+              :title="c.name ? t('coach.pcWho', { name: c.name, rating: c.rating }) : ''"
+              @click="decide(c.variant)"
             >
-              {{ t('coach.flick') }}
-            </button>
-            <button
-              class="btn btn-secondary btn-xs"
-              @click="decide('slipRight')"
-            >
-              {{ t('coach.slip') }}
+              {{ t('coach.pc.' + c.variant) }}
             </button>
           </div>
+          <span
+            v-if="pcRead[0]?.name"
+            class="dwho mono"
+          >{{ t('coach.pcWho', { name: pcRead[0].name, rating: pcRead[0].rating }) }}</span>
         </template>
         <template v-else-if="decision?.finding">
           <span class="eyebrow eyebrow-signal"><span class="dot bo-pulse" />{{ t('coach.coachRead') }}</span>
@@ -582,6 +600,11 @@ onBeforeUnmount(() => { destroyed = true; view.value?.destroy(); client.destroy(
 </template>
 
 <style scoped>
+.dwho { font-size: 11px; color: var(--fg-dim); }
+.dgh { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.dghint { font-size: 11px; color: var(--fg-dim); }
+.chip-mode em { font-style: normal; color: var(--fg-dim); font-size: 10px; margin-left: 4px; }
+
 .touchline { height: 100dvh; display: grid; grid-template-rows: 52px minmax(0, 1fr) 118px; background: var(--bg); }
 .top { display: flex; align-items: center; gap: 12px; padding: 0 16px; background: var(--panel-2); border-bottom: 1px solid var(--hairline); }
 .kit { width: 12px; height: 12px; border-radius: 2px; border: 1px solid rgba(255, 255, 255, 0.25); display: inline-block; }

@@ -6,9 +6,12 @@
  */
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { FORMATIONS, MENTALITY_LINE, PRESS_HEIGHT, type FormationId, type Mentality, type PcVariant, type PressId, type TeamTactics } from '@bullyoff/engine';
+import { MENTALITY_LINE, PRESS_HEIGHT, type FormationId, type Mentality, type PcVariant, type PressId, type TeamTactics } from '@bullyoff/engine';
 import { useAppStore } from '../stores/app';
 import { useSeasonStore } from '../stores/season';
+import { scoutOpponent } from '@bullyoff/insight';
+import { toRaw } from 'vue';
+import PitchPlan from './ui/PitchPlan.vue';
 
 const { t } = useI18n();
 const app = useAppStore();
@@ -29,12 +32,25 @@ function patch(p: Partial<TeamTactics>): void {
   if (p.mentality) c.tactics.defensiveLine = MENTALITY_LINE[p.mentality];
   void season.save().then((at) => { if (at) app.markSaved(at); });
 }
-const slots = computed(() => (tac.value ? FORMATIONS[tac.value.formation] : []));
+/** Their system and press come out of the world as ids; the report renders them in the coach's words. */
+function scoutParams(l: { params: Record<string, string | number> }): Record<string, string | number> {
+  const out = { ...l.params };
+  if (typeof out['press'] === 'string') out['press'] = t('coach.press.' + out['press']).toLowerCase();
+  if (typeof out['mentality'] === 'string') out['mentality'] = t('coach.mentality.' + out['mentality']).toLowerCase();
+  if (typeof out['role'] === 'string') out['role'] = t('squad.role.' + out['role']);
+  return out;
+}
 /** Everyone who could take a battery role or the armband: the senior squad, keepers included for the captaincy. */
 const squad = computed(() => season.squad.filter((r) => !r.youth));
 const battery = computed(() => club.value?.pcBattery ?? { injector: null, trapper: null, striker: null });
 const captain = computed(() => club.value?.captain ?? null);
 const pick = (ev: Event): number | null => { const v = (ev.target as HTMLSelectElement).value; return v === '' ? null : Number(v); };
+/** What we know about the next opponent — from their played matches, not from thin air. */
+const next = computed(() => season.nextOpponent);
+const scout = computed(() => {
+  const w = season.world; const opp = next.value;
+  return w && opp ? scoutOpponent(toRaw(w), opp.club) : null;
+});
 </script>
 
 <template>
@@ -43,6 +59,11 @@ const pick = (ev: Event): number | null => { const v = (ev.target as HTMLSelectE
     class="tac"
   >
     <div class="board">
+      <PitchPlan
+        :formation="tac.formation"
+        :press-height="tac.pressHeight"
+        :defensive-line="tac.defensiveLine"
+      />
       <div class="group">
         <span class="eyebrow">{{ t('coach.formationLabel').toUpperCase() }}</span>
         <div class="chips">
@@ -190,20 +211,6 @@ const pick = (ev: Event): number | null => { const v = (ev.target as HTMLSelectE
     <aside class="preview panel">
       <span class="eyebrow">{{ t('coach.shape') }}</span>
       <span class="display-700 shape">{{ tac.formation }}</span>
-      <div class="mini">
-        <span
-          v-for="(s, i) in slots"
-          :key="i"
-          class="dotp"
-          :class="s.role.toLowerCase()"
-          :style="{ left: (s.xp / 91.4) * 100 + '%', top: ((s.y + 27.5) / 55) * 100 + '%' }"
-          :title="s.role"
-        />
-        <span
-          class="line"
-          :style="{ left: (tac.pressHeight * 100) + '%' }"
-        />
-      </div>
       <div class="dials">
         <div
           v-for="d in [['press', t('coach.pressShort.' + tac.press), tac.pressHeight], ['mentality', t('coach.mentalityShort.' + tac.mentality), tac.defensiveLine], ['tempo', t('coach.tempoShort.' + tempoWord(tac.tempo)), tac.tempo], ['rotate', Math.round(tac.rotateBelowStamina * 100) + ' %', tac.rotateBelowStamina]]"
@@ -214,11 +221,60 @@ const pick = (ev: Event): number | null => { const v = (ev.target as HTMLSelectE
           <div class="bar bar-3"><i :style="{ width: Number(d[2]) * 100 + '%' }" /></div>
         </div>
       </div>
+      <div
+        v-if="scout && next"
+        class="scout hairline-t"
+      >
+        <div class="sh">
+          <span class="eyebrow eyebrow-signal">{{ t('scout.title') }}</span>
+          <span class="sopp">{{ next.name }}</span>
+        </div>
+        <div
+          v-if="scout.form.length"
+          class="form"
+        >
+          <span
+            v-for="(r, i) in scout.form"
+            :key="i"
+            class="fbox mono"
+            :class="r.toLowerCase()"
+          >{{ r }}</span>
+        </div>
+        <p
+          v-for="(l, i) in scout.lines"
+          :key="i"
+          class="sline"
+          :class="{ strong: l.strong }"
+        >
+          {{ t(l.i18nKey, scoutParams(l)) }}
+        </p>
+        <div
+          v-if="scout.plan"
+          class="plan"
+        >
+          <span class="eyebrow">{{ t('scout.planLabel') }}</span>
+          <p class="planp">
+            {{ t(scout.plan.i18nKey) }}
+          </p>
+        </div>
+      </div>
     </aside>
   </div>
 </template>
 
 <style scoped>
+.scout { padding-top: 14px; display: flex; flex-direction: column; gap: 7px; }
+.sh { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.sopp { font-family: var(--font-display); font-size: 17px; font-weight: 600; letter-spacing: 0.02em; }
+.form { display: flex; gap: 4px; }
+.fbox { font-size: 10px; width: 18px; height: 18px; display: grid; place-items: center; border-radius: 3px; background: var(--panel-2); color: var(--fg-muted); }
+.fbox.w { background: rgba(31, 154, 99, 0.22); color: var(--accent-soft); }
+.fbox.l { background: rgba(214, 69, 65, 0.18); color: var(--danger); }
+.sline { font-size: 13px; color: var(--fg-3); line-height: 1.5; }
+.sline.strong { color: var(--fg); }
+.plan { margin-top: 6px; padding: 10px 12px; border: 1px solid var(--hairline); border-left: 3px solid var(--signal); border-radius: 5px; background: var(--panel-2); }
+.planp { font-size: 13px; color: var(--fg-2); line-height: 1.5; margin-top: 3px; }
+
 .gh { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .hint { font-size: 11.5px; color: var(--fg-dim); }
 .picks { display: flex; flex-direction: column; gap: 8px; }
@@ -232,12 +288,7 @@ const pick = (ev: Event): number | null => { const v = (ev.target as HTMLSelectE
 .chips { display: flex; gap: 6px; flex-wrap: wrap; }
 .preview { padding: 18px; display: flex; flex-direction: column; gap: 12px; align-self: start; }
 .shape { font-size: 30px; }
-.mini { position: relative; aspect-ratio: 91.4 / 55; background: repeating-linear-gradient(90deg, var(--turf) 0 10.9%, var(--turf-alt) 10.9% 21.8%); border: 1px solid rgba(240, 255, 248, 0.4); border-radius: 4px; overflow: hidden; }
 .mini::before { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: rgba(240, 255, 248, 0.4); }
-.dotp { position: absolute; width: 10px; height: 10px; border-radius: 50%; transform: translate(-50%, -50%); background: var(--accent-soft); border: 1px solid rgba(240, 255, 248, 0.8); }
-.dotp.gk { background: var(--signal); }
-.dotp.def { background: #1e78c8; }
-.dotp.fwd { background: var(--danger); }
 .line { position: absolute; top: 0; bottom: 0; width: 1px; border-left: 1px dashed rgba(127, 227, 176, 0.7); }
 .dials { display: flex; flex-direction: column; gap: 10px; }
 .dial { display: flex; flex-direction: column; gap: 4px; }

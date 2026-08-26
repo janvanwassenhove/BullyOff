@@ -359,6 +359,8 @@
     }
   },
   "coach": {
+    "planLabel": "Line-up and pressing lines on the pitch", "pressLine": "press line", "backLine": "back line",
+    "pcWho": "{name} takes it ({rating})", "pcNow": "now: {variant}",
     "batteryLabel": "PENALTY-CORNER BATTERY", "batteryHint": "holds when you simulate the match day too",
     "captainLabel": "CAPTAIN", "captainHint": "the armband grants no extra quality",
     "tacticsAndSubs": "TACTICS & SUBS",
@@ -760,6 +762,7 @@
     "balance": "balance"
   },
   "sheet": { "title": "TEAM SHEET", "eleven": "THE ELEVEN", "bench": "BENCH", "missing": "UNAVAILABLE", "missingHint": "replaced by the assistant", "edit": "CHANGE THE LINE-UP", "tactics": "TACTICS", "start": "START THE MATCH", "cancel": "BACK", "plan": "{formation} · {press} · {mentality}", "home": "at home to {opp}", "away": "away at {opp}" },
+  "scout": { "title": "SCOUTING", "planLabel": "THE PLAN", "unseen": "Not seen yet this season — no report.", "system": "They play {formation}, {press}, {mentality}.", "form": "Played: {played} · {gf} goals a match, {ga} against.", "pc": "{pcs} penalty corners a match, {share} % of them go in.", "discipline": "{fouls} free hits a match given away, {cards} cards.", "dangerMan": "{name} ({role}) has {goals}.", "leaky": "They concede {ga} goals a match.", "plan": { "disciplineInD": "The corner is their weapon. Stay out of trouble in your own circle: no stick, no foot, no risk.", "attackEarly": "Their defence leaks. Press them early and get to the circle quickly.", "overTheTop": "They press full-court. Go over it — long ball or aerial — rather than through it.", "patientWide": "They sit in a zone. Patience and width: switch the play and work the top of the circle.", "switchSides": "Split press: they steer you to one side. Switch quickly to the other flank." } },
   "rules": {
     "stageHint": "Click a rule to see it on the pitch — the scene loops.", "stageLabel": "ON THE PITCH",
     "view": { "figures": "FIGURES", "pitch": "ON THE PITCH" },

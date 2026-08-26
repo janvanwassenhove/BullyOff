@@ -11,7 +11,7 @@ import { aiMatchSetup } from '../sim/fixtures.js';
 import { MENS } from '../profile.js';
 import { FRAME_PLAYER_STRIDE } from '../events/events.js';
 import { aiController, squadsFromSetup } from './brain.js';
-import { DEFAULT_TACTICS, PRESS_HEIGHT, type PressId, type TeamTactics } from './tactics.js';
+import { DEFAULT_TACTICS, MENTALITY_LINE, PRESS_HEIGHT, backLineM, pressLineM, type PressId, type TeamTactics } from './tactics.js';
 
 /** Team 0's defensive shape while team 1 has the ball inside team 0's half. */
 interface Shape {
@@ -92,5 +92,30 @@ describe('pressing systems are different sports, not one sport at four heights',
   it('a deep block keeps its rest-break high; a full-court press leaves nobody up', () => {
     // restBreak 2 against 0 — the forwards left up are what the conceded possession buys.
     expect(zone.high).toBeGreaterThan(full.high + 0.4);
+  });
+});
+
+describe('the two lines a system means (Phase 10.3)', () => {
+  it('press line and back line are metres from our own backline, and the board reads the same numbers as the AI', () => {
+    // the AI: `ballXp < pressLineM(pressHeight)` and `line = backLineM(defensiveLine)`
+    expect(pressLineM(PRESS_HEIGHT.full)).toBeCloseTo(71.5, 5);   // full-court: engage inside their 23
+    expect(pressLineM(PRESS_HEIGHT.half)).toBeCloseTo(52.25, 5);  // half-court: just past halfway
+    expect(pressLineM(PRESS_HEIGHT.zone)).toBeCloseTo(35.75, 5);  // deep block: around our own 23
+    expect(backLineM(MENTALITY_LINE.defensive)).toBeCloseTo(21.5, 5);
+    expect(backLineM(MENTALITY_LINE.balanced)).toBeCloseTo(27.5, 5);
+    expect(backLineM(MENTALITY_LINE.attacking)).toBeCloseTo(33.5, 5);
+  });
+
+  it('every system engages ahead of its own back line — you cannot press in front of a line you are behind', () => {
+    for (const press of ['full', 'half', 'split', 'zone'] as const) {
+      for (const mentality of ['defensive', 'balanced', 'attacking'] as const) {
+        expect(pressLineM(PRESS_HEIGHT[press]), `${press}/${mentality}`).toBeGreaterThan(backLineM(MENTALITY_LINE[mentality]));
+      }
+    }
+  });
+
+  it('both lines stay on the pitch', () => {
+    for (const p of Object.values(PRESS_HEIGHT)) { expect(pressLineM(p)).toBeGreaterThan(0); expect(pressLineM(p)).toBeLessThan(91.4); }
+    for (const d of Object.values(MENTALITY_LINE)) { expect(backLineM(d)).toBeGreaterThan(0); expect(backLineM(d)).toBeLessThan(91.4); }
   });
 });

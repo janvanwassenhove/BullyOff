@@ -359,6 +359,8 @@
     }
   },
   "coach": {
+    "planLabel": "Composition et lignes de pressing sur le terrain", "pressLine": "ligne de pressing", "backLine": "ligne défensive",
+    "pcWho": "{name} le tire ({rating})", "pcNow": "actuel : {variant}",
     "batteryLabel": "BATTERIE DE PENALTY CORNER", "batteryHint": "vaut aussi quand vous simulez la journée",
     "captainLabel": "CAPITAINE", "captainHint": "le brassard ne donne aucune qualité en plus",
     "tacticsAndSubs": "TACTIQUE & CHANGEMENTS",
@@ -760,6 +762,7 @@
     "balance": "solde"
   },
   "sheet": { "title": "FEUILLE DE MATCH", "eleven": "LE ONZE", "bench": "BANC", "missing": "INDISPONIBLE", "missingHint": "remplacé par l'adjoint", "edit": "MODIFIER LA COMPOSITION", "tactics": "TACTIQUE", "start": "COMMENCER LE MATCH", "cancel": "RETOUR", "plan": "{formation} · {press} · {mentality}", "home": "à domicile contre {opp}", "away": "en déplacement à {opp}" },
+  "scout": { "title": "SCOUTING", "planLabel": "LE PLAN", "unseen": "Pas encore vus cette saison — pas de rapport.", "system": "Ils jouent en {formation}, {press}, {mentality}.", "form": "Joués : {played} · {gf} buts par match, {ga} encaissés.", "pc": "{pcs} penalty corners par match, {share} % rentrent.", "discipline": "{fouls} coups francs concédés par match, {cards} cartes.", "dangerMan": "{name} ({role}) en a marqué {goals}.", "leaky": "Ils encaissent {ga} buts par match.", "plan": { "disciplineInD": "Le corner est leur arme. Pas de faute dans votre cercle : ni stick, ni pied, ni risque.", "attackEarly": "Leur défense prend l'eau. Pressez tôt et allez vite au cercle.", "overTheTop": "Ils pressent tout terrain. Passez par-dessus — longue balle ou aérien — plutôt qu'à travers.", "patientWide": "Ils s'installent en zone. Patience et largeur : renversez le jeu et travaillez le haut du cercle.", "switchSides": "Split press : ils vous poussent d'un côté. Renversez vite sur l'autre aile." } },
   "rules": {
     "stageHint": "Cliquez une règle pour la voir sur le terrain — la scène tourne en boucle.", "stageLabel": "SUR LE TERRAIN",
     "view": { "figures": "FIGURES", "pitch": "SUR LE TERRAIN" },

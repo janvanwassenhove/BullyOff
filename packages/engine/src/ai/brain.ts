@@ -21,7 +21,7 @@ import { attackingEnd, type PlayerView, type RulesState, type RulesView, type Te
 import type { Command } from '../match/commands.js';
 import type { Controller, PlayerSetup } from '../match/match.js';
 import { attributesFor, norm, type Attributes, type Role } from '../player/attributes.js';
-import { DEFAULT_TACTICS, FORMATION_433, FORMATIONS, PRESS_SYSTEMS, assignSlots, channelOf, lineOf, presetPatch, shapeTarget, type PressSystem, type Slot, type TeamTactics } from './tactics.js';
+import { pressLineM, backLineM, DEFAULT_TACTICS, FORMATION_433, FORMATIONS, PRESS_SYSTEMS, assignSlots, channelOf, lineOf, presetPatch, shapeTarget, type PressSystem, type Slot, type TeamTactics } from './tactics.js';
 import { laneEntersCircle, pitchValue, shotQuality } from './valueGrid.js';
 import { MENS, type Profile, type SurfaceState } from '../profile.js';
 import { strikeSpeedFactor } from '../player/attributes.js';
@@ -525,7 +525,7 @@ function assign(c: Ctx, carrier: PlayerView, sys: PressSystem, st: DefenceState,
   const ballXp = end * ball.x + HALF_LENGTH;
   const ballChannel = channelOf(end * ball.y);
   const inOwn23 = in23(ball, -end as End);
-  const engage = ballXp < 22 + team.tactics.pressHeight * 55 || inOwn23;
+  const engage = ballXp < pressLineM(team.tactics.pressHeight) || inOwn23;
 
   // Rest-break: the most advanced forwards do not defend — in a deep block they are the whole point
   // of conceding the ball. Once it reaches our own 23 nobody is exempt any more.
@@ -678,7 +678,7 @@ function defend(c: Ctx, target: PlayerView, ballXp: Scalar, ballY: Scalar, lastT
       case 'free': {
         // the spare: central, goal-side of the deepest attacker, on the defensive line
         const deepest = [...c.opp].filter((o) => !o.isGoalkeeper).sort((a, b) => dist(a.pos, ownGoal) - dist(b.pos, ownGoal) || a.id - b.id)[0];
-        const line = 14 + team.tactics.defensiveLine * 30;
+        const line = backLineM(team.tactics.defensiveLine);
         const xp = deepest ? Math.min(line, end * deepest.pos.x + HALF_LENGTH - 4) : line;
         moveTo(c, p, { x: end * (clamp(xp, 6, HALF_LENGTH * 2 - 10) - HALF_LENGTH), y: end * clamp(ballY * 0.3, -8, 8) }, 0.85);
         break;
