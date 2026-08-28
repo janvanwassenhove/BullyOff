@@ -28,3 +28,7 @@ a:hover { color: var(--accent-pale); }
 @media (prefers-reduced-motion: reduce) {
   .bo-rise, .bo-pulse, .bo-sweep { animation: none; }
 }
+
+/* PWA shell feel: no rubber-banding past the app, no grey tap flashes */
+html, body { overscroll-behavior-y: none; }
+* { -webkit-tap-highlight-color: transparent; }

@@ -266,4 +266,11 @@ function openPlayer(id: number | undefined): void { if (id !== undefined) { app.
 .iname { color: var(--fg-2); }
 .irole { color: var(--fg-dim); font-size: 11px; }
 @media (max-width: 1000px) { .hubc { grid-template-columns: 1fr; } .rail { border-left: none; border-top: 1px solid var(--hairline); } .thead, .trow { grid-template-columns: 36px minmax(0, 1fr) repeat(7, 36px); font-size: 12px; } }
+/* Phone: the club name is the point of the table — drop won/drawn/lost and keep played, goals and points */
+@media (max-width: 480px) {
+  .thead:not(.fx) > :nth-child(4), .thead:not(.fx) > :nth-child(5), .thead:not(.fx) > :nth-child(6),
+  .trow:not(.fx):not(.hist) > :nth-child(4), .trow:not(.fx):not(.hist) > :nth-child(5), .trow:not(.fx):not(.hist) > :nth-child(6) { display: none; }
+  .thead:not(.fx), .trow:not(.fx):not(.hist) { grid-template-columns: 30px minmax(0, 1fr) repeat(4, 38px); }
+  .cn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
 </style>

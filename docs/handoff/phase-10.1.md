@@ -84,6 +84,22 @@ That exposed a bug in the first cut: the two knobs are on **different scales** a
 
 Ten tests: the report counts only matches that were played, mirrors home/away when it reads their half of the stats, and never cites a line it does not have.
 
+## 9 · Phase 10.4: the phone pass (PWA + webapp on phone / tablet / laptop)
+
+Jan: the match screen was broken on a phone, and the whole layout needed a check on tablet and phone. Audited every screen at 375 px and 768 px with a same-origin iframe harness (a 375-wide iframe makes the media queries real, which neither the hidden Browser pane's device emulation nor resizing someone's actual Chrome window does), measuring `scrollWidth` overflow per screen rather than eyeballing.
+
+**Found and fixed:**
+
+- **Every hub screen scrolled sideways** — a grid blowout: `.hub` had no explicit column, so one wide app-bar child stretched the implicit column past the viewport. `grid-template-columns: minmax(0, 1fr)` on the shell, the nav strip itself scrolls (scrollbar hidden), and on phone the bar keeps wordmark + nav + gear — save is the autosave, the viewer and language live on the title and settings screens.
+- **The coach view was unplayable on a phone**: a rigid `100dvh` grid squeezed the pitch toward zero, and the ≤900 rules hid the left rail — which held the only entry to TACTICS & SUBS, so you could not substitute at all. Now on phone the touchline is a scrolling column: pitch first at 44dvh, the left rail reduced to a two-button action bar under it (TACTICS & SUBS · SUB 3), LIVE stats as a wrap strip, the timed decision above the match log with thumb-height buttons, the drawer full-screen, camera/overlay chips a scrolling strip.
+- **The active speed chip was invisible** on every size: the scoped `.cbtn { background: transparent }` outranks the global `.chip-on`, leaving dark text on a dark bar. Scoped `.cbtn.chip-on` restores the fill.
+- **League table and squad rows squeezed the club/player name to zero** at 375 px — the one column that is the point of the row. ≤480 px the table drops W/D/L (played, goals, points remain) and the squad rows drop role/minutes/goals (the slot chip and the player card carry them).
+- **The onboarding card** was fixed at 453 px; **the rule scene** let `min-height` fight `aspect-ratio` and overflow. Both clamp now.
+- **Touch**: `pointer: coarse` bumps buttons to ≥44 px, chips to ≥34 px, selects to 44 px with 16 px font (stops iOS zooming into focused fields); tap highlight off; `overscroll-behavior-y: none` so the shell does not rubber-band; safe-area insets on the app bar, the touchline top bar and the drawer for notched phones in standalone.
+- The sim viewer's score bar wraps on phone and the pitch keeps 44dvh.
+
+PWA itself was already right (standalone manifest, icons incl. maskable + apple-touch, `viewport-fit=cover`, precache incl. webp): the work was the layout, not the plumbing.
+
 ## Next
 
 - Re-baseline calibration on 96 matches (`pnpm calibrate:run`) and publish calibration.md § 0.7.0.

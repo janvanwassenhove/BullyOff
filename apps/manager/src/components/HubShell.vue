@@ -103,7 +103,7 @@ function pickLocale(ev: Event): void { setLocale((ev.target as HTMLSelectElement
         </select>
       </label>
       <button
-        class="status mono"
+        class="status gear mono"
         @click="app.go('about')"
       >
         ⚙
@@ -268,12 +268,15 @@ function pickLocale(ev: Event): void { setLocale((ev.target as HTMLSelectElement
 </template>
 
 <style scoped>
-.hub { min-height: 100dvh; display: grid; grid-template-rows: 58px auto minmax(0, 1fr); background: var(--bg); }
-.appbar { display: flex; align-items: center; gap: 18px; padding: 0 24px; border-bottom: 1px solid var(--hairline); background: var(--panel-2); }
+/* minmax(0,1fr) on the implicit column: without it one wide app-bar child blows the whole page out sideways */
+.hub { min-height: 100dvh; display: grid; grid-template-rows: auto auto minmax(0, 1fr); grid-template-columns: minmax(0, 1fr); background: var(--bg); }
+.appbar { min-height: 58px; min-width: 0; display: flex; align-items: center; gap: 18px; padding: 0 24px; padding-top: env(safe-area-inset-top); border-bottom: 1px solid var(--hairline); background: var(--panel-2); }
 .wordmark { font-family: var(--font-display); font-size: 18px; font-weight: 700; letter-spacing: 0.16em; color: var(--accent-pale); background: none; border: none; cursor: pointer; padding: 0; }
 .vdiv { height: 18px; }
 .vdiv.tall { height: 44px; }
-.nav { display: flex; gap: 14px; }
+.nav { display: flex; gap: 14px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.nav::-webkit-scrollbar { display: none; }
+.navi { flex: none; white-space: nowrap; }
 .navi { font-family: var(--font-display); font-size: 15px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg-muted); background: none; border: none; border-bottom: 2px solid transparent; padding: 18px 2px; cursor: pointer; }
 .navi.on { color: var(--fg); border-bottom-color: var(--accent); }
 .navi.lock { color: var(--fg-faint); cursor: not-allowed; }
@@ -294,5 +297,20 @@ function pickLocale(ev: Event): void { setLocale((ev.target as HTMLSelectElement
 .nextcol { display: flex; flex-direction: column; gap: 2px; }
 .scout { font-size: 15px; color: var(--fg-2); }
 .content { min-height: 0; display: grid; }
-@media (max-width: 900px) { .appbar { padding: 0 12px; gap: 10px; overflow-x: auto; } .navi { padding: 14px 2px; font-size: 13px; } .clubbar { padding: 12px; gap: 12px; } }
+@media (max-width: 900px) {
+  .appbar { padding: 0 12px; padding-top: env(safe-area-inset-top); gap: 10px; }
+  .navi { padding: 16px 4px; font-size: 13px; }
+  .clubbar { padding: 12px; gap: 12px; }
+}
+/* Phone: the bar keeps the wordmark, the scrolling nav and the gear; save is the autosave dot,
+   the viewer and the language live on the title and settings screens. */
+@media (max-width: 720px) {
+  .status { display: none; }
+  .status.gear { display: block; }
+  .vdiv { display: none; }
+  .cname { font-size: 18px; }
+  .clubbar { min-height: 0; padding: 10px 12px; }
+  .clubbar .btn { flex: 1 1 auto; }
+  .nextcol { order: 5; flex-basis: 100%; }
+}
 </style>

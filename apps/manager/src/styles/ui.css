@@ -76,3 +76,12 @@ select.ui, input.ui { font: inherit; font-family: var(--font-mono); font-size: 1
 /* ── screen transitions (180 ms cross-fade; the score bug never animates during play) ── */
 .fade-enter-active, .fade-leave-active { transition: opacity var(--dur-screen) ease-out; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
+
+/* ── touch (phone/tablet): a fingertip is ~44 px, and the browser must not rubber-band the app shell ── */
+@media (pointer: coarse) {
+  .btn { min-height: 44px; }
+  .btn-xs, .btn-sm { min-height: 40px; padding-top: 9px; padding-bottom: 9px; }
+  .chip { min-height: 34px; padding-top: 7px; padding-bottom: 7px; }
+  .pill-tab, .choice { min-height: 40px; }
+  select.ui, input.ui { min-height: 44px; font-size: 16px; } /* 16px stops iOS zooming the page on focus */
+}

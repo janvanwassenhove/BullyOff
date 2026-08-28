@@ -620,6 +620,8 @@ onBeforeUnmount(() => { destroyed = true; view.value?.destroy(); client.destroy(
 .prog i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); border-radius: 2px; }
 .tbtn { font-size: 13px; color: var(--fg); background: none; border: none; cursor: pointer; }
 .cbtn { background: transparent; cursor: pointer; }
+/* the scoped transparent background outranks the global .chip-on and left the active chip invisible */
+.cbtn.chip-on { background: var(--accent-pale); color: var(--ink); }
 .err { color: var(--danger); font-size: 11px; }
 .mid { display: grid; grid-template-columns: 172px minmax(0, 1fr) 172px; min-height: 0; }
 .rail { padding: 12px; display: flex; flex-direction: column; gap: 10px; background: var(--panel); min-height: 0; overflow: auto; }
@@ -666,12 +668,35 @@ onBeforeUnmount(() => { destroyed = true; view.value?.destroy(); client.destroy(
 .dbtns .btn { flex: 1; }
 .dot { background: var(--signal); margin-right: 6px; }
 @media (max-width: 900px) {
-  .touchline { grid-template-rows: 52px minmax(0, 1fr) auto; }
-  .mid { grid-template-columns: 1fr; grid-template-rows: minmax(300px, 1fr) auto; }
-  .rail.left { display: none; }
-  .rail.right { border-left: none; border-top: 1px solid var(--hairline); flex-direction: row; flex-wrap: wrap; }
-  .bottom { grid-template-columns: 1fr; }
-  .decision { border-left: none; border-top: 1px solid var(--hairline); }
-  .dbtns .btn { padding: 15px 0; font-size: 17px; }
+  /* The touchline scrolls on a small screen: a rigid 100dvh grid squeezed the pitch into nothing. */
+  .touchline { height: auto; min-height: 100dvh; display: flex; flex-direction: column; }
+  .top { flex-wrap: wrap; row-gap: 6px; padding: 8px 10px; padding-top: max(8px, env(safe-area-inset-top)); }
+  .prog, .you { display: none; }
+  .tn { max-width: 26vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+  .score { font-size: 22px; }
+  .mid { display: flex; flex-direction: column; }
+  /* the pitch first, at a height a thumb can work with */
+  .stage { order: -1; height: 44dvh; min-height: 250px; flex: none; }
+  .ovl-tr { max-width: 100%; flex-wrap: nowrap; overflow-x: auto; left: 10px; justify-content: flex-start; scrollbar-width: none; }
+  .ovl-tr::-webkit-scrollbar { display: none; }
+  /* the left rail becomes the action bar under the pitch: the two buttons, not the dials */
+  .rail.left { flex-direction: row; align-items: center; gap: 8px; padding: 10px 12px; overflow: visible; }
+  .rail.left .eyebrow, .rail.left .shape, .rail.left .dial, .rail.left .grow { display: none; }
+  .rail.left .btn { flex: 1; }
+  .rail.right { border-left: none; border-top: 1px solid var(--hairline); flex-direction: row; flex-wrap: wrap; column-gap: 22px; }
+  .bottom { display: flex; flex-direction: column; }
+  /* the decision is the thing to act on: above the log, thumb-height buttons */
+  .decision { order: -1; border-left: none; border-bottom: 1px solid var(--hairline); }
+  .dbtns { flex-wrap: wrap; }
+  .dbtns .btn { flex: 1 1 40%; padding: 15px 0; font-size: 16px; }
+  .matchlog { max-height: 30dvh; overflow: auto; }
+  /* the control chips pack into full rows instead of one per line */
+  .top .cbtn { flex: 1 1 auto; justify-content: center; text-align: center; }
+  .top .tbtn { min-width: 48px; text-align: center; }
+  .ovl-label { display: none; }
+  .rail.right .lstat { flex: 1 1 44%; border-bottom: none; padding-bottom: 0; }
+  .rail.right .leg { flex: 1 1 44%; }
+  .drawer { left: 0; right: 0; top: 0; bottom: 0; width: auto; border-radius: 0; padding-top: max(14px, env(safe-area-inset-top)); }
+  .modal { width: min(94vw, 480px); max-height: 80dvh; overflow: auto; }
 }
 </style>

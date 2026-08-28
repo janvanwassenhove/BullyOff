@@ -156,5 +156,5 @@ watch(() => app.ruleFocus, (k) => { if (isRule(k)) selected.value = k; });
 .card.focus { border-color: var(--signal); }
 .rt { font-family: var(--font-display); font-size: 19px; font-weight: 600; letter-spacing: 0.02em; }
 .rbody { font-size: 13.5px; color: var(--fg-3); line-height: 1.55; }
-@media (max-width: 900px) { .stage { grid-template-columns: 1fr; } .explain { border-left: none; border-top: 1px solid var(--hairline); } }
+@media (max-width: 900px) { .stage { grid-template-columns: 1fr; } .explain { border-left: none; border-top: 1px solid var(--hairline); } .scene { min-height: 0; } }
 </style>

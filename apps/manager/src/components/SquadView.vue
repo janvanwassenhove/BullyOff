@@ -283,4 +283,10 @@ const status = (r: SquadRow): { label: string; c: string } =>
 .howp { font-size: 14.5px; color: var(--fg-2); line-height: 1.6; }
 .empty { padding: 24px; color: var(--fg-dim); font-size: 14px; }
 @media (max-width: 1100px) { .sq { grid-template-columns: 1fr; } .rail { border-left: none; border-top: 1px solid var(--hairline); } .rowmain { grid-template-columns: minmax(0, 1fr) 44px 36px 40px 60px 48px 70px; font-size: 12px; } }
+/* Phone: the name is the row — the slot chip already carries the role, minutes and goals move to the card */
+@media (max-width: 480px) {
+  .rowmain > .role, .rowmain > :nth-child(5), .rowmain > :nth-child(6) { display: none; }
+  .rowmain { grid-template-columns: minmax(0, 1fr) 34px 40px 58px; }
+  .st { font-size: 10px; }
+}
 </style>

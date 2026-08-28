@@ -75,7 +75,7 @@ function next(): void { if (step.value < 2) step.value++; else emit('done'); }
 
 <style scoped>
 .backdrop { position: fixed; inset: 0; background: rgba(5, 8, 11, 0.82); display: grid; place-items: center; z-index: 50; padding: 16px; }
-.card { width: 453px; max-width: 100%; min-height: 400px; background: var(--panel); border: 1px solid var(--hairline); border-radius: 12px; padding: 26px; display: flex; flex-direction: column; gap: 14px; }
+.card { width: min(92vw, 453px); max-height: 86dvh; overflow: auto; min-height: 0; background: var(--panel); border: 1px solid var(--hairline); border-radius: 12px; padding: 26px; display: flex; flex-direction: column; gap: 14px; }
 .bars { display: flex; gap: 6px; }
 .bar-i { width: 22px; height: 3px; border-radius: 2px; background: var(--hairline); }
 .bar-i.on { background: var(--accent); }

@@ -492,4 +492,10 @@ const fmt = (s: number): string => `${String(Math.floor(s / 60)).padStart(2, '0'
 .rulelink { font-size: 11px; letter-spacing: 0.1em; color: var(--accent-soft); background: none; border: none; cursor: pointer; text-align: left; padding: 0; margin-top: 2px; }
 .err { color: var(--danger); font-size: 13px; }
 @media (max-width: 1100px) { .body { grid-template-columns: 1fr; } .rail.left { display: none; } .rail.right { border-left: none; border-top: 1px solid var(--hairline); } .transport { grid-template-columns: 1fr; } .learn { border-left: none; border-top: 1px solid var(--hairline); } }
+@media (max-width: 720px) {
+  .sim { grid-template-rows: auto minmax(0, 1fr) auto; }
+  .scorebar { flex-wrap: wrap; row-gap: 6px; padding: 8px 10px; padding-top: max(8px, env(safe-area-inset-top)); min-height: 0; }
+  .score { font-size: 24px; }
+  .pitchwrap { min-height: 44dvh; }
+}
 </style>
