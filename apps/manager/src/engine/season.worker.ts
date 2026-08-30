@@ -34,14 +34,18 @@ self.onmessage = (ev): void => {
     const played: number[] = [];
     const total = Math.max(1, w.season.days - w.season.day);
     let days = 0;
-    const runDay = (): void => {
-      const fx = advanceDay(w, { runner: engineRunner, keepReplayFor: m.userClub });
+    const runDay = (perFixture: boolean): void => {
+      const fx = advanceDay(w, {
+        runner: engineRunner, keepReplayFor: m.userClub,
+        // one sim day takes real seconds: for a single-day sim, report every fixture as it starts
+        ...(perFixture ? { onFixture: (i: number, n: number, f: { home: string; away: string }) => { self.postMessage({ type: 'progress', id: m.id, done: i, total: n, label: `${w.clubs[f.home]?.short ?? f.home} — ${w.clubs[f.away]?.short ?? f.away}` }); } } : {}),
+      });
       days++;
-      self.postMessage({ type: 'progress', id: m.id, done: days, total, label: `day ${w.season.day}/${w.season.days}` });
+      if (!perFixture) self.postMessage({ type: 'progress', id: m.id, done: days, total, label: `day ${w.season.day}/${w.season.days}` });
       for (const f of fx) { played.push(f.id); if (m.userClub && (f.home === m.userClub || f.away === m.userClub) && f.replay) userLog = decodeReplay(f.replay); }
     };
-    if (m.type === 'day') { let guard = 0; do { runDay(); guard++; } while (!w.season.finished && played.length === 0 && guard < 10); }
-    else { let guard = 0; while (!w.season.finished && guard++ < 400) runDay(); }
+    if (m.type === 'day') { let guard = 0; do { runDay(true); guard++; } while (!w.season.finished && played.length === 0 && guard < 10); }
+    else { let guard = 0; while (!w.season.finished && guard++ < 400) runDay(false); }
     self.postMessage({ type: 'world', id: m.id, world: w, userLog, playedFixtureIds: played });
   } catch (e) {
     self.postMessage({ type: 'error', id: m.id, message: e instanceof Error ? e.message : String(e) });

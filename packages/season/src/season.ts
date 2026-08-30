@@ -19,6 +19,9 @@ export interface AdvanceOptions {
   keepReplayFor?: ClubId | null;
   /** Fixtures the caller wants to run itself (e.g. the user's, in a worker with frames): skipped here. */
   skip?: (f: Fixture) => boolean;
+  /** Called before each fixture is played — a match day takes real seconds, and a user staring at a
+   *  dead button assumes the game hung. `i` is 0-based, `n` the day's fixture count. */
+  onFixture?: (i: number, n: number, f: Fixture) => void;
 }
 
 /** Fixtures scheduled on the current day. */
@@ -36,13 +39,14 @@ export function advanceDay(w: World, opts: AdvanceOptions): Fixture[] {
   const s = w.season;
   if (s.finished) return [];
   const played: Fixture[] = [];
-  for (const f of fixturesToday(w)) {
-    if (opts.skip?.(f)) continue;
+  const today = fixturesToday(w).filter((f) => !opts.skip?.(f));
+  today.forEach((f, i) => {
+    opts.onFixture?.(i, today.length, f);
     const keep = !!opts.keepReplayFor && (f.home === opts.keepReplayFor || f.away === opts.keepReplayFor);
     playFixture(w, f, opts.runner, keep);
     settleKnockout(w, f);
     played.push(f);
-  }
+  });
   // injuries heal by a day
   for (const p of Object.values(w.persons)) if (p.injuredDays > 0) p.injuredDays--;
   // winter break: a real interval — recovery (extra healing) and a training block (small physical uptick)

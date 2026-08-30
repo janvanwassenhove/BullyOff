@@ -103,7 +103,29 @@ export function fixtureSetup(w: World, f: Fixture, keepFrames = true): { setup: 
   const r = toSetup(w, f, keepFrames);
   const home = w.clubs[f.home], away = w.clubs[f.away];
   if (!home || !away) throw new Error(`fixture ${f.id}: unknown club`);
-  return { ...r, tactics: [tacticsFor(home, r.idMap), tacticsFor(away, r.idMap)] };
+  return { ...r, tactics: [gamePlan(w, home, away, tacticsFor(home, r.idMap)), gamePlan(w, away, home, tacticsFor(away, r.idMap))] };
+}
+
+/**
+ * An AI club reads the fixture the way any coach does: clearly outgunned, you sit deeper and defend
+ * (nobody full-presses the champions with the twelfth-placed squad — that is how 0-13s happen);
+ * clearly stronger, you push up and go for it. The USER's club is never touched — the tactics
+ * screen and the scouting report exist precisely so the coach makes this call himself.
+ */
+function gamePlan(w: World, club: Club, opp: Club, t: TeamTactics): TeamTactics {
+  if (club.id === w.userClub) return t;
+  const gap = opp.level - club.level;
+  // truly outgunned: the full bunker — zonal block, low line, keep your shape and take the 0-2
+  if (gap >= 2.2) {
+    return { ...t, mentality: 'defensive', press: 'zone', pressHeight: 0.05, defensiveLine: Math.max(0.05, t.defensiveLine - 0.25) };
+  }
+  if (gap >= 1.2) {
+    return { ...t, mentality: 'defensive', pressHeight: Math.max(0.05, t.pressHeight - 0.25), defensiveLine: Math.max(0.05, t.defensiveLine - 0.15), press: t.press === 'full' ? 'half' : t.press };
+  }
+  if (gap <= -1.2) {
+    return { ...t, mentality: 'attacking', pressHeight: Math.min(1, t.pressHeight + 0.15) };
+  }
+  return t;
 }
 
 /**
@@ -162,7 +184,7 @@ export const engineRunnerWith = (laws: Laws): MatchRunner => (w, f, opts) => {
   setup.laws = laws;
   const home = w.clubs[f.home], away = w.clubs[f.away];
   if (!home || !away) throw new Error(`fixture ${f.id}: unknown club`);
-  const tactics: [TeamTactics, TeamTactics] = [tacticsFor(home, idMap), tacticsFor(away, idMap)];
+  const tactics: [TeamTactics, TeamTactics] = [gamePlan(w, home, away, tacticsFor(home, idMap)), gamePlan(w, away, home, tacticsFor(away, idMap))];
   const log = simulateMatch(setup, f.seed, aiController(f.seed, squadsFromSetup(setup.players, tactics), { profile: getProfile(w.profile), surface: setup.surface }));
   const stats = matchStats(log);
   return { home: stats.goals[0], away: stats.goals[1], stats, log, idMap };

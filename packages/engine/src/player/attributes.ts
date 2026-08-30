@@ -120,8 +120,12 @@ export function gkSaveChance(a: Attributes, shotSpeed: Scalar, distanceFromBody:
   const reflex = norm(a.goalkeeper.reflexes);
   const speedPenalty = clamp((shotSpeed - 12) / 45, 0, 0.5);
   const reachPenalty = clamp(distanceFromBody / gkReach(a), 0, 1) * 0.45;
-  // Calibrated so an average keeper stops ≈ 50–55 % of on-target shots incl. touches (Phase 4: goals ≈ 22 % of all shots).
-  return clamp(0.44 + 0.75 * reflex - speedPenalty - reachPenalty, 0.05, 0.95);
+  // Slope 0.35, not 0.75: the profile's gkSaveScale multiplies this whole value, so a steep reflex
+  // slope became TWICE as steep after scaling — a reflex-8 keeper saved 41 % where a reflex-14 saved
+  // 88 %, worth ±5 goals a match, and weak clubs lost 0-10 to sides barely better than them. The
+  // keeper matters (±0.2 across the whole range after scaling), but he is one player, not five.
+  // Base chosen so the average keeper (norm 0.5) keeps the calibrated save rate.
+  return clamp(0.64 + 0.35 * reflex - speedPenalty - reachPenalty, 0.05, 0.95);
 }
 /** A penalty stroke gives the keeper ~0.25 s from 6.4 m: reflex-dominated, low. Elite conversion ≈ 75 %. */
 export function gkStrokeSaveChance(a: Attributes): Scalar {

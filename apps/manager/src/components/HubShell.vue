@@ -151,10 +151,11 @@ function pickLocale(ev: Event): void { setLocale((ev.target as HTMLSelectElement
       <button
         v-if="!finished"
         class="btn btn-secondary"
+        :class="{ simming: season.busy && season.progress?.op === 'day' }"
         :disabled="season.busy"
         @click="simDay"
       >
-        {{ t('hub.simDay') }}
+        {{ season.busy && season.progress?.op === 'day' ? `${season.progress.label} · ${season.progress.done + 1}/${season.progress.total}` : t('hub.simDay') }}
       </button>
       <button
         v-if="!finished"
@@ -162,7 +163,7 @@ function pickLocale(ev: Event): void { setLocale((ev.target as HTMLSelectElement
         :disabled="season.busy"
         @click="simToEnd"
       >
-        {{ season.busy && season.progress ? `${season.progress.label} · ${Math.round(100 * season.progress.done / season.progress.total)} %` : t('hub.simToEnd') }}
+        {{ season.busy && season.progress?.op === 'end' ? `${season.progress.label} · ${Math.round(100 * season.progress.done / season.progress.total)} %` : t('hub.simToEnd') }}
       </button>
       <button
         v-if="finished"
@@ -313,4 +314,6 @@ function pickLocale(ev: Event): void { setLocale((ev.target as HTMLSelectElement
   .clubbar .btn { flex: 1 1 auto; }
   .nextcol { order: 5; flex-basis: 100%; }
 }
+.simming { animation: simpulse 1.1s ease-in-out infinite; }
+@keyframes simpulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
 </style>

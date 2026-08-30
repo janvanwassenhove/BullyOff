@@ -59,7 +59,7 @@ interface SeasonState {
   slots: string[];
   message: string;
   /** Progress of the running worker request or null. */
-  progress: { done: number; total: number; label: string } | null;
+  progress: { done: number; total: number; label: string; op?: 'day' | 'end' } | null;
   /** Surface the user prefers for the career (home matches use the home club's pitch; this is the preview/new-career choice). */
   turf: 'watered' | 'dry' | 'wet';
 }
@@ -284,6 +284,7 @@ export const useSeasonStore = defineStore('season', {
     async playDay(): Promise<void> {
       if (!this.world) return;
       this.busy = true; this.error = '';
+      onProgress = (p) => { this.progress = { ...p, op: 'day' }; };
       const posBefore = this.userPosition;
       try {
         const r = await ask({ type: 'day', world: toRaw(this.world), userClub: this.world.userClub });
@@ -292,12 +293,12 @@ export const useSeasonStore = defineStore('season', {
           if (r.userLog) { this.lastUserLog = markRaw(r.userLog); this.lastUserColours = this.coloursFor(r.playedFixtureIds); this.recordLastMatch(r.userLog, r.playedFixtureIds, [], posBefore); }
           this.lastPlayed = r.playedFixtureIds; this.message = tr('season.msgDayPlayed', { day: r.world.season.day, n: r.playedFixtureIds.length });
         }
-      } catch (e) { this.error = e instanceof Error ? e.message : String(e); } finally { this.busy = false; }
+      } catch (e) { this.error = e instanceof Error ? e.message : String(e); } finally { this.busy = false; this.progress = null; onProgress = null; }
     },
     async playToEnd(): Promise<void> {
       if (!this.world) return;
       this.busy = true; this.error = '';
-      onProgress = (p) => { this.progress = p; };
+      onProgress = (p) => { this.progress = { ...p, op: 'end' }; };
       try {
         const r = await ask({ type: 'toEnd', world: toRaw(this.world), userClub: this.world.userClub });
         if (r.type === 'world') { this.world = r.world; if (r.userLog) { this.lastUserLog = markRaw(r.userLog); this.lastUserColours = this.coloursFor(r.playedFixtureIds); } this.message = tr('season.msgSeasonFinished', { year: r.world.year }); }

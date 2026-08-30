@@ -1,6 +1,10 @@
 /**
  * Golden hash of the canonical sandbox fixture (seed 42, mens/watered, 600 ticks, sandbox mode).
  * History: 0.1.0 → 60abc0490dcdf885 · 0.2.0 → 4bd0c4840e5778f0 (body contact updates lastTouch)
+ *          · 0.8.2 → 14b39f56c9724b59 (keeper reflex slope halved with the calibrated mean kept:
+ *            gkSaveScale multiplies the whole save chance, so the old 0.75 slope made one keeper
+ *            worth ±5 goals a match and the weakest club lost 0-10 — version-only change to the
+ *            sandbox log; every AI scenario changes.)
  *          · 0.8.1 → 645cdbc6a3a1d81f (the review pass: after a goal both teams retake their kickoff
  *            shape in their own half before the centre pass (setup 12 s / 6 s fast), and the halfway
  *            five at a defending PC join in after the injection — recoverers to the top of the D,
@@ -20,4 +24,4 @@
  * the log, bump ENGINE_VERSION and update this value — never silently.
  */
 export const SANDBOX_GOLDEN = { seed: 42, ticks: 600, profile: 'mens', surface: 'watered' } as const;
-export const SANDBOX_GOLDEN_HASH = '645cdbc6a3a1d81f';
+export const SANDBOX_GOLDEN_HASH = '14b39f56c9724b59';

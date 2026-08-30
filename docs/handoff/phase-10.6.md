@@ -34,3 +34,23 @@ The 0–13 screenshot showed the user club with **zero** of everything (0 shots,
 ## Files
 
 Engine: `ai/brain.ts` (centre-pass shape, PC halfway five, shoot-base note), `ai/tactics.ts` (slotToPitch reuse), `sim/golden.ts`, `sim/scenarios.golden.json`, `constants.ts` (0.8.1). Rules: `laws.ts` (centre-pass setup 12 s / 6 s fast). Manager: `lib/academy.ts` + `academy.test.ts`, `lib/ruleFigures.ts` + `ruleFigures.test.ts`, `ui/RuleFigure.vue` (shaped cards), `ReportView.vue` (goals list + clip player), `i18n/{nl,en,fr}.json`. Docs: this file, `KICKOFF.md`.
+
+## 6 · Same-day follow-up: the sim-day silence and the club that "keeps losing"
+
+- **Sim-day progress**: `advanceDay` gained an `onFixture` callback; the season worker reports each
+  fixture as it starts and the SIM SPEELDAG button shows it live ("ESP — HAU · 1/12"), pulsing, while
+  SIM TOT EINDE keeps its day-percentage (progress is tagged per operation so the two buttons never
+  show each other's numbers).
+- **The blowouts had a named cause**: the profile's `gkSaveScale` multiplies the whole save chance,
+  so the 0.75 reflex slope doubled after scaling — one keeper was worth ±5 goals a match (reflex-8
+  saved 41 %, reflex-14 saved 88 %) and the weakest club lost 0-10 to sides barely better. Slope
+  halved to 0.35 with the calibrated mean kept (engine **0.8.2**, golden `14b39f56c9724b59`);
+  measured on seeded worlds, 10-0 became 5-1 and 0-8 became 1-6. Both calibrations still pass all
+  measured rows (men 14/15, women 12/15).
+- **AI clubs now read the fixture** (`gamePlan` in season/matchday.ts): clearly outgunned → defensive,
+  deeper, full press downgraded to half; a gap ≥ 2.2 levels → the full zone bunker; clearly stronger
+  → attacking, higher press. The USER's club is never touched — the tactics screen and the scouting
+  report exist so the coach makes that call.
+- What remains true: the league's weakest club still loses most weeks by 2-4 — the worst side in the
+  real Belgian D1 concedes ~4 a match too, and the club-select screen sells exactly that difficulty.
+  The unreproducible 0-13-with-zero-stats report still needs Jan's exported replay.
