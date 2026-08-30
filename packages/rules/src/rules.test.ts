@@ -427,13 +427,13 @@ describe('penalty stroke', () => {
 });
 
 describe('cards and suspensions', () => {
-  it('persistent fouling: 3rd personal foul → green (2 min), 5th → yellow; the player is off, and comes back when the playing clock has run', () => {
+  it('persistent fouling: 5th personal foul → green (2 min), 7th → yellow; the player is off, and comes back when the playing clock has run', () => {
     const h = live();
     const foulOnce = (): void => {
       h.step({ struck: [struck(6, 0, { x: 2, y: 2 }, { face: 'round' })] }); // back-stick by player 6
       h.takeRestart(20, 1);
     };
-    foulOnce(); foulOnce();
+    foulOnce(); foulOnce(); foulOnce(); foulOnce();
     expect(h.has('card')).toBe(false);
     foulOnce();
     expect(h.last('card')?.colour).toBe('green');
@@ -450,14 +450,14 @@ describe('cards and suspensions', () => {
   });
   it('negative: suspension time does not run while the clock is stopped (e.g. a PC being set up); it does run through an ordinary free hit', () => {
     const h = live();
-    for (let i = 0; i < 3; i++) { h.step({ struck: [struck(6, 0, { x: 2, y: 2 }, { face: 'round' })] }); h.takeRestart(20, 1); }
+    for (let i = 0; i < 5; i++) { h.step({ struck: [struck(6, 0, { x: 2, y: 2 }, { face: 'round' })] }); h.takeRestart(20, 1); }
     expect(h.players.find((p) => p.id === 6)?.onPitch).toBe(false);
     h.step({ bodyContacts: [{ playerId: 3, team: 0, at: { x: -40, y: 0, z: 0 }, ballSpeed: 5, ballHeight: 0 }] }); // PC → clock stopped
     expect(h.s.clockRunning).toBe(false);
     h.run(TEST_LAWS.cards.green + 5); // PC never taken: playing time does not advance
     expect(h.players.find((p) => p.id === 6)?.onPitch).toBe(false);
     const g = live();
-    for (let i = 0; i < 3; i++) { g.step({ struck: [struck(6, 0, { x: 2, y: 2 }, { face: 'round' })] }); g.takeRestart(20, 1); }
+    for (let i = 0; i < 5; i++) { g.step({ struck: [struck(6, 0, { x: 2, y: 2 }, { face: 'round' })] }); g.takeRestart(20, 1); }
     g.step({ sidelineCrossings: [{ side: 1, x: 5 }] }); // free hit pending: FIH — time runs
     g.run(TEST_LAWS.cards.green + 5);
     expect(g.players.find((p) => p.id === 6)?.onPitch).toBe(true);

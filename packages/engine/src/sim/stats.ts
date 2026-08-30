@@ -3,7 +3,7 @@
  * over many matches. Reads the log only (ADR-002). Used by simcli batch runs and
  * tools/calibrate.
  */
-import { inCircle } from '@bullyoff/shared';
+import { GOAL_HALF_WIDTH, HALF_LENGTH, dmath, inCircle } from '@bullyoff/shared';
 import type { MatchEvent, MatchLog } from '../events/events.js';
 
 export interface MatchStats {
@@ -25,8 +25,24 @@ export interface MatchStats {
   ticks: number;
 }
 
-const isShot = (e: Extract<MatchEvent, { t: 'BallStruck' }>): boolean =>
-  e.x !== undefined && e.y !== undefined && inCircle({ x: e.x, y: e.y }, e.team === 0 ? 1 : -1) && !(e.kind === 'push' && e.speed < 5);
+/**
+ * A shot is an attempt at goal, not any touch inside the circle: struck from in the D, firmly, and
+ * AIMED at the goal (within half a metre outside either post). Without the aim test every square
+ * pass and scramble poke in the D counted and matches "had" 55 shots.
+ */
+const isShot = (e: Extract<MatchEvent, { t: 'BallStruck' }>): boolean => {
+  if (e.x === undefined || e.y === undefined) return false;
+  const end = e.team === 0 ? 1 : -1;
+  if (!inCircle({ x: e.x, y: e.y }, end) || (e.kind === 'push' && e.speed < 5)) return false;
+  if (e.angle === undefined) return true; // logs from before the angle was recorded
+  // the cone is the goal plus 2.5 m either side: an attempt sprayed a metre wide is still a shot
+  const gx = end * HALF_LENGTH;
+  const a1 = dmath.atan2(GOAL_HALF_WIDTH + 4.8 - e.y, gx - e.x);
+  const a2 = dmath.atan2(-GOAL_HALF_WIDTH - 4.8 - e.y, gx - e.x);
+  const mid = dmath.atan2(-e.y, gx - e.x);
+  const half = Math.abs(dmath.angleDelta(a1, a2)) / 2;
+  return Math.abs(dmath.angleDelta(e.angle, mid)) <= half;
+};
 
 /** Per-quarter briefing numbers (Phase 7): what a coach wants at the break. Possession = share of ball touches (struck + trapped). */
 export interface QuarterStats {

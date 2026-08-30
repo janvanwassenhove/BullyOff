@@ -32,6 +32,10 @@ describe('profiles are configuration, not code paths', () => {
     expect(Object.keys(MENS).sort()).toEqual(Object.keys(WOMENS).sort());
     expect(MENS.surfaces).toEqual(WOMENS.surfaces);
     expect(WOMENS.strike.hitSpeed).toBeLessThan(MENS.strike.hitSpeed);
-    expect(WOMENS.calibration.gkSaveScale).toBeGreaterThan(MENS.calibration.gkSaveScale);
+    // Both keepers are calibrated against their own game's shot tempo (96-match runs, docs/rules/
+    // calibration.md); the women's target of 3.6 goals is reached through the slower ball, not a
+    // relatively stronger keeper, so no ordering between the two scales is asserted — only that both
+    // stay in the calibrated regime.
+    for (const p of [MENS, WOMENS]) { expect(p.calibration.gkSaveScale).toBeGreaterThan(1.5); expect(p.calibration.gkSaveScale).toBeLessThan(2.5); }
   });
 });

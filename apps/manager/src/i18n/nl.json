@@ -773,11 +773,11 @@
     "sub": "De FIH-regels zoals ze op het veld gelden — en zoals het spel ze fluit.",
     "feet": {
       "title": "Voet in de cirkel",
-      "body": "Een bal die de voet of het lichaam van een verdediger raakt in de cirkel is een strafcorner; buiten de cirkel een vrije slag. De aanvaller die op de voeten speelt blijft binnen de regels — de verdediger moet het lichaam uit de lijn houden."
+      "body": "Een bal tegen de voet of het lichaam van een verdediger in de cirkel is vrijwel altijd een strafcorner — in de cirkel is het voordeel er bijna per definitie; buiten de cirkel fluit de scheidsrechter alleen als er voordeel uit volgt. De aanvaller die op de voeten speelt blijft binnen de regels — de verdediger moet het lichaam uit de lijn houden."
     },
     "dangerous": {
       "title": "Gevaarlijk spel",
-      "body": "Een bal die binnen vijf meter boven kniehoogte naar een tegenstander wordt opgespeeld is gevaarlijk spel: vrije slag tegen de slaande speler, en een strafcorner of strafbal als het in de cirkel gebeurt."
+      "body": "Een bal die binnen vijf meter boven kniehoogte naar een tegenstander wordt opgespeeld is gevaarlijk spel: vrije slag tegen de slaande speler — en doet een verdediger het in de eigen cirkel, dan wordt het een strafcorner of een strafbal."
     },
     "backStick": {
       "title": "Backstick",
@@ -801,7 +801,7 @@
     },
     "pcBreach": {
       "title": "Te vroeg uitlopen bij een strafcorner",
-      "body": "Verdedigers achter de achterlijn en aanvallers buiten de cirkel wachten op de aangifte. Een verdediger die te vroeg loopt wordt naar de middenlijn gestuurd; een aanvaller geeft een vrije slag weg."
+      "body": "Verdedigers achter de achterlijn en aanvallers buiten de cirkel wachten op de aangifte. Wie te vroeg loopt — verdediger óf aanvaller — wordt naar de middenlijn gestuurd en de corner wordt opnieuw genomen; een weggestuurde verdediger mag niet vervangen worden, dus zijn ploeg verdedigt met één man minder."
     },
     "pcFirstHit": {
       "title": "De eerste slag bij een strafcorner",
@@ -817,7 +817,7 @@
     },
     "pc": {
       "title": "Strafcorner",
-      "body": "Aangegeven vanaf de achterlijn, tien meter van de paal; vijf verdedigers plus de keeper achter de lijn, de rest voorbij de middenlijn; de bal moet de cirkel verlaten vóór een schot, tenzij gestopt aan de kop. Gegeven voor een fout van een verdediger in de cirkel of een opzettelijke in de 23."
+      "body": "Aangegeven vanaf de achterlijn, tien meter van de paal; maximaal vijf verdedigers — de keeper inbegrepen — achter de lijn, de rest voorbij de middenlijn; de bal moet de cirkel verlaten vóór een schot, tenzij gestopt aan de kop. Gegeven voor een fout van een verdediger in de cirkel of een opzettelijke in de 23."
     },
     "cards": {
       "title": "Kaarten",
@@ -825,7 +825,7 @@
     },
     "subs": {
       "title": "Doorlopende wissels",
-      "body": "Onbeperkt wisselen op elk moment via de wisselzone — behalve tijdens een strafcorner, wanneer alleen de keeper vervangen mag worden."
+      "body": "Onbeperkt wisselen op elk moment via de wisselzone — behalve tijdens een strafcorner, wanneer alleen een geblesseerde of bestrafte keeper vervangen mag worden."
     },
     "aerial": {
       "title": "De aerial",

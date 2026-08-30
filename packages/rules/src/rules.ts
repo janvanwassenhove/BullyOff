@@ -179,8 +179,10 @@ export function stepRules(s: RulesState, laws: Laws, view: RulesView, sig: TickS
     if (bc.ballHeight > laws.dangerHeight + 0.3 && bc.ballSpeed > 8) continue;
     // Feet/body. Advantage is an umpiring judgement; PROVISIONAL: any body contact by an outfield player is an offence.
     // If a defender's body stops a ball that was going into the goal → penalty stroke (FIH 12.4: intentional/prevents probable goal — PROVISIONAL "would have crossed the goal line inside the goal" heuristic).
-    // Stroke only for a genuine goal-bound shot stopped by a body close to the line (PROVISIONAL: within 5 m, > 8 m/s); other body stops in the D are PCs.
-    const stroke = inOwnCircle && !p.isGoalkeeper && ballWasGoalBound(sig, bc.at, ownEnd) && bc.ballSpeed > 8 && Math.abs(HALF_LENGTH - Math.abs(bc.at.x)) < 5;
+    // Stroke for a genuine goal-bound shot stopped by a body in the circle (PROVISIONAL: within 9 m of the
+    // line, > 8 m/s — FIH 12.4 does not limit the distance, only "prevents the probable scoring of a goal";
+    // beyond ~9 m the keeper would usually still get there, so those body stops stay PCs).
+    const stroke = inOwnCircle && !p.isGoalkeeper && ballWasGoalBound(sig, bc.at, ownEnd) && bc.ballSpeed > 8 && Math.abs(HALF_LENGTH - Math.abs(bc.at.x)) < 9;
     foul('feet', bc.playerId, p.team, { x: bc.at.x, y: bc.at.y }, stroke ? { stroke, card: 'yellow' } : { stroke });
   }
 

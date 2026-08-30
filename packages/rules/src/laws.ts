@@ -84,8 +84,11 @@ export const FIH_OUTDOOR: Laws = {
   dangerHeight: 0.5,
   dangerRange: 5,
   cards: { green: 2 * MIN, yellow: 5 * MIN, yellowSerious: 10 * MIN },
-  persistentFoulGreenAt: 3,
-  persistentFoulYellowAt: 5,
+  // Umpiring heuristic, PROVISIONAL: at 3/5 the sim showed 7.8 greens a match (real club hockey sees
+  // 2–4) — half of every match was played a man down somewhere. A card is for the player who keeps
+  // fouling, not the third accidental foot.
+  persistentFoulGreenAt: 5,
+  persistentFoulYellowAt: 7,
   noSubsDuringPC: true,
   pcTimeoutTicks: 40 * SEC,
   restartTimeoutTicks: 20 * SEC,

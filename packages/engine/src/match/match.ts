@@ -8,7 +8,7 @@
  * `gateCommand`, runs physics, hands the tick's signals to `stepRules`, and
  * executes the rulings (dead ball, placements, suspensions, score, clock).
  */
-import { HALF_WIDTH, LINE_23_X, Rng, dmath, inCircle, type Scalar, type Vec2 } from '@bullyoff/shared';
+import { HALF_LENGTH, HALF_WIDTH, LINE_23_X, Rng, clamp, dmath, inCircle, type Scalar, type Vec2 } from '@bullyoff/shared';
 import {
   FIH_OUTDOOR, createRulesState, forceAward, gateCommand, stepRules,
   type Laws, type PlayerView, type Ruling, type RulesState, type RulesView, type TickSignals,
@@ -66,6 +66,12 @@ export interface MatchState {
   ball: BallState;
   /** Team of the last toucher (rules need it; the ball only knows the id). */
   lastTouchTeam: TeamId | null;
+  /**
+   * Team that last *struck* the ball (a trap or body clip does not change it). Distinguishes the
+   * receiver of a pass — even one clipped en route by a defender's stick — from the defender lunging
+   * into the lane: only the lunge gets the interception penalty.
+   */
+  lastStrikeTeam: TeamId | null;
   players: PlayerState[];        // stable order == header.playerIds
   playerIndex: Map<PlayerId, number>;
   goalkeepers: Set<PlayerId>;
@@ -96,7 +102,7 @@ export function createMatch(setup: MatchSetup, seed: number): { state: MatchStat
   const firstCentrePass: TeamId = setup.firstCentrePass ?? (rng.chance(0.5) ? 0 : 1);
   const state: MatchState = {
     seed, profile, surface: setup.surface, laws: setup.laws ?? FIH_OUTDOOR, sandbox: setup.sandbox ?? false, rng,
-    tick: 0, ball, lastTouchTeam: null, players, playerIndex, goalkeepers,
+    tick: 0, ball, lastTouchTeam: null, lastStrikeTeam: null, players, playerIndex, goalkeepers,
     inCircle: [inCircle(ball.pos, -1), inCircle(ball.pos, 1)],
     in23: [-ball.pos.x >= LINE_23_X, ball.pos.x >= LINE_23_X],
     frameEvery: Math.max(0, setup.frameEvery ?? 1),
@@ -199,7 +205,11 @@ export function tick(s: MatchState, commands: readonly Command[]): MatchEvent[] 
         if (!s.sandbox) {
           // Attributes scale speed and add angular error (a 20 sprays ~1.5°, a 1 ~9°; fatigue and composure widen it).
           speed *= strikeSpeedFactor(p.attrs, c.strike);
-          angle = dmath.wrapAngle(angle + s.rng.gaussian(0, strikeErrorSd(p.attrs, c.strike, p.stamina)));
+          // A penalty stroke is a practiced strike off a stationary ball with the game stopped: half
+          // the in-play spray. At full spray ±0.5 m the taker fed the keeper's body ~1 in 5 strokes
+          // and conversion sat at 0.45–0.53 where real strokes convert ~0.75.
+          const spray = strikeErrorSd(p.attrs, c.strike, p.stamina) * (s.rules.psActive ? 0.45 : 1);
+          angle = dmath.wrapAngle(angle + s.rng.gaussian(0, spray));
           if (lift > 0) lift = Math.max(0.005, lift + s.rng.gaussian(0, lift * 0.25));
         }
         p.stickAngle = angle;
@@ -211,9 +221,9 @@ export function tick(s: MatchState, commands: readonly Command[]): MatchEvent[] 
           if (ahead < 0.25) ball.pos = { x: p.pos.x + cx * 0.5, y: p.pos.y + sy * 0.5, z: ball.pos.z };
         }
         launchBall(ball, angle, speed, lift);
-        ball.lastTouch = p.id; ball.inNet = false; s.lastTouchTeam = p.team;
+        ball.lastTouch = p.id; ball.inNet = false; s.lastTouchTeam = p.team; s.lastStrikeTeam = p.team;
         struckBy = p.id;
-        events.push({ t: 'BallStruck', tick: t, playerId: p.id, team: p.team, kind: c.strike, speed, lift, x: ball.pos.x, y: ball.pos.y });
+        events.push({ t: 'BallStruck', tick: t, playerId: p.id, team: p.team, kind: c.strike, speed, lift, x: ball.pos.x, y: ball.pos.y, angle });
         sig.struck.push({ playerId: p.id, team: p.team, kind: c.strike, face: c.face ?? 'flat', speed, lift, at: { x: ball.pos.x, y: ball.pos.y } });
         break;
       }
@@ -224,12 +234,21 @@ export function tick(s: MatchState, commands: readonly Command[]): MatchEvent[] 
         if (t < p.trapCooldownUntil) break; // beaten a moment ago: no second bite at the same ball
         if (!ballInReach(s, p, isGk ? gkReach(p.attrs) : undefined, isGk ? 2.0 : undefined)) break;
         const incoming = Math.sqrt(ball.vel.x ** 2 + ball.vel.y ** 2 + ball.vel.z ** 2);
+        // Cutting out an opponent's firm pass is not receiving: the ball crosses you at pace and you
+        // get one stick-length lunge at it. Measured before this penalty existed: 146 passes a match
+        // were cleanly cut (real hockey has perhaps 20–30 interceptions), possession churned every
+        // 2–3 touches and attacks never reached the circle. Receiving your own team's pass is untouched.
+        // the profile's tempo scale: speed thresholds tuned on the men's game (push 14) apply to the
+        // women's game at its own ball speed, or every duel favours the defence (see trapSuccess)
+        const speedRef = profile.strike.pushSpeed / 14;
+        const intercepting = !isGk && s.lastStrikeTeam !== null && s.lastStrikeTeam !== p.team && incoming > 6 * speedRef;
         let clean = true;
         if (!s.sandbox) {
           const dxb = ball.pos.x - p.pos.x, dyb = ball.pos.y - p.pos.y;
-          const pClean = isGk
+          let pClean = isGk
             ? (s.rules.psActive && s.rules.restart === null ? gkStrokeSaveChance(p.attrs) : Math.min(0.97, profile.calibration.gkSaveScale * gkSaveChance(p.attrs, incoming, Math.sqrt(dxb * dxb + dyb * dyb))))
-            : trapSuccess(p.attrs, incoming, ball.pos.z);
+            : trapSuccess(p.attrs, incoming, ball.pos.z, speedRef);
+          if (intercepting) pClean *= 0.45;
           clean = s.rng.chance(pClean);
         }
         if (clean) {
@@ -243,6 +262,15 @@ export function tick(s: MatchState, commands: readonly Command[]): MatchEvent[] 
           const a = a0 + s.rng.gaussian(0, 0.12);
           const vh = Math.sqrt(ball.vel.x ** 2 + ball.vel.y ** 2) * s.rng.range(0.7, 0.95);
           ball.vel = { x: vh * dmath.cos(a), y: vh * dmath.sin(a), z: ball.vel.z * 0.8 };
+        } else if (intercepting) {
+          p.trapCooldownUntil = t + 8;
+          // a failed cut is a clip, not a stop: the pass carries on to where it was going, slightly
+          // deflected and slowed — the receiver usually still gets it (why lanes get played through)
+          const a0 = dmath.atan2(ball.vel.y, ball.vel.x);
+          const a = a0 + s.rng.gaussian(0, 0.22);
+          const v = incoming * s.rng.range(0.55, 0.85);
+          ball.vel = { x: v * dmath.cos(a), y: v * dmath.sin(a), z: 0 };
+          ball.pos = { ...ball.pos, z: 0 }; ball.grounded = true;
         } else {
           p.trapCooldownUntil = t + 6;
           // miscontrol: the ball skids off the stick face and carries on roughly onward (±70°) at reduced speed
@@ -350,7 +378,30 @@ export function tick(s: MatchState, commands: readonly Command[]): MatchEvent[] 
       if (e.t === 'BallCollision') {
         if (e.surface === 'player' && e.playerId !== undefined) {
           const p = playerOf(s, e.playerId);
-          if (p) { sig.bodyContacts.push({ playerId: p.id, team: p.team, at: { x: e.x, y: e.y, z: e.z }, ballSpeed: speedBefore, ballHeight: e.z }); ball.lastTouch = p.id; s.lastTouchTeam = p.team; }
+          if (p) {
+            // A ball at a field player is not automatically a foot: real defenders get the stick to it
+            // first — that is what all the low-stick work is for. Skill-dependent, and it fades with
+            // ball speed (a drag flick at the body from 5 m is exactly the foot the attacker wanted;
+            // measured without this, 49 of 62 fouls a match were feet and every pass through traffic
+            // ended in a whistle). A stick save is a deflection: same physics, no body contact.
+            // no reaction time point-blank: a firm ball from inside ~6 m reaches the body before the
+            // stick does — that is exactly the "win the corner" ball attackers play at a defender's feet
+            const striker = ball.lastTouch === null ? undefined : playerOf(s, ball.lastTouch);
+            const svRef = profile.strike.pushSpeed / 14; // tempo scale, see trapSuccess
+            const pointBlank = striker !== undefined && striker.team !== p.team && speedBefore > 8 * svRef
+              && (striker.pos.x - e.x) ** 2 + (striker.pos.y - e.y) ** 2 < 36;
+            // in his own circle a defender is stretched — lunging, turning, on the line — and the
+            // umpire calls the thinnest contact there anyway (it is where corners come from)
+            const inOwnCircle = inCircle({ x: e.x, y: e.y }, p.team === 0 ? -1 : 1);
+            // and on his own goal line there is no saving it with the stick at all — the last-man
+            // block on a goal-bound ball is the body, and that body is what the stroke is FOR
+            const ownGx = (p.team === 0 ? -1 : 1) * HALF_LENGTH;
+            const onLine = inOwnCircle && (e.x - ownGx) ** 2 + e.y ** 2 < 16;
+            const stickSave = !s.sandbox && !s.goalkeepers.has(p.id)
+              && s.rng.chance(clamp(0.35 + 0.4 * ((p.attrs.technical.trapping - 1) / 19) - (speedBefore - 6 * svRef) / (50 * svRef) - (pointBlank ? 0.28 : 0) - (inOwnCircle ? 0.17 : 0) - (onLine ? 0.2 : 0), 0.05, 0.65));
+            if (!stickSave) sig.bodyContacts.push({ playerId: p.id, team: p.team, at: { x: e.x, y: e.y, z: e.z }, ballSpeed: speedBefore, ballHeight: e.z });
+            ball.lastTouch = p.id; s.lastTouchTeam = p.team;
+          }
         }
       } else if (e.t === 'CircleEntry') sig.circleEntries.push({ end: e.end });
       else if (e.t === 'CircleExit') sig.circleExits.push({ end: e.end });

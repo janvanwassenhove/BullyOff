@@ -773,11 +773,11 @@
     "sub": "Les règles FIH telles qu'elles s'appliquent sur le terrain — et telles que le jeu les siffle.",
     "feet": {
       "title": "Pied dans le cercle",
-      "body": "Une balle qui touche le pied ou le corps d'un défenseur dans le cercle est un penalty corner ; hors du cercle, un coup franc. L'attaquant qui joue sur les pieds reste dans les règles — le défenseur doit garder le corps hors de la ligne."
+      "body": "Une balle qui touche le pied ou le corps d'un défenseur dans le cercle est presque toujours un penalty corner — dans le cercle, l'avantage est quasi automatique ; en dehors, l'arbitre ne siffle que si un avantage en découle. L'attaquant qui joue sur les pieds reste dans les règles — le défenseur doit garder le corps hors de la ligne."
     },
     "dangerous": {
       "title": "Jeu dangereux",
-      "body": "Une balle levée vers un adversaire à moins de cinq mètres au-dessus du genou est un jeu dangereux : coup franc contre le frappeur, et penalty corner ou stroke si cela se produit dans le cercle."
+      "body": "Une balle levée vers un adversaire à moins de cinq mètres au-dessus du genou est un jeu dangereux : coup franc contre le frappeur — et si un défenseur le fait dans son propre cercle, cela devient un penalty corner ou un stroke."
     },
     "backStick": {
       "title": "Back-stick",
@@ -801,7 +801,7 @@
     },
     "pcBreach": {
       "title": "Sortie anticipée au penalty corner",
-      "body": "Les défenseurs derrière la ligne de fond et les attaquants hors du cercle attendent l'injection. Un défenseur qui sort trop tôt est envoyé à la ligne médiane ; un attaquant concède un coup franc."
+      "body": "Les défenseurs derrière la ligne de fond et les attaquants hors du cercle attendent l'injection. Qui part trop tôt — défenseur ou attaquant — est envoyé au-delà de la ligne médiane et le corner est rejoué ; un défenseur renvoyé ne peut pas être remplacé, son équipe défend donc à un de moins."
     },
     "pcFirstHit": {
       "title": "La première frappe au penalty corner",
@@ -817,7 +817,7 @@
     },
     "pc": {
       "title": "Penalty corner",
-      "body": "Injecté depuis la ligne de fond à dix mètres du poteau ; cinq défenseurs plus le gardien derrière la ligne, tous les autres au-delà de la ligne médiane ; la balle doit sortir du cercle avant un tir sauf si elle est stoppée en haut. Accordé pour une faute d'un défenseur dans le cercle ou une faute délibérée dans les 23 m."
+      "body": "Injecté depuis la ligne de fond à dix mètres du poteau ; au plus cinq défenseurs — gardien compris — derrière la ligne, tous les autres au-delà de la ligne médiane ; la balle doit sortir du cercle avant un tir sauf si elle est stoppée en haut. Accordé pour une faute d'un défenseur dans le cercle ou une faute délibérée dans les 23 m."
     },
     "cards": {
       "title": "Cartes",
@@ -825,7 +825,7 @@
     },
     "subs": {
       "title": "Changements volants",
-      "body": "Autant de changements que voulu, à tout moment, par la zone des bancs — sauf pendant un penalty corner, où seul le gardien peut être remplacé."
+      "body": "Autant de changements que voulu, à tout moment, par la zone des bancs — sauf pendant un penalty corner, où seul un gardien blessé ou suspendu peut être remplacé."
     },
     "aerial": {
       "title": "L'aérien",

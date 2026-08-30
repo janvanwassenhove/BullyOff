@@ -75,11 +75,20 @@ export function strikeErrorSd(a: Attributes, kind: 'push' | 'slap' | 'hit' | 'fl
 }
 
 /** Probability a trap/stop is clean. Depends on trapping + first touch, incoming speed, ball height. */
-export function trapSuccess(a: Attributes, incomingSpeed: Scalar, ballHeight: Scalar): Scalar {
+/**
+ * `speedRef` scales the speed thresholds to the profile's tempo (men = 1): the women's game is the
+ * same sport played with a slower ball, and judging its passes against men's arrival speeds handed
+ * every duel to the defence — the sim showed 22 circle entries and 4 corners a match where the
+ * women's targets are 34 and 8.
+ */
+export function trapSuccess(a: Attributes, incomingSpeed: Scalar, ballHeight: Scalar, speedRef: Scalar = 1): Scalar {
   const skill = 0.5 * norm(a.technical.trapping) + 0.5 * norm(a.technical.firstTouch);
-  const speedPenalty = clamp((incomingSpeed - 8) / 30, 0, 0.6);   // 8 m/s easy; 38 m/s brutal
+  // Receiving a firm flat pass is routine at club level — the first thing anyone is taught. At the old
+  // base (0.55, penalty from 8 m/s) an average receiver spilled 29 % of ordinary 10 m/s passes and
+  // possession lived 2.5 touches; attacks never built. 9 m/s easy; 39 m/s brutal (men's scale).
+  const speedPenalty = clamp((incomingSpeed - 9 * speedRef) / (30 * speedRef), 0, 0.6);
   const heightPenalty = clamp(ballHeight / 0.6, 0, 0.5);
-  return clamp(0.55 + 0.45 * skill - speedPenalty - heightPenalty, 0.05, 0.99);
+  return clamp(0.62 + 0.38 * skill - speedPenalty - heightPenalty, 0.05, 0.99);
 }
 
 /** Top-speed and acceleration factors vs profile (a 20 = profile max, a 1 = 75 %). */
@@ -95,7 +104,10 @@ export const staminaDrainFactor = (a: Attributes): Scalar => 1.4 - 0.7 * norm(a.
  */
 export function tackleOdds(tackler: Attributes, carrier: Attributes): { win: Scalar; foulTackler: Scalar } {
   const edge = norm(tackler.technical.tackling) - norm(carrier.technical.elimination) + 0.3 * (norm(tackler.physical.strength) - norm(carrier.physical.strength));
-  const win = clamp(0.35 + 0.35 * edge, 0.08, 0.8);
+  // Base 0.28, not 0.35: at 0.35 an even contest turned over every third duel and possession churned
+  // so fast (509 alternations, 23 attacking-23 entries a match) that attacks never reached the circle.
+  // On turf the carrier protects the ball with body and stick; a clean steal is the exception.
+  const win = clamp(0.28 + 0.35 * edge, 0.08, 0.75);
   // hockey reason: aggressive, ill-disciplined tacklers hit sticks; a mistimed lunge on a better carrier is a foul more often
   const foulTackler = clamp(0.06 + 0.12 * norm(tackler.mental.aggression) - 0.08 * norm(tackler.mental.discipline) - 0.06 * edge, 0.02, 0.35);
   return { win, foulTackler };
@@ -113,5 +125,6 @@ export function gkSaveChance(a: Attributes, shotSpeed: Scalar, distanceFromBody:
 }
 /** A penalty stroke gives the keeper ~0.25 s from 6.4 m: reflex-dominated, low. Elite conversion ≈ 75 %. */
 export function gkStrokeSaveChance(a: Attributes): Scalar {
-  return clamp(0.15 + 0.2 * norm(a.goalkeeper.reflexes) + 0.1 * norm(a.goalkeeper.oneOnOne), 0.05, 0.5);
+  // A stroke is the taker's to lose: ~70–75 % go in at every level (the keeper guesses).
+  return clamp(0.1 + 0.16 * norm(a.goalkeeper.reflexes) + 0.08 * norm(a.goalkeeper.oneOnOne), 0.05, 0.4);
 }

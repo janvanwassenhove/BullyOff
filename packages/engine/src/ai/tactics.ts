@@ -224,7 +224,9 @@ export function shapeTarget(slot: Slot, end: 1 | -1, ballXp: Scalar, ballY: Scal
     if (slot.role === 'FWD') {
       // forwards work the top of the D and the posts, not the corner flags; an attacking mentality commits them earlier
       const lead = t.mentality === 'attacking' ? 22 : t.mentality === 'defensive' ? 14 : 18;
-      const target = ballXp > 55 ? 76 : clamp(ballXp + lead, 45, 76);
+      // 78, not 76: the top of the D is 76.8, and a forward "at the top" is a forward OUTSIDE the
+      // circle — the pocket he must occupy to receive the entry ball is a stride inside it
+      const target = ballXp > 55 ? 78 : clamp(ballXp + lead, 45, 78);
       xp = Math.max(xp, target);
       y = clamp(slot.y * 0.75, -13, 13);
     }

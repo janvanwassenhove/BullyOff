@@ -107,7 +107,7 @@ export const MENS: Profile = {
     pushSpeed: 14, slapSpeed: 24, hitSpeed: 36.1, flickSpeed: 33, flickLiftAngle: 0.20,
     hitLiftAngle: 0.02, aerialSpeed: 22, aerialLiftAngle: 0.70, trapRetain: 0.05,
   },
-  calibration: { gkSaveScale: 1.6 },
+  calibration: { gkSaveScale: 2.05 },
 };
 
 export const WOMENS: Profile = {
@@ -115,14 +115,14 @@ export const WOMENS: Profile = {
   ball: BALL,
   surfaces: SURFACES,
   player: {
-    radius: 0.47, height: 1.72, maxSpeed: 7.8, accel: 4.2, decel: 6.5, turnRate: 6.2, reach: 1.5,
+    radius: 0.47, height: 1.72, maxSpeed: 8.0, accel: 4.35, decel: 6.5, turnRate: 6.2, reach: 1.5,
     staminaDrainAtMax: 0.006, staminaRecoverIdle: 0.004,
   },
   strike: {
     pushSpeed: 12.5, slapSpeed: 21, hitSpeed: 30.5, flickSpeed: 26, flickLiftAngle: 0.20,
     hitLiftAngle: 0.02, aerialSpeed: 19, aerialLiftAngle: 0.70, trapRetain: 0.05,
   },
-  calibration: { gkSaveScale: 1.7 },
+  calibration: { gkSaveScale: 1.88 },
 };
 
 export const PROFILES: Record<ProfileId, Profile> = { mens: MENS, womens: WOMENS };

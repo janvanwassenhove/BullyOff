@@ -57,5 +57,9 @@ describe('tempo of play (watered turf, men)', () => {
   it('the ball itself is quick: live-ball mean speed ≥ 5.5 m/s', () => { expect(avg('ballLive')).toBeGreaterThanOrEqual(5.5); });
   // Calibration guard (docs/rules/calibration.md, men 4.9–5.9 goals per match over 96 matches; four matches are noisy, so the band is wide):
   // firmer passes must not turn the game into a shooting gallery or a stalemate.
-  it('goals, shots and penalty corners stay in band', () => { expect(avg('goals')).toBeGreaterThanOrEqual(2.5); expect(avg('goals')).toBeLessThanOrEqual(8); expect(avg('shots')).toBeGreaterThanOrEqual(18); expect(avg('pcs')).toBeGreaterThanOrEqual(2); });
+  it('goals, shots and penalty corners stay in band', () => { expect(avg('goals')).toBeGreaterThanOrEqual(2.5); expect(avg('goals')).toBeLessThanOrEqual(8); expect(avg('shots')).toBeGreaterThanOrEqual(18); expect(avg('pcs')).toBeGreaterThanOrEqual(3); });
+  // The Phase 10.5 calibration (docs/rules/calibration.md, 96-match runs): attacks actually reach the
+  // circle now. Floor well under the measured ~26 because four matches are noisy — but a regression to
+  // the pre-calibration ~13 must fail here, not in a season review.
+  it('attacks reach the circle: ≥ 16 entries per match on average', () => { expect(avg('entries')).toBeGreaterThanOrEqual(16); });
 });

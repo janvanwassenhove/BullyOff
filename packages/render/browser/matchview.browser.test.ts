@@ -141,7 +141,9 @@ it('loop: a looping view rewinds at the last frame and keeps playing; a second v
   const canvas2 = document.createElement('canvas'); host.appendChild(canvas2);
   const view2 = await createMatchView(canvas2, log, { mode: 'tactical', camera: 'half', loop: true });
   view2.setSpeed(8); view2.play();
-  await new Promise((r) => setTimeout(r, 400));
+  // Poll rather than one fixed sleep: headless Firefox/WebKit need longer to stand the second GL
+  // context up since the 0.8.0 logs got busier (more corners in the first seconds of a clip).
+  for (let i = 0; i < 25 && view2.tick === 0; i++) await new Promise((r) => setTimeout(r, 100));
   expect(view2.tick).toBeGreaterThan(0);
   view2.destroy(); host.remove();
 });

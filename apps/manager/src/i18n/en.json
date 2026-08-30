@@ -773,11 +773,11 @@
     "sub": "The FIH rules as they apply on the pitch — and as the game whistles them.",
     "feet": {
       "title": "Feet in the circle",
-      "body": "A ball that hits a defender's foot or body inside the circle is a penalty corner; outside the circle it is a free hit. The attacker who plays the ball at feet is within the rules — the defender must keep the body out of the line."
+      "body": "A ball that hits a defender's foot or body inside the circle is almost always a penalty corner — in the circle the advantage is close to automatic; outside it, the umpire only whistles when an advantage is gained. The attacker who plays the ball at feet is within the rules — the defender must keep the body out of the line."
     },
     "dangerous": {
       "title": "Dangerous play",
-      "body": "A ball raised at an opponent within five metres above knee height is dangerous play: free hit against the striker, and a penalty corner or stroke if it happens in the circle."
+      "body": "A ball raised at an opponent within five metres above knee height is dangerous play: free hit against the striker — and if a defender does it in their own circle, it becomes a penalty corner or a stroke."
     },
     "backStick": {
       "title": "Back-stick",
@@ -801,7 +801,7 @@
     },
     "pcBreach": {
       "title": "Breaking early at a penalty corner",
-      "body": "Defenders behind the backline and attackers outside the circle must wait for the injection. A defender who breaks early is sent to the halfway line; an attacker who breaks early concedes a free hit."
+      "body": "Defenders behind the backline and attackers outside the circle must wait for the injection. Whoever breaks early — defender or attacker — is sent beyond the halfway line and the corner is taken again; a defender sent off the line cannot be replaced, so his side defends it a man short."
     },
     "pcFirstHit": {
       "title": "The first hit at a penalty corner",
@@ -817,7 +817,7 @@
     },
     "pc": {
       "title": "Penalty corner",
-      "body": "Injected from the backline ten metres from the post; five defenders plus the keeper behind the line, everybody else beyond the halfway line; the ball must leave the circle before a shot unless trapped at the top. Awarded for a foul by a defender in the circle or a deliberate one inside the 23."
+      "body": "Injected from the backline ten metres from the post; at most five defenders — keeper included — behind the line, everybody else beyond the halfway line; the ball must leave the circle before a shot unless trapped at the top. Awarded for a foul by a defender in the circle or a deliberate one inside the 23."
     },
     "cards": {
       "title": "Cards",
@@ -825,7 +825,7 @@
     },
     "subs": {
       "title": "Rolling substitutions",
-      "body": "Any number of substitutions at any time through the dugout gate — except during a penalty corner, when only the keeper may be replaced."
+      "body": "Any number of substitutions at any time through the dugout gate — except during a penalty corner, when only an injured or suspended keeper may be replaced."
     },
     "aerial": {
       "title": "The aerial",

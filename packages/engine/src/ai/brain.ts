@@ -176,7 +176,19 @@ export function createAi(seed: number, squads: [AiTeam, AiTeam], opts: AiOptions
     const ballVel = { x: b.vel.x, y: b.vel.y };
     const ballSpeed = Math.sqrt(ballVel.x ** 2 + ballVel.y ** 2);
 
-    for (const team of squads) {
+    for (const squad of squads) {
+      // Chasing the game: no coach leaves the sheet alone at 0–2 in the fourth quarter. A team a goal
+      // or more down late throws men forward and presses higher; a team two up shuts the game out.
+      // (Also what keeps scorelines honest: without it the sim's histogram grew fat tails of 0-x and
+      // x-6 blowouts that real leagues do not show — the trailing side never pushed back.)
+      const margin = rules.score[squad.team] - rules.score[squad.team === 0 ? 1 : 0];
+      const chasing = (rules.quarter === 4 && margin < 0) || (rules.quarter === 3 && margin <= -2);
+      const protecting = rules.quarter === 4 && margin >= 2;
+      const team = chasing
+        ? { ...squad, tactics: { ...squad.tactics, mentality: 'attacking' as const, pressHeight: Math.min(1, squad.tactics.pressHeight + 0.25) } }
+        : protecting
+          ? { ...squad, tactics: { ...squad.tactics, mentality: 'defensive' as const } }
+          : squad;
       const end = attackingEnd(team.team);
       const onPitch = view.players.filter((p) => p.onPitch);
       const mine = onPitch.filter((p) => p.team === team.team);
@@ -231,7 +243,10 @@ function teamTick(c: Ctx, leaving: Map<number, number>, lastTackleTick: Map<numb
         c.cmds.push({ tick, kind: 'move', playerId: nearestMine.id, dx: ball.x - nearestMine.pos.x, dy: ball.y - nearestMine.pos.y, effort: 0.6 });
         if (dist(nearestMine.pos, ball) < 1.3) {
           const corner = c.rng.chance(0.5) ? 1 : -1;
-          const aim = dmath.atan2(corner * (GOAL_HALF_WIDTH - 0.75) - ball.y, gx - ball.x);
+          // 0.9 m inside the post, not 0.75: at 0.75 the error spread clipped the post or slid wide
+          // ~20 % of the time and stroke conversion sat at 0.48 (real strokes convert ~0.75 — the
+          // taker's job is placing it where the keeper's guess cannot reach, not painting the post)
+          const aim = dmath.atan2(corner * (GOAL_HALF_WIDTH - 0.9) - ball.y, gx - ball.x);
           c.cmds.push({ tick, kind: 'strike', playerId: nearestMine.id, strike: 'flick', angle: aim, power: 0.9 });
         }
       }
@@ -305,13 +320,15 @@ function bestOption(c: Ctx, me: PlayerView, restart: boolean): Option {
     // aim: the far post side away from the keeper, a bit inside the post
     const keeperY = c.keeperOpp?.pos.y ?? 0;
     const side = keeperY > ball.y * 0.3 ? -1 : 1;
-    const targetY = side * (GOAL_HALF_WIDTH - 0.5);
+    // 0.35 inside the post: shooters go for the corner the keeper cannot reach and pay for it in
+    // wide misses — at 0.5 the sim's on-target share sat at 0.62 where real hockey lives near 0.45
+    const targetY = side * (GOAL_HALF_WIDTH - 0.35);
     const angle = dmath.atan2(targetY - ball.y, gx - ball.x);
     const flickPref = norm(a.technical.dragFlick) - norm(a.technical.hit);
     const strike = dGoal < 7 ? 'push' : flickPref > 0.1 && dGoal < 12 ? 'flick' : 'hit';
     // Shoot when the chance is decent; from a poor angle prefer to work the ball (carry/pass) unless pressed.
     // Hockey reason: a shot from the edge of the D at 30° is a turnover; the spot strip is where goals come from.
-    const u = 0.08 + 1.4 * q + 0.25 * pressure * norm(a.mental.composure) - 0.15 * (1 - team.tactics.tempo) + c.rng.gaussian(0, noise);
+    const u = 0.04 + 1.4 * q + 0.25 * pressure * norm(a.mental.composure) - 0.15 * (1 - team.tactics.tempo) + c.rng.gaussian(0, noise);
     options.push({ kind: 'shoot', angle, strike, power: strike === 'push' ? 0.9 : 1, u });
     // "Win the corner": a defender's feet inside the D are a target. A firm push/hit at a defender standing between
     // ball and goal is how most club-level PCs are won (FIH 13.3: feet in the circle → PC). Umpires give it; attackers know.
@@ -327,8 +344,10 @@ function bestOption(c: Ctx, me: PlayerView, restart: boolean): Option {
     if (feetTarget) {
       const ang = dmath.atan2(feetTarget.pos.y - ball.y, feetTarget.pos.x - ball.x);
       // worth a lot when the clean shot is poor; a little composure noise so it is not automatic
-      const uFeet = 0.85 - 0.55 * q + 0.1 * norm(a.mental.decisions) + c.rng.gaussian(0, noise);
-      options.push({ kind: 'shoot', angle: ang, strike: 'push', power: 0.8, u: uFeet });
+      const uFeet = 0.95 - 0.55 * q + 0.1 * norm(a.mental.decisions) + c.rng.gaussian(0, noise);
+      // 0.9, not 0.8: at 0.8 a weaker striker's ball arrived under the no-reaction-time threshold and
+      // the defender calmly played it off the stick — the whole point of the ball is that he cannot
+      options.push({ kind: 'shoot', angle: ang, strike: 'push', power: 0.9, u: uFeet });
     }
   }
 
@@ -344,14 +363,19 @@ function bestOption(c: Ctx, me: PlayerView, restart: boolean): Option {
     const lengthPen = d > 28 ? (d - 28) / 30 : d < 7 ? (7 - d) / 10 : 0;
     // A pass INTO the circle is the most valuable object on the pitch (valueGrid): weight it like one.
     const ment = team.tactics.mentality === 'attacking' ? 0.12 : team.tactics.mentality === 'defensive' ? -0.08 : 0;
-    const intoD = laneEntersCircle(ball, lead, end) ? 0.45 + ment : (in23(lead, end) && !in23(ball, end) ? 0.12 + ment * 0.5 : 0);
+    // 0.75: measured with 0.45 and 0.6 the safe recycle around the top of the D (u ≈ 0.4) still beat
+    // the entry ball every time — 80 possessions a match died in the attacking quarter on 15 entries.
+    // The entry pass has to WIN that comparison or the attack circulates forever.
+    const intoD = laneEntersCircle(ball, lead, end) ? 0.9 + ment : (in23(lead, end) && !in23(ball, end) ? 0.2 + ment * 0.5 : 0);
     // backwards passes are fine when pressed, poor otherwise
     const backwards = end * (lead.x - ball.x) < -5 ? (pressure > 0.5 ? 0 : 0.12) : 0;
     const vision = 0.15 * norm(a.mental.vision);
     // never play a teammate the ball inside our own circle (the keeper aside as a last resort under real pressure)
     const intoOwnD = inCircle(lead, -end as End) ? (pressure > 0.7 ? 0.25 : 0.6) : 0;
     // Inside the attacking D a "risky" lane past a defender is a chance to hit a foot and win a PC — attackers take it.
-    const riskW = inD ? 0.6 : 1.4;
+    // The entry pass itself is also played tighter than a midfield ball: a lane into the D that might be cut
+    // is still worth the attempt, because the alternative is recycling around the top forever.
+    const riskW = inD ? 0.6 : laneEntersCircle(ball, lead, end) ? 0.8 : 1.4;
     let u = 0.15 + 1.2 * gain + 0.35 * open - riskW * risk - lengthPen + intoD - backwards + vision - intoOwnD + c.rng.gaussian(0, noise);
     if (restart) u += 0.2; // restarts want to be taken
     const angle = dmath.atan2(lead.y - ball.y, lead.x - ball.x);
@@ -387,18 +411,28 @@ function bestOption(c: Ctx, me: PlayerView, restart: boolean): Option {
       if (restart) u -= 0.1; // self-pass is fine, but a pass usually beats it
       // don't carry into your own circle; do carry into theirs — elimination into the D is how PCs are won
       if (inCircle(to, -end as End)) u -= 0.4;
-      if (inCircle(to, end) && !inD) u += 0.3 + 0.2 * norm(a.technical.elimination);
+      if (inCircle(to, end) && !inD) u += 0.6 + 0.2 * norm(a.technical.elimination);
       else if (in23(to, end) && !in23(ball, end)) u += 0.1;
       options.push({ kind: 'carry', dir, u });
     }
   }
 
-  // clear: from own 23 m under pressure, hit long and wide
+  // clear: from own 23 m under pressure, hit long and wide. In our own CIRCLE the first job is
+  // always the clearance — "get it out of the D" is coached before anything else, because every
+  // second the ball lives there is a rebound, a foot, a corner. Measured without the D override:
+  // defenders tried to play through the scramble and matches ran to 56 shots and 9 goals.
   const ownEnd = -end as End;
-  if (in23(ball, ownEnd) && pressure > 0.4) {
+  const inOwnD = inCircle(ball, ownEnd);
+  if (inOwnD || (in23(ball, ownEnd) && pressure > 0.4)) {
+    // aimed at the touchline on purpose: a clearance that goes out for a side-in is a GOOD clearance
+    // (the defence resets); one that lands centrally is the next attack. Under real pressure it goes
+    // INTO touch deliberately — "into the stands" is coached, not an accident.
     const side = ball.y >= 0 ? 1 : -1;
-    const angle = dmath.atan2(side * 18 - ball.y, end * 35 - ball.x);
-    options.push({ kind: 'clear', angle, u: 0.3 + 0.5 * pressure - 0.2 * team.tactics.tempo + (team.tactics.mentality === 'defensive' ? 0.15 : 0) });
+    const angle = dmath.atan2(side * (pressure > 0.25 ? 32 : 22) - ball.y, end * 35 - ball.x);
+    const u = inOwnD
+      ? 0.9 + 0.4 * pressure
+      : 0.3 + 0.5 * pressure - 0.2 * team.tactics.tempo + (team.tactics.mentality === 'defensive' ? 0.15 : 0);
+    options.push({ kind: 'clear', angle, u });
   }
 
   // tempo: quick teams shave carry utility
@@ -446,7 +480,7 @@ function supportRun(c: Ctx, p: PlayerView, carrier: PlayerView, ballXp: Scalar, 
   // forwards: attack the D — top-of-D staging or the far post when the ball is deep and wide
   if (slot.role === 'FWD' && ballXp > 50) {
     const side = Math.sign(slot.y) || 0; // -1 left winger, 0 centre forward, +1 right winger (team frame)
-    if (ballXp > 62) {
+    if (ballXp > 55) {
       // ball in the 23: get INTO the circle — CF on the spot strip, wingers at the near/far post pockets.
       // Hockey reason: nothing scores from outside the D; the lead into the circle is the whole game.
       const ballSideTeam = end * c.ball.y;
@@ -464,7 +498,9 @@ function supportRun(c: Ctx, p: PlayerView, carrier: PlayerView, ballXp: Scalar, 
   }
   // don't crowd the carrier
   if (dist(target, carrier.pos) < 5) target = { x: target.x - end * 6, y: target.y };
-  moveTo(c, p, target, 0.65);
+  // A forward attacking the D sprints — possession near the circle lives a few seconds, and a pocket
+  // reached too late is a pocket that never existed (measured: half an attacker in the D on average).
+  moveTo(c, p, target, slot.role === 'FWD' && ballXp > 50 ? 0.9 : 0.65);
 }
 
 /**
@@ -684,8 +720,10 @@ function defend(c: Ctx, target: PlayerView, ballXp: Scalar, ballY: Scalar, lastT
         break;
       }
       case 'restBreak': {
-        // left high on purpose: hold the halfway line on the far side from the ball, ready to go
-        moveTo(c, p, { x: end * 6, y: end * clamp(-ballY * 0.5, -16, 16) }, 0.45);
+        // left high on purpose: hold between halfway and their 23 on the far side from the ball, ready
+        // to go — no offside in hockey, and the whole point of resting him is the outlet and the sprint
+        // into the D the moment the ball is won (at halfway he was 25 m too far from the circle to matter)
+        moveTo(c, p, { x: end * 14, y: end * clamp(-ballY * 0.5, -16, 16) }, 0.45);
         break;
       }
       default:
@@ -702,9 +740,11 @@ function defend(c: Ctx, target: PlayerView, ballXp: Scalar, ballY: Scalar, lastT
  */
 function tryTackle(c: Ctx, p: PlayerView, carrier: PlayerView, lastTackleTick: Map<number, number>, keenness: Scalar): void {
   const { end, tick, ball } = c;
-  if (dist(p.pos, ball) >= 1.9 || tick - (lastTackleTick.get(p.id) ?? -99) < 40) return;
+  if (dist(p.pos, ball) >= 1.9 || tick - (lastTackleTick.get(p.id) ?? -99) < 60) return;
   const inOwnD = inCircle(ball, -end as End);
-  const aggr = (0.02 + 0.1 * norm(c.attrsOf(p.id).technical.tackling) + 0.25 * (in23(ball, -end as End) ? 1 : 0) + 0.4 * (inOwnD ? 1 : 0)) * keenness;
+  // Midfield is jockey territory (0.06 base, 3 s between bites — 110 contests a match was a scrum);
+  // the committed tackle belongs in the 23 and above all in the D, where it is worth a turnover.
+  const aggr = (0.02 + 0.06 * norm(c.attrsOf(p.id).technical.tackling) + 0.25 * (in23(ball, -end as End) ? 1 : 0) + 0.4 * (inOwnD ? 1 : 0)) * keenness;
   if (c.rng.chance(aggr)) { c.cmds.push({ tick, kind: 'tackle', playerId: p.id, targetId: carrier.id }); lastTackleTick.set(p.id, tick); }
 }
 
@@ -893,9 +933,27 @@ function pcAttack(c: Ctx, pending: boolean): void {
       moveTo(c, p, trapped ? ball : strikerSpot, 1);
       // strike when the ball is stopped at the top of the D
       if (!pending && dist(p.pos, ball) < 1.4 && c.ballSpeed < 4 && c.view.ball.lastTouch !== p.id) {
+        // Pick the corner with the clearest lane, not just the one away from the keeper: the first
+        // runner is ON the shooting line by design, and a flick into his shins is a cleared corner.
+        // A drag flicker's whole craft is releasing around the runner — measured with the keeper-only
+        // aim, 59 % of corners ended "cleared" and 5 % scored.
         const keeperY = c.keeperOpp?.pos.y ?? 0;
-        const side = keeperY > 0 ? -1 : 1;
-        const targetY = side * (GOAL_HALF_WIDTH - 0.45);
+        const blockers = c.opp.filter((o) => !o.isGoalkeeper);
+        let targetY = (keeperY > 0 ? -1 : 1) * (GOAL_HALF_WIDTH - 0.45);
+        let bestClear = -1;
+        for (const cand of [-(GOAL_HALF_WIDTH - 0.45), GOAL_HALF_WIDTH - 0.45]) {
+          const rx = gx - ball.x, ry = cand - ball.y; const rl = Math.sqrt(rx * rx + ry * ry) || 1;
+          let clear = 99;
+          for (const b of blockers) {
+            const bx = b.pos.x - ball.x, by = b.pos.y - ball.y;
+            const along = (bx * rx + by * ry) / rl;
+            if (along < 0.5 || along > rl) continue;
+            clear = Math.min(clear, Math.abs(bx * ry - by * rx) / rl);
+          }
+          // keeper still matters: his side is a worse corner, all else equal
+          const score = clear - (Math.sign(cand) === Math.sign(keeperY || 1) ? 0.3 : 0);
+          if (score > bestClear) { bestClear = score; targetY = cand; }
+        }
         const angle = dmath.atan2(targetY - ball.y, gx - ball.x);
         const strike = variant === 'lowHit' ? 'hit' : variant === 'deflection' ? 'push' : 'flick';
         c.cmds.push({ tick, kind: 'strike', playerId: p.id, strike, angle, power: 1 });

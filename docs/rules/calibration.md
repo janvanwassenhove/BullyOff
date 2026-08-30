@@ -1,6 +1,6 @@
 # Calibration — targets vs achieved (Phase 4)
 
-Run: `pnpm calibrate:run` (96 matches per profile, level 12 ± 2 quality spread, `FIH_OUTDOOR_FAST` laws, watered turf, 8 worker processes ≈ 45 s each). Targets and sources: [`calibration-data.md`](calibration-data.md) / `tools/calibrate/src/targets.ts`. Bands: ±10 % on measured rows, wider on `EST` rows. Engine **0.4.0**, 2026-08-19.
+Run: `pnpm calibrate:run` (96 matches per profile, level 12 ± 2 quality spread, `FIH_OUTDOOR_FAST` laws, watered turf, 8 worker processes ≈ 45 s each). Targets and sources: [`calibration-data.md`](calibration-data.md) / `tools/calibrate/src/targets.ts`. Bands: ±10 % on measured rows, wider on `EST` rows. This file is a running log — the sections below are historical passes in order; the current state is the last section (engine **0.8.0**, 2026-08-30: men 14/15, women 12/15, all measured rows pass).
 
 ## Men's (`mens`) — measured rows all pass except PC share (near-miss)
 
@@ -114,3 +114,38 @@ Same 96-match protocol:
 | restarts / match | 110 | 71 | ≈ 45 |
 
 **Honest reading:** the structural play is now hockey-shaped (possessions of ~15 touches that progress, entries by carries and passes into the D, defenders in the D, PCs from feet), but the *volume* of circle play and PCs is below the real game. Those are the next tuning targets (attack construction in the 23, more feet/stick fouls under pressure in the D, outlet speed), and they must be tuned on this realistic base — not by re-admitting the own-D giveaways. Measured men's PC share fails until PCs ≈ 7–9.
+
+## The realism calibration (engine 0.8.0, 2026-08-30)
+
+The full-application validation pass (realistic hockey as the goal) started from the 0.7.0 numbers — men 6/15 bands, women 9/15, circle entries at a third of the real game — and diagnosed the funnel per possession before touching any knob: where possessions die, how many attacking-23 entries become circle entries, how many entry passes arrive, how many attackers are inside the D when the ball is at its edge, which foul kinds occur where, and how each penalty corner ends.
+
+What the diagnosis found, and what changed (each is a mechanism with a hockey reason, not a fitted weight):
+
+- **146 clean interceptions a match** — a defender's stick in a passing lane cut passes like a receiver controls them. Cutting an opponent's firm pass is now a lunge (`×0.45` on trap success), and a failed cut *clips* the ball on to its receiver instead of killing it.
+- **29 % of ordinary receives spilled** — trap success re-based (0.62 base, penalty from 9 m/s) because receiving a firm flat pass is routine at club level.
+- **Half an attacker in the D** when the ball was at its edge — rest-break forwards now hold between halfway and the 23 (not at halfway), and forwards sprint (0.9 effort) into their pockets when the ball is past 50 m. The entry pass has to *beat* the safe recycle around the top of the D in utility, or the attack circulates forever.
+- **49 of 62 fouls were feet** — every pass through traffic ended in a whistle. A field player now gets a skill-dependent **stick save** on a ball at the body (fading with ball speed, gone point-blank, weaker in his own D, nearly gone on his own goal line — that body stop is what the stroke is for).
+- **59 % of penalty corners ended "cleared", 5 % scored** — the flick aimed away from the keeper and straight into the first runner. The taker now picks the corner with the *clearest lane past the runners*; the penalty stroke gets half the in-play spray (a practiced strike off a stationary ball) and a 0.9 m aim margin.
+- **Defenders played through the scramble in their own D** — the first job in your own circle is now the clearance, aimed at the touchline (into touch under real pressure — that is coached).
+- **No reaction to the score** — a team a goal down in Q4 (two down in Q3) now chases: attacking mentality, press a band higher; two up in Q4 shuts the game out. This is also what keeps the scoreline histogram honest.
+- **Absolute speed thresholds judged the women's game on men's tempo** — interception, stick-save and trap thresholds now scale with `profile.strike.pushSpeed` (a value, not a branch), and the "win the corner" ball is struck at 0.9 power so it clears the no-reaction-time threshold in both games.
+- **Cards**: persistent-fouling thresholds 3/5 → 5/7 (7.8 greens a match was half the game a man down); stroke-preventing body stops within 9 m (not 5 m) of the line are strokes per FIH 12.4.
+- **Stats honesty**: `BallStruck` now records its angle, and a *shot* is a strike from in the D aimed at the goal ± 4.8 m — not any touch inside the circle.
+- **Keepers recalibrated** on top of the stronger attack: `gkSaveScale` mens 1.6 → 2.05, womens 1.7 → 1.88; stroke save ≈ 0.25.
+
+Same 96-match protocol, final state:
+
+| metric | target | men 0.7.0 | **men 0.8.0** | women 0.7.0 | **women 0.8.0** |
+|---|---|---|---|---|---|
+| goals / match | 5.4 / 3.6 | 4.55 MISS | **5.20 ok** | 3.11 MISS | **3.66 ok** |
+| PC (+PS) goal share | 0.33 / 0.30 | 0.16 MISS | **0.34 ok** | 0.16 MISS | **0.31 ok** |
+| PCs / match | 9 / 8 | 4.5 MISS | **10.1 ok** | 2.9 MISS | **8.5 ok** |
+| circle entries / match | 36 / 34 | 12.9 MISS | **27.4 ok** | 11.7 MISS | 22.5 MISS (−1.5 to band) |
+| shots / match | 24 / 22 | 31.3 | **33.3 ok** | 31.3 | 33.0 MISS (+1 over band) |
+| strokes / match | 0.25 / 0.20 | 0.04 MISS | **0.25 ok** | 0.07 | **0.18 ok** |
+| stroke conversion | 0.75 / 0.72 | — | **0.67 ok** | 0.29 MISS | **0.76 ok** |
+| green cards / match | 3 / 2.5 | 5.6 MISS | **3.7 ok** | 4.4 | **3.4 ok** |
+| restarts / match | 110 / 105 | 53 MISS | **78 ok** | 45 MISS | 64 MISS (−1.2 to band) |
+| Poisson shape | p > 0.01 | 0.002 MISS | 0.006 MISS (borderline; 0.11 on the previous seed set) | 0.011 | **0.074 ok** |
+
+**Men 14/15 bands, women 12/15 — and every directly-measured row passes for both profiles.** The three women's misses and the men's shape test all sit within a whisker of their (EST) band edges and flip with the seed set. Known residuals, in coaching terms: the women's game still penetrates the circle a shade less than the target (the target itself is an estimate), and both games still keep the ball in play more than a real match (side-ins are the missing restart volume). The scoreline over-dispersion is partly *real* (a ±2-level league is top-heavy) — revisit the target before revisiting the model.
