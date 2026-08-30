@@ -588,9 +588,13 @@
     "momentum": "MOMENTUM",
     "momentumSub": "cirkelbetredingen per vijf minuten, de onze boven de lijn",
     "keyMoments": "SLEUTELMOMENTEN",
+    "goals": "DOELPUNTEN",
+    "playClip": "Speel het fragment af",
+    "closeClip": "SLUITEN",
+    "fixSystem": "PAS JE SYSTEEM AAN",
     "noMoments": "Een rustige — geen beslissend moment waar de analyse zeker van is.",
     "didWell": "WAT JE GOED DEED",
-    "didWellNone": "Niets sprong er deze keer uit als duidelijke winst — het verslag toont een gelijkopgaande wedstrijd.",
+    "didWellNone": "Niets sprong er deze keer uit als duidelijke winst — de lessen staan hiernaast.",
     "workOn": "WERKPUNTEN",
     "workOnNone": "Geen duidelijke les uit deze wedstrijd. Hou hetzelfde plan en let op het derde kwart.",
     "ruleOfMatch": "REGEL VAN DE WEDSTRIJD",
@@ -821,7 +825,7 @@
     },
     "cards": {
       "title": "Kaarten",
-      "body": "Groen: twee minuten eruit. Geel: vijf of tien minuten eruit. Rood: de rest van de wedstrijd. Herhaald overtreden escaleert."
+      "body": "Groen: twee minuten eruit. Geel: vijf of tien minuten eruit. Rood: de rest van de wedstrijd. Herhaald overtreden escaleert. De kaarten verschillen ook van vorm — groen is driehoekig, geel rechthoekig, rood rond — zodat ook wie kleurenblind is meteen ziet welke kaart omhoog gaat."
     },
     "subs": {
       "title": "Doorlopende wissels",
@@ -972,9 +976,17 @@
       "title": "Pressen",
       "sub": "Vier systemen, vier verschillende sporten.",
       "steps": {
-        "systems": {
-          "title": "De vier systemen",
-          "body": "Full court: man op man over het hele veld, niemand vrij. Half court: blok rond de middellijn. Split: naar één kant duwen en meeschuiven. Zone: iedereen achter de 23 en niemand loopt mee naar de bal."
+        "fullCourt": {
+          "title": "Full-court press",
+          "body": "Man op man over het hele veld, tot op hun achterlijn — niemand vrij achterin en geen spits die rust. Je wint de bal hoog terug, of één pass door je eerste linie legt het halve veld open. De gok van dit systeem is dat die pass er nooit komt."
+        },
+        "halfCourt": {
+          "title": "Half-court press",
+          "body": "Zij mogen rustig rondspelen in hun eigen helft; het blok wacht rond de middenlijn en pas dáár stapt de eerste man uit. Eén spits rust voorin, en achter de linie vangt een vrije man de fout op."
+        },
+        "zone": {
+          "title": "Zonepress",
+          "body": "Geen mannetje-mannetje: twee linies bewaken hun zones, een meter of tien in de eigen helft. Verleggen zij de bal, dan jaagt niemand — het blok schuift mee en houdt de kanalen dicht. Twee spitsen blijven hoog hangen voor de omschakeling."
         },
         "channels": {
           "title": "Wie eruit stapt",

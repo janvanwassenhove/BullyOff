@@ -8,7 +8,8 @@
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { analyse, matchSheet, momentum, type Finding } from '@bullyoff/insight';
-import { topicForFinding } from '../lib/academy';
+import { topicForFinding, type TopicId } from '../lib/academy';
+import { TICK_HZ } from '@bullyoff/engine';
 import type { MatchView } from '@bullyoff/render';
 import { useAppStore } from '../stores/app';
 import { useMatchStore } from '../stores/match';
@@ -42,7 +43,25 @@ const hints = computed(() => findings.value
   .map((f) => ({ key: `${f.kind}-${f.tick}`, i18nKey: f.i18nKey, params: f.params, topic: topicForFinding(f.kind) }))
   .filter((h) => h.topic !== null)
   .slice(0, 3));
-const moments = computed(() => findings.value.filter((f) => f.section === 'moment').slice(0, 6));
+/**
+ * Every goal is reviewable — a 0–13 has thirteen lessons, not one. Goals get their own list
+ * (uncapped, with the cause the analysis found); the other key moments keep the short list.
+ */
+const goalMoments = computed(() => findings.value.filter((f) => f.section === 'moment' && f.kind === 'goal'));
+const moments = computed(() => findings.value.filter((f) => f.section === 'moment' && f.kind !== 'goal').slice(0, 6));
+const allClippable = computed(() => [...goalMoments.value, ...moments.value]);
+/**
+ * The system answer to a conceded goal: the cause the analysis names maps to the academy topic
+ * that teaches the counter — a goal off a lost tackle is a pressing lesson, one off a corner is
+ * the PC topic, an open-play goal is shape. A foul-caused goal already links its rule instead.
+ */
+function fixTopic(m: Finding): TopicId | null {
+  if (m.severity !== 'mistake' || m.kind !== 'goal') return null;
+  if (m.i18nKey === 'insight.momentConcededTackle') return 'pressing';
+  if (m.i18nKey === 'insight.momentConcededPc') return 'penaltyCorner';
+  if (m.i18nKey === 'insight.momentConceded') return 'pressing';
+  return null; // momentConcededFoul carries its ruleKey
+}
 const sheet = computed(() => (lm.value ? matchSheet(lm.value.log, lm.value.coachTeam) : []));
 const mom = computed(() => (lm.value ? momentum(lm.value.log, lm.value.coachTeam) : []));
 const momMax = computed(() => Math.max(1, ...mom.value.map((b) => Math.max(b.us, b.them))));
@@ -53,8 +72,26 @@ function onThumbReady(v: MatchView): void {
   thumbView.value = v; v.pause();
   // render each key moment from the replay a beat after the event, goal-mouth camera
   const out: Record<number, string> = {};
-  for (const m of moments.value) { try { out[m.tick] = v.snapshot(Math.min(v.lastTick, m.tick + 10), 200, 112, m.kind === 'goal' ? 'goalmouth' : 'circle'); } catch { /* canvas unavailable */ } }
+  for (const m of allClippable.value) { try { out[m.tick] = v.snapshot(Math.min(v.lastTick, m.tick + 10), 200, 112, m.kind === 'goal' ? 'goalmouth' : 'circle'); } catch { /* canvas unavailable */ } }
   thumbs.value = out;
+}
+
+// ── the clip player: a key moment replayed as a short loop ─────────────────────
+// 8 s of build-up, the moment, 4 s of aftermath, then again — the ten seconds BEFORE a goal are
+// where the lesson lives (who stepped out, who lost his man), so the clip always starts there.
+const CLIP_BEFORE = 8 * TICK_HZ, CLIP_AFTER = 4 * TICK_HZ;
+const clip = ref<Finding | null>(null);
+const clipCamera = computed(() => (clip.value?.kind === 'goal' ? 'goalmouth' : 'circle'));
+function openClip(m: Finding): void { clip.value = m; }
+function closeClip(): void { clip.value = null; }
+function onClipReady(v: MatchView): void {
+  const m = clip.value;
+  if (!m) return;
+  const start = Math.max(0, m.tick - CLIP_BEFORE);
+  const end = Math.min(v.lastTick, m.tick + CLIP_AFTER);
+  v.seek(start); v.setSpeed(1);
+  v.onFrame((tick) => { if (tick >= end) v.seek(start); });
+  v.play();
 }
 const railColour = (s: Finding['severity']): string => (s === 'mistake' ? 'var(--danger)' : s === 'decision' ? 'var(--signal)' : s === 'good' ? 'var(--accent)' : 'var(--line-strong)');
 function watch(): void { if (lm.value) { match.setLog(lm.value.log, 'last', lm.value.colours); app.go('viewer'); } }
@@ -168,6 +205,49 @@ onMounted(() => { if (!lm.value) app.go('season'); });
             />
           </span>
         </div>
+        <template v-if="goalMoments.length">
+          <span class="eyebrow">{{ t('report.goals') }}</span>
+          <div class="moments">
+            <article
+              v-for="m in goalMoments"
+              :key="m.tick + m.kind"
+              class="moment"
+              :style="{ borderLeftColor: railColour(m.severity) }"
+            >
+              <button
+                class="thumb playable"
+                :aria-label="t('report.playClip')"
+                @click="openClip(m)"
+              >
+                <img
+                  v-if="thumbs[m.tick]"
+                  :src="thumbs[m.tick]"
+                  alt=""
+                >
+                <span class="play">▶</span>
+                <span class="mono tl">{{ clockOf(m.tick) }}</span>
+              </button>
+              <div class="mcol">
+                <span class="mtitle">{{ t(m.i18nKey + '.title', m.params) }}</span>
+                <span class="mbody">{{ t(m.i18nKey + '.body', m.params) }}</span>
+                <button
+                  v-if="fixTopic(m)"
+                  class="mfix mono"
+                  @click="app.openAcademy(fixTopic(m))"
+                >
+                  {{ t('report.fixSystem') }} →
+                </button>
+                <button
+                  v-else-if="m.severity === 'mistake' && m.ruleKey"
+                  class="mfix mono"
+                  @click="app.openRule(m.ruleKey ?? null)"
+                >
+                  {{ t('report.readRule') }}
+                </button>
+              </div>
+            </article>
+          </div>
+        </template>
         <span class="eyebrow">{{ t('report.keyMoments') }}</span>
         <p
           v-if="!moments.length"
@@ -182,14 +262,19 @@ onMounted(() => { if (!lm.value) app.go('season'); });
             class="moment"
             :style="{ borderLeftColor: railColour(m.severity) }"
           >
-            <div class="thumb">
+            <button
+              class="thumb playable"
+              :aria-label="t('report.playClip')"
+              @click="openClip(m)"
+            >
               <img
                 v-if="thumbs[m.tick]"
                 :src="thumbs[m.tick]"
                 alt=""
               >
+              <span class="play">▶</span>
               <span class="mono tl">{{ clockOf(m.tick) }}</span>
-            </div>
+            </button>
             <div class="mcol">
               <span class="mtitle">{{ t(m.i18nKey + '.title', m.params) }}</span>
               <span class="mbody">{{ t(m.i18nKey + '.body', m.params) }}</span>
@@ -208,6 +293,40 @@ onMounted(() => { if (!lm.value) app.go('season'); });
           />
         </div>
       </main>
+
+      <!-- the clip player: the moment as a short repeating fragment -->
+      <div
+        v-if="clip"
+        class="clipwrap"
+        @click.self="closeClip"
+      >
+        <div class="clipbox">
+          <header class="cliphead">
+            <span class="mtitle">{{ t(clip.i18nKey + '.title', clip.params) }}</span>
+            <span class="mono cliptime">{{ clockOf(clip.tick) }}</span>
+            <span class="grow" />
+            <button
+              class="btn btn-ghost btn-sm"
+              @click="closeClip"
+            >
+              {{ t('report.closeClip') }}
+            </button>
+          </header>
+          <div class="clipstage">
+            <PitchCanvas
+              :key="clip.tick + clip.kind"
+              :log="lm.log"
+              :colours="lm.colours"
+              :camera="clipCamera"
+              mode="tactical"
+              :coach-team="lm.coachTeam"
+              :auto-play="false"
+              @ready="onClipReady"
+            />
+          </div>
+          <p class="clipnote">{{ t(clip.i18nKey + '.body', clip.params) }}</p>
+        </div>
+      </div>
 
       <aside class="learn">
         <div class="blk">
@@ -305,7 +424,17 @@ onMounted(() => { if (!lm.value) app.go('season'); });
 .moments { display: flex; flex-direction: column; gap: 8px; }
 .moment { display: grid; grid-template-columns: 100px minmax(0, 1fr); gap: 14px; background: var(--panel); border: 1px solid var(--hairline); border-left: 2px solid var(--line-strong); border-radius: 8px; padding: 12px 14px; align-items: center; }
 .thumb { position: relative; height: 56px; border: 1px solid #1b2530; border-radius: 5px; background: repeating-linear-gradient(135deg, #0d151a 0 8px, #0b1216 8px 16px); overflow: hidden; display: grid; place-items: center; }
+.thumb.playable { cursor: pointer; padding: 0; width: 100%; }
 .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.play { position: relative; z-index: 1; font-size: 13px; color: #f2f7fa; background: rgba(6, 9, 12, 0.62); border-radius: 999px; width: 26px; height: 26px; display: grid; place-items: center; padding-left: 2px; }
+.thumb.playable:hover .play { background: var(--accent); color: #06090c; }
+.mfix { margin-top: 4px; align-self: flex-start; font-size: 10.5px; letter-spacing: 0.1em; color: var(--signal); background: none; border: 0; padding: 0; cursor: pointer; }
+.clipwrap { position: fixed; inset: 0; z-index: 60; background: rgba(4, 7, 9, 0.78); display: grid; place-items: center; padding: 18px; }
+.clipbox { width: min(94vw, 880px); background: var(--panel); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; max-height: 92dvh; }
+.cliphead { display: flex; align-items: center; gap: 12px; }
+.cliptime { font-size: 11px; color: var(--fg-faint); }
+.clipstage { aspect-ratio: 16 / 9; min-height: 0; border-radius: 6px; overflow: hidden; }
+.clipnote { font-size: 13.5px; color: var(--fg-3); line-height: 1.5; margin: 0; }
 .tl { position: relative; font-size: 9px; color: var(--fg-faint); background: rgba(6, 9, 12, 0.7); padding: 1px 4px; border-radius: 2px; }
 .mcol { display: flex; flex-direction: column; gap: 3px; }
 .mtitle { font-family: var(--font-display); font-size: 18px; font-weight: 600; letter-spacing: 0.02em; }

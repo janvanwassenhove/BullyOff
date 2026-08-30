@@ -52,16 +52,29 @@ export interface FigureScene {
   goalX?: number;
   /** Dimension lines with their measurement (a distance, not prose — the same in every language). */
   dimensions?: { from: number; to: number; label: string }[];
-  /** The card the umpire holds up. */
-  card?: 'green' | 'yellow' | 'red';
+  /**
+   * The cards the umpire shows, stepped: from `t` onwards this is the card in the raised hand.
+   * Real hockey cards are shaped as well as coloured — green triangular, yellow rectangular, red
+   * round — so a colour-blind player still knows which one just went up. The view draws the shapes.
+   */
+  cards?: { t: number; card: CardColour }[];
   /** The whistle: from this second the verdict band shows (i18n key). */
   verdict?: { t: number; key: string };
+}
+
+export type CardColour = 'green' | 'yellow' | 'red';
+
+/** The card in the umpire's hand at time t (stepped at each entry), or null before the first. */
+export function cardShownAt(scene: FigureScene, t: number): CardColour | null {
+  let out: CardColour | null = null;
+  for (const c of scene.cards ?? []) { if (c.t <= t) out = c.card; else break; }
+  return out;
 }
 
 export interface FigureSample {
   side: Side; x: number; stick: number; lean: number; arm: number; dir: 1 | -1; face: StickFace; mark: Mark;
 }
-export interface SceneSample { figures: FigureSample[]; ball: { x: number; z: number }; verdict: string | null }
+export interface SceneSample { figures: FigureSample[]; ball: { x: number; z: number }; verdict: string | null; card: CardColour | null }
 
 const lerp = (a: number, b: number, u: number): number => a + (b - a) * u;
 
@@ -120,6 +133,7 @@ export function sampleScene(scene: FigureScene, t: number): SceneSample {
     figures: scene.figures.map((f) => sampleFigure(f, time)),
     ball: sampleBall(scene.ball, time),
     verdict: scene.verdict && time >= scene.verdict.t ? scene.verdict.key : null,
+    card: cardShownAt(scene, time),
   };
 }
 
@@ -227,15 +241,25 @@ const SCENES: Partial<Record<RuleKey, FigureScene>> = {
     ball: [{ t: 0, x: 2.8, z: 0 }, { t: 1.5, x: 2.8, z: 0 }, { t: 2.05, x: 8.6, z: 1.18 }, { t: 2.4, x: 9.2, z: 0.9 }, { t: 3.4, x: 9.2, z: 0 }],
     verdict: { t: 2.15, key: 'rules.verdict.goal' },
   },
-  // The umpire shows a green card; the player leaves for two minutes.
+  // The escalation, all three cards in one scene: green (two minutes), then yellow (five or ten),
+  // then red (off for good) — the player steps further away with each one. The arm dips between
+  // cards so each new shape/colour is a fresh "showing". Shapes matter: see `cards` on FigureScene.
   'rules.cards': {
-    seconds: 3.6, width: 9, height: 3, card: 'green',
+    seconds: 7.2, width: 9, height: 3,
+    cards: [{ t: 0.8, card: 'green' }, { t: 2.7, card: 'yellow' }, { t: 4.9, card: 'red' }],
     figures: [
-      { side: 'umpire', keys: [{ t: 0, x: 5.4, stick: 0, dir: -1, arm: 0 }, { t: 1.1, x: 5.4, stick: 0, arm: 1 }, { t: 3.6, x: 5.4, stick: 0, arm: 1 }] },
-      { side: 'them', keys: [{ t: 0, x: 3.6, stick: -10, dir: -1 }, { t: 1.7, x: 3.6, stick: -10 }, { t: 3.6, x: 0.6, stick: -6 }] },
+      { side: 'umpire', keys: [
+        { t: 0, x: 5.4, stick: 0, dir: -1, arm: 0 }, { t: 0.9, x: 5.4, stick: 0, arm: 1 }, { t: 2.2, x: 5.4, stick: 0, arm: 1 },
+        { t: 2.5, x: 5.4, stick: 0, arm: 0.3 }, { t: 2.9, x: 5.4, stick: 0, arm: 1 }, { t: 4.4, x: 5.4, stick: 0, arm: 1 },
+        { t: 4.7, x: 5.4, stick: 0, arm: 0.3 }, { t: 5.1, x: 5.4, stick: 0, arm: 1 }, { t: 7.2, x: 5.4, stick: 0, arm: 1 },
+      ] },
+      { side: 'them', keys: [
+        { t: 0, x: 3.6, stick: -10, dir: -1 }, { t: 1.2, x: 3.6, stick: -10 }, { t: 2.2, x: 2.9, stick: -8 },
+        { t: 3.4, x: 2.9, stick: -8 }, { t: 4.4, x: 2.0, stick: -8 }, { t: 5.4, x: 2.0, stick: -6 }, { t: 7.2, x: 0.3, stick: -4 },
+      ] },
     ],
-    ball: [{ t: 0, x: 6.8, z: 0 }, { t: 3.6, x: 6.8, z: 0 }],
-    verdict: { t: 1.25, key: 'rules.verdict.card' },
+    ball: [{ t: 0, x: 6.8, z: 0 }, { t: 7.2, x: 6.8, z: 0 }],
+    verdict: { t: 0.95, key: 'rules.verdict.card' },
   },
   // A lifted ball over the press, taken down with everyone five metres clear.
   'rules.aerial': {

@@ -69,22 +69,26 @@ export const ACADEMY: Topic[] = [
   {
     id: 'penaltyCorner',
     steps: [
-      // the battery: injector, trapper, striker — the sequence before any variant exists
+      // the battery: injector, trapper, striker — the sequence before any variant exists.
+      // The castle behind the line is five INCLUDING the keeper (FIH 13.5 — same as the rulebook).
       { id: 'battery', view: 'behindGoal',
-        markers: [us(45.7, 9.1, 'I'), us(30.5, 1.5, 'T'), us(29.3, 0.2, 'S'), them(45.7, 0), them(44, -1.4), them(44, 1.4), ball(45.7, 9.1)],
+        markers: [us(45.7, 9.1, 'I'), us(30.5, 1.5, 'T'), us(29.3, 0.2, 'S'), them(45.7, 0, 'K'), them(45.5, -1.4), them(45.5, 1.4), them(45.5, -2.6), them(45.5, 2.6), ball(45.7, 9.1)],
         arrows: [pass([45.7, 9.1], [30.5, 1.5])] },
-      // the variants: what each one is for
+      // the variants: one shown end to end — the slip to the wide hitter, then the strike.
+      // (One continuous ball path: an animation that shows two alternatives at once reads as a
+      // teleporting ball, which is exactly what Jan flagged.)
       { id: 'variants', view: 'behindGoal',
-        markers: [us(30.5, 1.5, 'T'), us(29.3, 0.2, 'S'), us(27, -3.5), them(45.7, 0), them(44, -1.4), them(44, 1.4), ball(30.5, 1.5)],
-        arrows: [pass([30.5, 1.5], [27, -3.5]), pass([29.3, 0.2], [45.7, 2.5])] },
+        markers: [us(30.5, 1.5, 'T'), us(29.3, 0.2, 'S'), us(27, -3.5), them(45.7, 0, 'K'), them(45.5, -1.4), them(45.5, 1.4), ball(30.5, 1.5)],
+        arrows: [pass([30.5, 1.5], [27, -3.5]), pass([27, -3.5], [45.7, -1.2])] },
       // running out: the flyer leaves on the injection and guesses line and height
       { id: 'runningOut', view: 'behindGoal',
         markers: [us(30.5, 1.5, 'T'), us(29.3, 0.2, 'S'), them(45.7, 0, 'K'), them(45.3, -1.4, 'P'), them(45.3, 1.4, 'P'), them(45.3, 0.2, 'R'), ball(30.5, 1.5)],
         arrows: [run([45.3, 0.2], [31, 0.8])] },
-      // wearing a variant out: run the same one all season and the league sets up for it
+      // wearing a variant out: the runner charges the flick they have seen nine times — so the
+      // trapper slips it to the striker they kept behind, who scores past the committed runner
       { id: 'wearOut', view: 'behindGoal',
         markers: [us(30.5, 1.5, 'T'), us(29.3, 0.2, 'S'), them(45.7, 0, 'K'), them(45.3, 0.2, 'R'), them(43, 3), ball(30.5, 1.5)],
-        arrows: [run([45.3, 0.2], [30.6, 1.2]), pass([29.3, 0.2], [45.7, 3.2])] },
+        arrows: [run([45.3, 0.2], [31.2, 1.3]), pass([30.5, 1.5], [29.3, 0.2]), pass([29.3, 0.2], [45.7, 1.2])] },
     ],
   },
   {
@@ -92,7 +96,7 @@ export const ACADEMY: Topic[] = [
     steps: [
       // the shape: backs split around your own D, never receive inside it
       { id: 'shape', view: 'full',
-        markers: [us(-42, 0, 'K'), us(-28, -17), us(-30, -6), us(-30, 6), us(-28, 17), us(-12, 0), them(-18, 0), them(-20, -8)],
+        markers: [us(-42, 0, 'K'), us(-28, -17), us(-30, -6), us(-30, 6), us(-28, 17), us(-12, 0), them(-18, 0), them(-20, -8), ball(-42, 0)],
         arrows: [pass([-42, 0], [-28, 17])] },
       // the free man: the spare back who is never marked is the whole outlet
       { id: 'freeMan', view: 'full',
@@ -100,25 +104,54 @@ export const ACADEMY: Topic[] = [
         arrows: [pass([-28, 17], [-30, 6]), pass([-30, 6], [-12, 4])] },
       // up-back-through: the pass that makes a press look silly
       { id: 'upBackThrough', view: 'full',
-        markers: [us(-30, 6), us(-8, 10), us(-14, 0), us(10, 6), them(-6, 12), them(-16, 4)],
+        markers: [us(-30, 6), us(-8, 10), us(-14, 0), us(10, 6), them(-6, 12), them(-16, 4), ball(-30, 6)],
         arrows: [pass([-30, 6], [-8, 10]), pass([-8, 10], [-14, 0]), pass([-14, 0], [10, 6])] },
-      // over the top: the answer to a full press that has left nobody spare
+      // over the top: the answer to a full press that has left nobody spare — the runner and the
+      // ball meet, so the run starts where the runner actually stands
       { id: 'overTheTop', view: 'full',
-        markers: [us(-30, 6), us(20, 12), them(-26, 10), them(-20, 2), them(-24, -6)],
-        arrows: [pass([-30, 6], [20, 12]), run([14, 16], [22, 12])] },
+        markers: [us(-30, 6), us(14, 16), them(-26, 10), them(-20, 2), them(-24, -6), ball(-30, 6)],
+        arrows: [pass([-30, 6], [22, 12]), run([14, 16], [22, 12])] },
     ],
   },
   {
     id: 'pressing',
+    // One step per system, with the engage line where the ENGINE actually puts it (ai/tactics.ts
+    // pressLineM: full 71.5 m from own backline = x +25.8, half 52.25 = x +6.5, zone 35.75 = x −10),
+    // then the two principles every system shares. The old single "four systems in one picture" step
+    // showed a full-court press while the caption described all four — Jan rightly called it wrong.
     steps: [
       // Full-court press: we attack +x, so they build out from their own goal at +45.7 and we go
-      // and get it there. Man-to-man over the whole pitch, nobody spare — the full court is the
-      // only frame that shows what that costs at the back.
-      { id: 'systems', view: 'full',
+      // and get it there. Man-to-man over the whole pitch, nobody spare, nobody resting — the full
+      // court is the only frame that shows what that costs at the back.
+      { id: 'fullCourt', view: 'full',
         markers: [them(43, 0, 'K'), them(36, -14), them(34, 0), them(36, 14), them(22, -8), them(20, 9),
                   us(38, -12), us(37, 2), us(38, 13), us(24, -7), us(23, 10), us(8, 0), us(-6, -6), us(-8, 7), us(-30, 0, 'K'),
                   ball(36, 14)],
         arrows: [run([38, 13], [36.5, 13.5]), run([24, -7], [22.5, -8])] },
+      // Half-court press: they circulate untouched in their own half; the block waits around the
+      // halfway line and the first man steps out only when the carrier reaches it. One forward
+      // rests high, the free man sits behind the line.
+      { id: 'halfCourt', view: 'full',
+        markers: [them(43, 0, 'K'), them(36, -12), them(34, 8), them(24, -3), them(14, 13),
+                  us(8, -8), us(7, 6), us(-2, -14), us(-4, 0), us(-2, 12), us(-16, -7), us(-17, 7), us(-24, 0, 'F'), us(-34, 0, 'K'), us(24, 12, 'R'),
+                  ball(36, -12)],
+        arrows: [pass([36, -12], [34, 8]), carry([34, 8], [12, 8]), run([7, 6], [10, 7])] },
+      // The splitting press: shepherd to the touchline, the block slides with it, and the far side
+      // is conceded on purpose. On a full court you can see how much is being given away.
+      { id: 'split', view: 'full',
+        markers: [them(18, -20), them(24, -6), them(10, 2), them(26, 16),
+                  us(12, -22), us(8, -12), us(2, -3), us(-6, -14), us(-4, 4), us(-20, -6), us(-34, 0, 'K'),
+                  ball(18, -20)],
+        arrows: [run([12, -22], [16, -19]), run([2, -3], [-1, -10]), run([-4, 4], [-6, -2])] },
+      // Zone press: two zonal banks a good ten metres inside our own half; when they switch the
+      // ball, nobody chases it — the banks slide across and keep their lanes. Two forwards rest
+      // high for the turnover.
+      { id: 'zone', view: 'full',
+        markers: [them(2, 10), them(6, -12), them(-4, 0), them(16, 16),
+                  us(-6, -12), us(-8, 0), us(-6, 12), us(-18, -8), us(-20, 1), us(-18, 10), us(-27, 0, 'F'), us(-38, 0, 'K'),
+                  us(12, -6, 'R'), us(14, 8, 'R'),
+                  ball(2, 10)],
+        arrows: [pass([2, 10], [6, -12]), run([-6, 12], [-7, 4]), run([-18, 10], [-19, 4])] },
       // Who steps out: the ball is in the left channel, so the left-side owner goes and the rest
       // hold their lanes. The far-side half staying home is the whole point.
       { id: 'channels', view: 'full',
@@ -134,13 +167,6 @@ export const ACADEMY: Topic[] = [
                   us(26, -8, 'R'), us(29, 9, 'R'),
                   ball(-14, -10)],
         arrows: [run([26, -8], [40, -6])] },
-      // The splitting press: shepherd to the touchline, the block slides with it, and the far side
-      // is conceded on purpose. On a full court you can see how much is being given away.
-      { id: 'split', view: 'full',
-        markers: [them(18, -20), them(24, -6), them(10, 2), them(26, 16),
-                  us(12, -22), us(8, -12), us(2, -3), us(-6, -14), us(-4, 4), us(-20, -6), us(-34, 0, 'K'),
-                  ball(18, -20)],
-        arrows: [run([12, -22], [16, -19]), run([2, -3], [-1, -10]), run([-4, 4], [-6, -2])] },
     ],
   },
   {
@@ -150,14 +176,14 @@ export const ACADEMY: Topic[] = [
       { id: 'theLine', view: 'half',
         markers: [us(24, 8), us(36, 2), them(32, 4), ball(24, 8)],
         arrows: [carry([24, 8], [34, 6])] },
-      // the baseline pull-back
+      // the baseline pull-back: round the back, to the line, and back to the spot the runner hits
       { id: 'baseline', view: 'behindGoal',
-        markers: [us(42, 12), us(37, 0), us(33, -4), them(41, 4), them(45.7, 0, 'K'), ball(42, 12)],
-        arrows: [carry([38, 14], [43, 9]), pass([43, 9], [37, 0]), run([30, -6], [33, -4])] },
-      // switch and slip
+        markers: [us(42, 12), us(37, 4), us(30, -6), them(41, 4), them(45.7, 0, 'K'), ball(42, 12)],
+        arrows: [carry([42, 12], [43, 9]), run([30, -6], [36, -2]), pass([43, 9], [36, -2])] },
+      // switch and slip: circulate over the top until the block shifts, then slip in behind it
       { id: 'switchSlip', view: 'behindGoal',
-        markers: [us(31, -8), us(31, 8), us(40, 5), them(36, -2), them(38, 3), them(45.7, 0, 'K'), ball(31, -8)],
-        arrows: [pass([31, -8], [31, 8]), pass([31, 8], [40, 5])] },
+        markers: [us(31, -8), us(31, 8), us(34, 7), them(36, -2), them(38, 3), them(45.7, 0, 'K'), ball(31, -8)],
+        arrows: [pass([31, -8], [31, 8]), run([34, 7], [40, 5]), pass([31, 8], [40, 5])] },
       // drawing the foot: how most club-level corners are won
       { id: 'drawTheFoot', view: 'goalmouth',
         markers: [us(36, 2), them(39, 2), them(45.7, 0, 'K'), ball(36, 2)],

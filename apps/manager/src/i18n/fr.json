@@ -588,9 +588,13 @@
     "momentum": "MOMENTUM",
     "momentumSub": "entrées dans le cercle par cinq minutes, les nôtres au-dessus de la ligne",
     "keyMoments": "MOMENTS CLÉS",
+    "goals": "BUTS",
+    "playClip": "Lire la séquence",
+    "closeClip": "FERMER",
+    "fixSystem": "AJUSTEZ VOTRE SYSTÈME",
     "noMoments": "Un match calme — aucun moment décisif dont l'analyse soit sûre.",
     "didWell": "CE QUE VOUS AVEZ BIEN FAIT",
-    "didWellNone": "Rien ne ressort comme une victoire nette cette fois — le match a été équilibré.",
+    "didWellNone": "Rien ne ressort comme une victoire nette cette fois — les leçons sont à côté.",
     "workOn": "À TRAVAILLER",
     "workOnNone": "Pas de leçon claire dans ce match. Gardez le même plan et surveillez le troisième quart-temps.",
     "ruleOfMatch": "RÈGLE DU MATCH",
@@ -821,7 +825,7 @@
     },
     "cards": {
       "title": "Cartes",
-      "body": "Verte : deux minutes dehors. Jaune : cinq ou dix minutes dehors. Rouge : le reste du match. Les fautes répétées montent en grade."
+      "body": "Verte : deux minutes dehors. Jaune : cinq ou dix minutes dehors. Rouge : le reste du match. Les fautes répétées montent en grade. Les cartons diffèrent aussi par leur forme — le vert est triangulaire, le jaune rectangulaire, le rouge rond — pour qu'un joueur daltonien voie aussitôt lequel vient d'être montré."
     },
     "subs": {
       "title": "Changements volants",
@@ -972,9 +976,17 @@
       "title": "Le pressing",
       "sub": "Quatre systèmes, quatre sports différents.",
       "steps": {
-        "systems": {
-          "title": "Les quatre systèmes",
-          "body": "Tout-terrain : homme à homme sur tout le terrain, personne en couverture. Demi-terrain : le bloc se place vers la médiane. Split : on oriente d'un côté et le bloc glisse. Zone : tout le monde derrière les 23 m et personne ne suit la balle."
+        "fullCourt": {
+          "title": "Le pressing tout-terrain",
+          "body": "Homme à homme sur tout le terrain, jusqu'à leur ligne de fond — personne en couverture, personne au repos. On récupère la balle très haut, ou une seule passe à travers la première ligne ouvre un demi-terrain. Le pari de ce système, c'est que cette passe ne vienne jamais."
+        },
+        "halfCourt": {
+          "title": "Le pressing demi-terrain",
+          "body": "Ils peuvent faire tourner tranquillement dans leur moitié ; le bloc attend vers la médiane et c'est là seulement que le premier homme sort. Un attaquant reste haut au repos, et un homme libre derrière la ligne rattrape l'erreur."
+        },
+        "zone": {
+          "title": "Le pressing de zone",
+          "body": "Pas de marquage individuel : deux lignes tiennent leurs zones, une bonne dizaine de mètres dans notre moitié. Quand ils renversent le jeu, personne ne chasse — le bloc coulisse et garde les couloirs fermés. Deux attaquants restent hauts pour la transition."
         },
         "channels": {
           "title": "Qui sort",

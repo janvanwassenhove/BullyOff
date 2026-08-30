@@ -99,6 +99,31 @@ describe('playing a step back', () => {
     }
   });
 
+  it('the ball never teleports and every movement starts at somebody', () => {
+    // Jan's report: passes that jumped between players and runs that yanked the wrong marker made
+    // the lessons read as wrong. Two invariants pin it: the ball's moves form one continuous chain
+    // starting at the ball marker, and every run/carry leaves from where a player actually stands.
+    for (const { tp, s } of steps) {
+      const ballStart = s.markers.find((m) => m.side === 'ball');
+      let at: [number, number] | null = ballStart ? [ballStart.x, ballStart.y] : null;
+      for (const a of s.arrows) {
+        if (a.kind === 'run' || a.kind === 'carry') {
+          const d = Math.min(...s.markers.filter((m) => m.side !== 'ball').map((m) => Math.hypot(m.x - a.from[0], m.y - a.from[1])));
+          expect(d, `${tp}/${s.id}: ${a.kind} from (${a.from.join(',')}) starts ${d.toFixed(1)} m from the nearest player`).toBeLessThan(1.5);
+        }
+        if (a.kind === 'pass' || a.kind === 'carry') {
+          if (at) {
+            const jump = Math.hypot(a.from[0] - at[0], a.from[1] - at[1]);
+            expect(jump, `${tp}/${s.id}: the ball jumps ${jump.toFixed(1)} m to (${a.from.join(',')})`).toBeLessThan(0.01);
+          }
+          at = a.to;
+        }
+      }
+      // a step that moves the ball needs a ball to move
+      if (s.arrows.some((a) => a.kind !== 'run')) expect(ballStart, `${tp}/${s.id} has ball moves but no ball marker`).toBeDefined();
+    }
+  });
+
   it('a run leaves before the pass it makes', () => {
     // The run makes the pass, not the other way round: a receiver who starts moving after the ball
     // is struck is the thing the timed-run work exists to fix.

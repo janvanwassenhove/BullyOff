@@ -72,7 +72,10 @@ export interface Laws {
 export const FIH_OUTDOOR: Laws = {
   quarterTicks: 15 * MIN,
   breakTicks: [2 * MIN, 10 * MIN, 2 * MIN],
-  setupTicks: { centrePass: 3 * SEC, freeHit: 1 * SEC, penaltyCorner: 6 * SEC, penaltyStroke: 6 * SEC },
+  // centrePass 12 s: after a goal everyone walks back to his OWN half and his spot before the game
+  // restarts (the clock is stopped, so this costs no playing time — it only makes the restart look
+  // like hockey instead of a rugby tap). 3 s left half the team stranded upfield at the whistle.
+  setupTicks: { centrePass: 12 * SEC, freeHit: 1 * SEC, penaltyCorner: 6 * SEC, penaltyStroke: 6 * SEC },
   freeHitDistance: 5,
   freeHit23TravelDistance: 5,
   longCornerOn23: true,
@@ -111,5 +114,7 @@ export const FIH_OUTDOOR_SHORT_TEST: Laws = {
 export const FIH_OUTDOOR_FAST: Laws = {
   ...FIH_OUTDOOR,
   breakTicks: [2 * SEC, 4 * SEC, 2 * SEC],
-  setupTicks: { centrePass: 1 * SEC, freeHit: 10, penaltyCorner: 2 * SEC, penaltyStroke: 2 * SEC },
+  // centrePass 6 s, not 1: even at batch pace the players must physically reach their own half
+  // before the pass, or the kickoff shape never exists and the receiving team is ambushed.
+  setupTicks: { centrePass: 6 * SEC, freeHit: 10, penaltyCorner: 2 * SEC, penaltyStroke: 2 * SEC },
 };

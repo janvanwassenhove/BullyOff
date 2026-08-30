@@ -588,9 +588,13 @@
     "momentum": "MOMENTUM",
     "momentumSub": "circle entries per five minutes, ours above the line",
     "keyMoments": "KEY MOMENTS",
+    "goals": "GOALS",
+    "playClip": "Play the clip",
+    "closeClip": "CLOSE",
+    "fixSystem": "ADJUST YOUR SYSTEM",
     "noMoments": "A quiet one — no decisive moment the analyser is sure about.",
     "didWell": "WHAT YOU DID WELL",
-    "didWellNone": "Nothing stood out as a clear win this time — the match shows an even match.",
+    "didWellNone": "Nothing stood out as a clear win this time — the lessons are alongside.",
     "workOn": "TO WORK ON",
     "workOnNone": "No clear lesson from this match. Keep the same plan and watch the third quarter.",
     "ruleOfMatch": "RULE OF THE MATCH",
@@ -821,7 +825,7 @@
     },
     "cards": {
       "title": "Cards",
-      "body": "Green: two minutes off. Yellow: five or ten minutes off. Red: the rest of the match. Persistent fouling escalates."
+      "body": "Green: two minutes off. Yellow: five or ten minutes off. Red: the rest of the match. Persistent fouling escalates. The cards differ in shape as well as colour — green is triangular, yellow rectangular, red round — so a colour-blind player still sees at once which card has gone up."
     },
     "subs": {
       "title": "Rolling substitutions",
@@ -972,9 +976,17 @@
       "title": "Pressing",
       "sub": "Four systems, four different sports.",
       "steps": {
-        "systems": {
-          "title": "The four systems",
-          "body": "Full court: man-to-man over the whole pitch, nobody spare. Half court: the block sets around halfway. Split: shepherd to one side and slide across. Zone: everyone behind the 23 and nobody chases."
+        "fullCourt": {
+          "title": "The full-court press",
+          "body": "Man-to-man over the whole pitch, all the way to their backline — nobody spare at the back, nobody resting. You win the ball high, or one pass through your first line opens half the pitch. The bet this system makes is that the pass never comes."
+        },
+        "halfCourt": {
+          "title": "The half-court press",
+          "body": "They can knock it around their own half in peace; the block waits around halfway and only there does the first man step out. One forward rests high, and a free man behind the line covers the mistake."
+        },
+        "zone": {
+          "title": "The zone press",
+          "body": "No man-marking: two banks hold their zones, a good ten metres inside your own half. When they switch the ball, nobody chases — the block slides across and keeps the lanes shut. Two forwards stay high for the turnover."
         },
         "channels": {
           "title": "Who steps out",

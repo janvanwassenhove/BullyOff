@@ -269,14 +269,30 @@ const insetFace = computed(() => frame.value.figures.find((f) => f.face === 'bac
           :d="f.bottomEdge"
           :class="f.backOnBall ? 'back hot' : 'face'"
         />
+        <!-- Real hockey cards are shaped as well as coloured (colour-blind players read the shape):
+             green is triangular, yellow rectangular, red round. -->
+        <polygon
+          v-if="f.cardAt && frame.card === 'green'"
+          :points="`${f.cardAt.x},${f.cardAt.y - 12} ${f.cardAt.x - 9},${f.cardAt.y + 8} ${f.cardAt.x + 9},${f.cardAt.y + 8}`"
+          :fill="CARD.green"
+          class="card"
+        />
         <rect
-          v-if="f.cardAt && scene.card"
+          v-if="f.cardAt && frame.card === 'yellow'"
           :x="f.cardAt.x - 7"
           :y="f.cardAt.y - 10"
           width="14"
           height="20"
           rx="2"
-          :fill="CARD[scene.card]"
+          :fill="CARD.yellow"
+          class="card"
+        />
+        <circle
+          v-if="f.cardAt && frame.card === 'red'"
+          :cx="f.cardAt.x"
+          :cy="f.cardAt.y"
+          r="10"
+          :fill="CARD.red"
           class="card"
         />
         <circle

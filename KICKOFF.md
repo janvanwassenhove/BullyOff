@@ -2,7 +2,7 @@
 
 > Read this first. Then `BRIEF.md`, then `docs/adr/`, then the latest `docs/handoff/`.
 
-## Current phase: **v1.0.0 SHIPPED (tagged 2026-08-30)** — phases 0–10.5 built and calibrated; next is v1.x (human/device reviews still owed)
+## Current phase: **v1.0.x — Jan's review round** (v1.0.0 tagged 2026-08-30; Phase 10.6 shipped the same day: academy press lesson corrected per system, card escalation with FIH shapes, every goal reviewable as a clip with the system answer, kickoff shape after goals, the halfway five defend the corner — `docs/handoff/phase-10.6.md`. Next big phase: **competitions of Europe**, § After v1.0.)
 
 Phase 10.5 (`docs/handoff/phase-10.5.md`, engine **0.8.0**, golden `7511507816fd5c49`): the full realism validation — five rulebook texts corrected against the FIH rules in NL/EN/FR (PC defender count, early breaking per 13.7, PC keeper substitution, the advantage nuance on feet, dangerous play in the circle), the academy content confirmed sound, and the owed 96-match calibration paid with a possession-funnel diagnosis and mechanism fixes (interception is a lunge, stick saves before body contacts, forwards actually in the D, blocker-aware PC flicks, urgent D clearances, chasing the game, tempo-scaled thresholds per profile). **Men 14/15 bands, women 12/15 — every directly-measured metric passes in both**; `pnpm check` 218 tests + 12 browser tests green. Residuals in `docs/rules/calibration.md` §0.8.0.
 
@@ -24,6 +24,8 @@ Earlier phases: 8 worldgen + 20-season history (`phase-8.md`), 7 in-match coachi
 4. ~~Tag `v1.0.0`~~ — **tagged and released 2026-08-30** (https://github.com/janvanwassenhove/BullyOff/releases/tag/v1.0.0), on Jan's go.
 
 ### After v1.0 (BRIEF v1.x)
+
+**Competitions of Europe (Jan, 2026-08-30 — proposed as the next big phase).** Alongside the Belgian league: Dutch, English, French and German national leagues (fictional clubs, country-flavoured name pools per ADR-006), national-league **playoffs** (final-four style), a **European club competition** on top of the domestic seasons, and a **nations competition in a Pro League-like format** (home/away round robin, no tiers). All formats as data on top of packages/season; needs a save-format bump and world-gen per country. Open questions for Jan: which country first, whether existing saves must migrate into the bigger world or start fresh, and how much of a season the European midweeks may eat.
 
 Arcade front-end on the same engine worker (`apps/arcade` stub; reuse `CoachInstruction`/`Command`), club mode (ADR-006 option D, local-only), replay v2 with the instruction list, records view, quick-sim toggle, stamina-curve tuning + re-calibration, PC read-and-counter AI, real art assets (ADR-012).
 

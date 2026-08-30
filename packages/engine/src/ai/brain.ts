@@ -21,7 +21,7 @@ import { attackingEnd, type PlayerView, type RulesState, type RulesView, type Te
 import type { Command } from '../match/commands.js';
 import type { Controller, PlayerSetup } from '../match/match.js';
 import { attributesFor, norm, type Attributes, type Role } from '../player/attributes.js';
-import { pressLineM, backLineM, DEFAULT_TACTICS, FORMATION_433, FORMATIONS, PRESS_SYSTEMS, assignSlots, channelOf, lineOf, presetPatch, shapeTarget, type PressSystem, type Slot, type TeamTactics } from './tactics.js';
+import { pressLineM, backLineM, DEFAULT_TACTICS, FORMATION_433, FORMATIONS, PRESS_SYSTEMS, assignSlots, channelOf, lineOf, presetPatch, shapeTarget, slotToPitch, type PressSystem, type Slot, type TeamTactics } from './tactics.js';
 import { laneEntersCircle, pitchValue, shotQuality } from './valueGrid.js';
 import { MENS, type Profile, type SurfaceState } from '../profile.js';
 import { strikeSpeedFactor } from '../player/attributes.js';
@@ -257,6 +257,26 @@ function teamTick(c: Ctx, leaving: Map<number, number>, lastTackleTick: Map<numb
   }
 
   // ── restarts (free hits, side-ins, long corners, hit-outs, centre pass) ────
+  // A centre pass is not an ordinary restart: after a goal (and at a quarter) BOTH teams take up
+  // their kickoff shape in their own half first — nobody stands where the last attack left him, and
+  // nobody creeps over the line before the whistle. The clock is stopped, so this walk costs no
+  // playing time; it is what Jan saw missing ("play resumed with half the team still upfield").
+  if (restart?.kind === 'centrePass') {
+    for (const p of mine) {
+      if (p.isGoalkeeper) continue;
+      if (restartMine && p.id === nearestMine?.id) continue; // the taker walks to the ball below
+      const slot = c.slotOf(p.id);
+      // slot.xp is metres from our own backline; clamp to our own half (the law) with a stride spare
+      moveTo(c, p, slotToPitch({ xp: Math.min(slot.xp, HALF_LENGTH - 2), y: slot.y }, end), 0.8);
+    }
+    if (c.keeperMine) goalkeeper(c, c.keeperMine, null);
+    if (restartMine && nearestMine) {
+      const taker = nearestMine;
+      c.cmds.push({ tick, kind: 'move', playerId: taker.id, dx: ball.x - taker.pos.x, dy: ball.y - taker.pos.y, effort: 0.8 });
+      if (tick >= restart.readyTick && dist(taker.pos, ball) < 1.3) issue(c, taker, bestOption(c, taker, true));
+    }
+    return;
+  }
   if (restartMine && nearestMine) {
     const taker = nearestMine;
     c.cmds.push({ tick, kind: 'move', playerId: taker.id, dx: ball.x - taker.pos.x, dy: ball.y - taker.pos.y, effort: 0.8 });
@@ -328,6 +348,8 @@ function bestOption(c: Ctx, me: PlayerView, restart: boolean): Option {
     const strike = dGoal < 7 ? 'push' : flickPref > 0.1 && dGoal < 12 ? 'flick' : 'hit';
     // Shoot when the chance is decent; from a poor angle prefer to work the ball (carry/pass) unless pressed.
     // Hockey reason: a shot from the edge of the D at 30° is a turnover; the spot strip is where goals come from.
+    // 0.04: measured at 0.0 and 0.02 the men's goals fell out of the (measured) band while the shots
+    // count barely moved — the estimated shots band is not worth a measured-goals miss.
     const u = 0.04 + 1.4 * q + 0.25 * pressure * norm(a.mental.composure) - 0.15 * (1 - team.tactics.tempo) + c.rng.gaussian(0, noise);
     options.push({ kind: 'shoot', angle, strike, power: strike === 'push' ? 0.9 : 1, u });
     // "Win the corner": a defender's feet inside the D are a target. A firm push/hit at a defender standing between
@@ -988,7 +1010,16 @@ function pcDefend(c: Ctx, pending: boolean): void {
     }
     if (dist(p.pos, ball) < 1.4 && c.ballSpeed > 3 && approaching(c, p)) c.cmds.push({ tick, kind: 'trap', playerId: p.id });
   });
-  for (const p of rest) moveTo(c, p, { x: -end * 5, y: p.pos.y }, 0.5);
+  // The halfway group is not decoration: the law only holds them beyond the centre line until the
+  // injection. Once the ball is in play, the recoverers SPRINT back into the second-phase zone at
+  // the top of our D (rebounds and slipped balls are theirs), while two stay wide around halfway as
+  // the counter outlets — exactly where our clearance is aimed.
+  const restSorted = [...rest].sort((a, b) => a.id - b.id);
+  restSorted.forEach((p, i) => {
+    if (pending) { moveTo(c, p, { x: -end * 3, y: clamp(-18 + i * 9, -20, 20) }, 0.6); return; }
+    if (i < 2) moveTo(c, p, { x: -end * 2, y: (i === 0 ? -1 : 1) * 20 }, 0.7); // outlets for the clear
+    else moveTo(c, p, { x: -end * (CIRCLE_TOP_X - 6), y: (i - 3) * 8 }, 0.95); // recoverers join the defence
+  });
   // fallback: a loose ball in our circle after the injection → nearest defender clears it
   if (!pending) {
     const carrier = findCarrier(c);

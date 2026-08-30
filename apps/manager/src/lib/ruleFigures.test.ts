@@ -123,14 +123,22 @@ describe('the scenes say what the rules say', () => {
     expect((s.goalX ?? 0) - ballAt(s, 0).x).toBeCloseTo(14.1, 0);
   });
 
-  it('the card scene: the umpire holds it up and the offender walks off', () => {
+  it('the card scene: green, then yellow, then red — each shown with the arm up, and the offender ends up off', () => {
     const s = scene('rules.cards');
     const umpire = sampleScene(s, s.seconds).figures[0];
     expect(umpire?.side).toBe('umpire');
     expect(umpire?.arm ?? 0).toBeGreaterThan(0.9);
     expect(poseOf(umpire!).armTip.z).toBeGreaterThan(poseOf(umpire!).head.z); // above the head, where a card is shown
     expect(at(s, 1, s.seconds)).toBeLessThan(at(s, 1, 0) - 2);
-    expect(s.card).toBe('green');
+    // the escalation, in order, and nothing before the first card goes up
+    expect(sampleScene(s, 0).card).toBeNull();
+    const shown = (s.cards ?? []).map((c) => sampleScene(s, c.t + 0.4).card);
+    expect(shown).toEqual(['green', 'yellow', 'red']);
+    // every card is shown with the arm high enough that the view actually draws it (arm > 0.5)
+    for (const c of s.cards ?? []) {
+      const arm = sampleScene(s, c.t + 0.4).figures[0]?.arm ?? 0;
+      expect(arm, `arm up while showing ${c.card}`).toBeGreaterThan(0.5);
+    }
   });
 });
 

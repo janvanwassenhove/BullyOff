@@ -1,6 +1,10 @@
 /**
  * Golden hash of the canonical sandbox fixture (seed 42, mens/watered, 600 ticks, sandbox mode).
  * History: 0.1.0 → 60abc0490dcdf885 · 0.2.0 → 4bd0c4840e5778f0 (body contact updates lastTouch)
+ *          · 0.8.1 → 645cdbc6a3a1d81f (the review pass: after a goal both teams retake their kickoff
+ *            shape in their own half before the centre pass (setup 12 s / 6 s fast), and the halfway
+ *            five at a defending PC join in after the injection — recoverers to the top of the D,
+ *            two counter outlets wide at halfway.)
  *          · 0.8.0 → 7511507816fd5c49 (the realism calibration: interception is a lunge not a receive, stick saves
  *            before body contacts, urgent D clearances, blocker-aware PC flicks, chasing the game,
  *            tempo-scaled thresholds via the profile, BallStruck carries its angle — the sandbox log
@@ -16,4 +20,4 @@
  * the log, bump ENGINE_VERSION and update this value — never silently.
  */
 export const SANDBOX_GOLDEN = { seed: 42, ticks: 600, profile: 'mens', surface: 'watered' } as const;
-export const SANDBOX_GOLDEN_HASH = '7511507816fd5c49';
+export const SANDBOX_GOLDEN_HASH = '645cdbc6a3a1d81f';
