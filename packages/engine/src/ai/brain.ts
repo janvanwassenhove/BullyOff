@@ -21,7 +21,8 @@ import { attackingEnd, type PlayerView, type RulesState, type RulesView, type Te
 import type { Command } from '../match/commands.js';
 import type { Controller, PlayerSetup } from '../match/match.js';
 import { attributesFor, norm, type Attributes, type Role } from '../player/attributes.js';
-import { pressLineM, backLineM, DEFAULT_TACTICS, FORMATION_433, FORMATIONS, PRESS_SYSTEMS, assignSlots, channelOf, lineOf, presetPatch, shapeTarget, slotToPitch, type PressSystem, type Slot, type TeamTactics } from './tactics.js';
+import { carrySideFactor, lateralOf, lateralOfDir, receiveSideFactor, strikeSideSpeed } from '../player/handedness.js';
+import { jockeySpot, pressLineM, backLineM, DEFAULT_TACTICS, FORMATION_433, FORMATIONS, PRESS_SYSTEMS, assignSlots, channelOf, lineOf, presetPatch, shapeTarget, slotToPitch, type PressSystem, type Slot, type TeamTactics } from './tactics.js';
 import { laneEntersCircle, pitchValue, shotQuality } from './valueGrid.js';
 import { MENS, type Profile, type SurfaceState } from '../profile.js';
 import { strikeSpeedFactor } from '../player/attributes.js';
@@ -350,7 +351,12 @@ function bestOption(c: Ctx, me: PlayerView, restart: boolean): Option {
     // Hockey reason: a shot from the edge of the D at 30° is a turnover; the spot strip is where goals come from.
     // 0.04: measured at 0.0 and 0.02 the men's goals fell out of the (measured) band while the shots
     // count barely moved — the estimated shots band is not worth a measured-goals miss.
-    const u = 0.04 + 1.4 * q + 0.25 * pressure * norm(a.mental.composure) - 0.15 * (1 - team.tactics.tempo) + c.rng.gaussian(0, noise);
+    // A shot swung out to the reverse is weaker and wider (§6.5): with time, a forward takes the
+    // extra step to get it onto his forehand rather than shooting off the wrong stick side.
+    // 0.2, not more: inside the D a forward shoots off whatever side the ball is on — the chance is
+    // worth more than the stick face. Outside it he would take the extra touch; that is the carry.
+    const shotSide = 0.2 * (1 - strikeSideSpeed(a, strike, lateralOf(me.heading, me.pos, ball)));
+    const u = 0.04 + 1.4 * q + 0.25 * pressure * norm(a.mental.composure) - 0.15 * (1 - team.tactics.tempo) - shotSide + c.rng.gaussian(0, noise);
     options.push({ kind: 'shoot', angle, strike, power: strike === 'push' ? 0.9 : 1, u });
     // "Win the corner": a defender's feet inside the D are a target. A firm push/hit at a defender standing between
     // ball and goal is how most club-level PCs are won (FIH 13.3: feet in the circle → PC). Umpires give it; attackers know.
@@ -392,13 +398,19 @@ function bestOption(c: Ctx, me: PlayerView, restart: boolean): Option {
     // backwards passes are fine when pressed, poor otherwise
     const backwards = end * (lead.x - ball.x) < -5 ? (pressure > 0.5 ? 0 : 0.12) : 0;
     const vision = 0.15 * norm(a.mental.vision);
+    // The receiving side (§6.3): the same pass is worth less arriving on a man's reverse, and a
+    // passer with vision sees which shoulder he is putting it on.
+    // …but not into the circle: an entry ball is worth taking on the reverse, and a hockey team that
+    // only ever plays the comfortable one never enters the D at all.
+    const arriveSide = (laneEntersCircle(ball, lead, end) ? 0.15 : 0.5)
+      * (1 - receiveSideFactor(c.attrsOf(mate.id), lateralOf(mate.heading, lead, ball)));
     // never play a teammate the ball inside our own circle (the keeper aside as a last resort under real pressure)
     const intoOwnD = inCircle(lead, -end as End) ? (pressure > 0.7 ? 0.25 : 0.6) : 0;
     // Inside the attacking D a "risky" lane past a defender is a chance to hit a foot and win a PC — attackers take it.
     // The entry pass itself is also played tighter than a midfield ball: a lane into the D that might be cut
     // is still worth the attempt, because the alternative is recycling around the top forever.
     const riskW = inD ? 0.6 : laneEntersCircle(ball, lead, end) ? 0.8 : 1.4;
-    let u = 0.15 + 1.2 * gain + 0.35 * open - riskW * risk - lengthPen + intoD - backwards + vision - intoOwnD + c.rng.gaussian(0, noise);
+    let u = 0.15 + 1.2 * gain + 0.35 * open - riskW * risk - lengthPen + intoD - backwards + vision - intoOwnD - arriveSide + c.rng.gaussian(0, noise);
     if (restart) u += 0.2; // restarts want to be taken
     const angle = dmath.atan2(lead.y - ball.y, lead.x - ball.x);
     // Arrive firmly: on water a push is played to reach the receiver at 6.5–10 m/s (quicker when the receiver is
@@ -426,7 +438,10 @@ function bestOption(c: Ctx, me: PlayerView, restart: boolean): Option {
       const ahead = nearestDistAhead(opp, ball, dir, 6);
       const space = clamp((ahead - 1) / 4, 0, 1);
       const elim = 0.15 * norm(a.technical.elimination);
-      let u = 0.05 + 1.0 * gain + 0.7 * space - 0.5 * pressure * (1 - elim) + c.rng.gaussian(0, noise * 0.5);
+      // Carrying and eliminating on the reverse is harder (§6.4) — so being shepherded onto it
+      // costs the carrier in the value function, not only in the picture.
+      const carrySide = 0.25 * (1 - carrySideFactor(a, lateralOfDir(me.heading, ang)));
+      let u = 0.05 + 1.0 * gain + 0.7 * space - 0.5 * pressure * (1 - elim) - carrySide + c.rng.gaussian(0, noise * 0.5);
       // Dribbling straight into a defender's stick hands them the ball (the turnover of the amateur game):
       // only a real eliminator takes that on; everyone else looks sideways or passes.
       if (ahead < 2.6) u -= 0.55 * (1 - norm(a.technical.elimination) * 0.6);
@@ -689,10 +704,14 @@ function defend(c: Ctx, target: PlayerView, ballXp: Scalar, ballY: Scalar, lastT
   const ownGoal = { x: -end * HALF_LENGTH, y: 0 };
   const gvx = ownGoal.x - ball.x, gvy = ownGoal.y - ball.y; const gl = Math.sqrt(gvx * gvx + gvy * gvy) || 1;
   // Shepherding: the first defender closes from the inside shoulder so the carrier's only way forward
-  // is wide, and the block slides across behind him. `toReverse` is the same geometry until stick
-  // handedness lands (phase 11b) and it can aim at the carrier's backhand instead of at the middle.
+  // is wide, and the block slides across behind him. `toReverse` (§6.1) is the hockey-specific one:
+  // close the carrier's OPEN STICK channel, so the only way forward is on his reverse — where he
+  // carries worse, eliminates worse and strikes worse. This is why a hockey pressing angle is not a
+  // football pressing angle.
   const inside = ball.y > 0 ? -1 : 1;
-  const shepherded = sys.shepherd !== 'toLine' || sys.trap === 'touchline';
+  // captured before the loop: the case block below shadows `target` with the spot to stand on
+  const carrierHeading = target.heading;
+
 
   for (const p of outfield) {
     const job = jobs.get(p.id);
@@ -709,9 +728,7 @@ function defend(c: Ctx, target: PlayerView, ballXp: Scalar, ballY: Scalar, lastT
         // body — that is where most penalty corners come from (feet), and it is what real defenders do.
         const target = inOwnD
           ? { x: ball.x + (gvx / gl) * 1.7, y: ball.y + (gvy / gl) * 1.7 }
-          : shepherded
-            ? { x: ball.x - end * 1.6, y: ball.y + inside * 1.4 }
-            : { x: ball.x - end * 2.0, y: ball.y + (p.pos.y > ball.y ? 0.5 : -0.5) };
+          : jockeySpot(sys.shepherd, ball, carrierHeading, end, inside, sys.trap === 'touchline');
         if (inOwnD) c.cmds.push({ tick, kind: 'move', playerId: p.id, dx: target.x - p.pos.x, dy: target.y - p.pos.y, effort: dist(p.pos, target) < 0.4 ? 0 : 1 });
         else moveTo(c, p, target, 1);
         break;
@@ -766,7 +783,15 @@ function tryTackle(c: Ctx, p: PlayerView, carrier: PlayerView, lastTackleTick: M
   const inOwnD = inCircle(ball, -end as End);
   // Midfield is jockey territory (0.06 base, 3 s between bites — 110 contests a match was a scrum);
   // the committed tackle belongs in the 23 and above all in the D, where it is worth a turnover.
-  const aggr = (0.02 + 0.06 * norm(c.attrsOf(p.id).technical.tackling) + 0.25 * (in23(ball, -end as End) ? 1 : 0) + 0.4 * (inOwnD ? 1 : 0)) * keenness;
+  // A defender who has worked himself onto the carrier's open stick side goes; one still across
+  // the body jockeys and waits, because that tackle is the one the umpire punishes (§6.2). In our
+  // own D nobody waits — there the ball has to be stopped whatever side you are on.
+  const side = lateralOf(carrier.heading, carrier.pos, p.pos);
+  // 0.35, not more: real defenders do commit from the wrong side — that is precisely why
+  // obstruction and stick offences exist at all, and starving them would starve the corners this
+  // phase is meant to give the right cause.
+  const sideKeen = inOwnD ? 1 : 1 - 0.35 * Math.max(0, side);
+  const aggr = (0.02 + 0.06 * norm(c.attrsOf(p.id).technical.tackling) + 0.25 * (in23(ball, -end as End) ? 1 : 0) + 0.4 * (inOwnD ? 1 : 0)) * keenness * sideKeen;
   if (c.rng.chance(aggr)) { c.cmds.push({ tick, kind: 'tackle', playerId: p.id, targetId: carrier.id }); lastTackleTick.set(p.id, tick); }
 }
 

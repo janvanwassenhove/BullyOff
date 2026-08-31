@@ -2,7 +2,7 @@
  * Team tactical instructions (BRIEF §8 Phase 3) and formation slots. These are
  * the knobs the coach turns (Phase 7 UI); the AI reads them every decision.
  */
-import { HALF_LENGTH, clamp, type Scalar, type Vec2 } from '@bullyoff/shared';
+import { HALF_LENGTH, clamp, dmath, type Radians, type Scalar, type Vec2 } from '@bullyoff/shared';
 import type { Role } from '../player/attributes.js';
 
 export type PcVariant = 'dragFlick' | 'lowHit' | 'slipRight' | 'slipLeft' | 'deflection';
@@ -60,10 +60,7 @@ export const DEFAULT_TACTICS: TeamTactics = {
 export type Line = 'front' | 'mid' | 'back';
 /** Channels across the pitch in the team's own frame: -2 left … +2 right. */
 export type Channel = -2 | -1 | 0 | 1 | 2;
-/**
- * Which way the first defender shows the carrier. `toReverse` needs stick handedness (phase 11b);
- * until that lands it behaves as `toInside` — a defender closing the middle.
- */
+/** Which way the first defender shows the carrier. `toReverse` is real handedness — see jockeySpot. */
 export type Shepherd = 'toLine' | 'toInside' | 'toReverse';
 
 export interface PressSystem {
@@ -128,6 +125,30 @@ export const MENTALITY_LINE: Record<Mentality, Scalar> = { defensive: 0.25, bala
  */
 export const pressLineM = (pressHeight: Scalar): Scalar => 22 + pressHeight * 55;
 export const backLineM = (defensiveLine: Scalar): Scalar => 14 + defensiveLine * 30;
+
+/**
+ * Where the first defender stands to jockey a carrier (Phase 11b, §6.1). A pressing angle is a
+ * *place relative to the man*, not a distance: you take away one side and leave the other open.
+ *
+ *  · `toLine`     — square him up and show him the touchline; the block slides behind.
+ *  · `toInside`   — close from the inside shoulder so his only way forward is wide.
+ *  · `toReverse`  — the hockey-specific one: close his OPEN STICK channel, so the only way forward
+ *                   is on his reverse, where he carries, eliminates and strikes worse. Every stick is
+ *                   right-handed, so that channel is his right — and this is why a hockey pressing
+ *                   angle is not a football pressing angle.
+ *
+ * `end` is the goal the DEFENDING side attacks (so −end is the goal it defends, and standing at
+ * `ball − end` is standing goal-side); `inside` is +1/−1 towards the middle of the pitch.
+ */
+export function jockeySpot(shepherd: Shepherd, ball: Vec2, carrierHeading: Radians, end: 1 | -1, inside: 1 | -1, trapTouchline: boolean): Vec2 {
+  if (shepherd === 'toReverse') {
+    // goal-side of him AND on his forehand shoulder: the ball can only go left, onto his reverse
+    const open = { x: dmath.sin(carrierHeading), y: -dmath.cos(carrierHeading) };
+    return { x: ball.x - end * 1.1 + open.x * 1.3, y: ball.y + open.y * 1.3 };
+  }
+  if (shepherd === 'toInside' || trapTouchline) return { x: ball.x - end * 1.6, y: ball.y + inside * 1.4 };
+  return { x: ball.x - end * 2.0, y: ball.y };
+}
 
 /** Apply a preset choice (press/mentality) to the numeric knobs — what the UI and the AI both use. */
 export function presetPatch(p: Partial<TeamTactics>): Partial<TeamTactics> {

@@ -19,6 +19,7 @@ import { sweepBall, type BodyCollider } from '../ball/collide.js';
 import { FRAME_PLAYER_STRIDE, type Frame, type MatchEvent, type MatchLog, type MatchLogHeader, type PlayerId, type TeamId } from '../events/events.js';
 import { createPlayer, stepPlayer, stickHead, type PlayerState } from '../player/player.js';
 import { gkReach, gkSaveChance, gkStrokeSaveChance, strikeErrorSd, strikeSpeedFactor, tackleOdds, trapSuccess, type Attributes, type Role } from '../player/attributes.js';
+import { lateralOf, receiveSideFactor, strikeSideError, strikeSideSpeed, tackleSideOdds } from '../player/handedness.js';
 import { getProfile, type Profile, type ProfileId, type SurfaceState } from '../profile.js';
 import type { Command } from './commands.js';
 
@@ -205,10 +206,20 @@ export function tick(s: MatchState, commands: readonly Command[]): MatchEvent[] 
         if (!s.sandbox) {
           // Attributes scale speed and add angular error (a 20 sprays ~1.5°, a 1 ~9°; fatigue and composure widen it).
           speed *= strikeSpeedFactor(p.attrs, c.strike);
+          // Handedness (§6.5): the reverse is about which face has to play the ball, so it is decided
+          // by where the BALL sits — on your left you must turn the stick over — not by where you aim.
+          // That is also why a drag flick at a corner is never a reverse: the trapper puts the ball on
+          // the striker's forehand and he turns his body into it.
+          // …and why a set piece has no reverse at all: at a stroke, a free hit or a corner the ball
+          // is stationary and the clock is stopped, so the taker simply walks round it and plays it
+          // off his forehand. Nobody in hockey takes a stroke on the reverse.
+          const setPiece = s.rules.psActive || s.rules.restart !== null;
+          const strikeSide = setPiece ? -1 : lateralOf(p.heading, p.pos, ball.pos);
+          speed *= strikeSideSpeed(p.attrs, c.strike, strikeSide);
           // A penalty stroke is a practiced strike off a stationary ball with the game stopped: half
           // the in-play spray. At full spray ±0.5 m the taker fed the keeper's body ~1 in 5 strokes
           // and conversion sat at 0.45–0.53 where real strokes convert ~0.75.
-          const spray = strikeErrorSd(p.attrs, c.strike, p.stamina) * (s.rules.psActive ? 0.45 : 1);
+          const spray = strikeErrorSd(p.attrs, c.strike, p.stamina) * strikeSideError(p.attrs, c.strike, strikeSide) * (s.rules.psActive ? 0.45 : 1);
           angle = dmath.wrapAngle(angle + s.rng.gaussian(0, spray));
           if (lift > 0) lift = Math.max(0.005, lift + s.rng.gaussian(0, lift * 0.25));
         }
@@ -247,7 +258,10 @@ export function tick(s: MatchState, commands: readonly Command[]): MatchEvent[] 
           const dxb = ball.pos.x - p.pos.x, dyb = ball.pos.y - p.pos.y;
           let pClean = isGk
             ? (s.rules.psActive && s.rules.restart === null ? gkStrokeSaveChance(p.attrs) : Math.min(0.97, profile.calibration.gkSaveScale * gkSaveChance(p.attrs, incoming, Math.sqrt(dxb * dxb + dyb * dyb))))
-            : trapSuccess(p.attrs, incoming, ball.pos.z, speedRef);
+            : trapSuccess(p.attrs, incoming, ball.pos.z, speedRef)
+              // Handedness (§6.3): on the reverse the stick has to be turned over and the body
+              // cannot get behind it. A good player opens up onto the forehand and barely pays.
+              * receiveSideFactor(p.attrs, lateralOf(p.heading, p.pos, ball.pos));
           if (intercepting) pClean *= 0.45;
           clean = s.rng.chance(pClean);
         }
@@ -292,14 +306,19 @@ export function tick(s: MatchState, commands: readonly Command[]): MatchEvent[] 
         if (!s.sandbox && !gateCommand(s.rules, view0, 'strike', p.id, laws)) break;
         // The carrier must actually have the ball (last touch, within reach); the tackler must reach it too.
         if (ball.lastTouch !== q.id || !ballInReach(s, q) || !ballInReach(s, p, profile.player.reach * 1.15)) break;
-        const odds = tackleOdds(p.attrs, q.attrs);
+        // Handedness (§6.2): where the tackler stands relative to where the carrier faces. On the
+        // carrier's open stick side the ball is right there — the clean tackle. Across the body from
+        // the reverse side you reach through the man: a stick tackle when you catch him, obstruction
+        // when he holds the shield. Club hockey's corners come from here, not from a foul rate.
+        const side = tackleSideOdds(tackleOdds(p.attrs, q.attrs), p.attrs, lateralOf(q.heading, q.pos, p.pos));
+        const odds = { win: side.win, foulTackler: side.foulTackler };
         const u = s.rng.next();
         // Obstruction: the carrier's back is to the tackler while shielding (heading away by > 110°) — sometimes called.
         const toTackler = dmath.atan2(p.pos.y - q.pos.y, p.pos.x - q.pos.x);
         const shielding = Math.abs(dmath.angleDelta(q.heading, toTackler)) > 1.92;
         let outcome: 'won' | 'lost' | 'foulTackler' | 'foulCarrier';
         if (u < odds.foulTackler) outcome = 'foulTackler';
-        else if (shielding && u < odds.foulTackler + 0.06) outcome = 'foulCarrier';
+        else if (shielding && u < odds.foulTackler + side.shield) outcome = 'foulCarrier';
         else if (u < odds.foulTackler + odds.win) outcome = 'won';
         else outcome = 'lost';
         if (outcome === 'won') {

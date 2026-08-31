@@ -53,7 +53,10 @@ describe('tempo of play (watered turf, men)', () => {
     console.warn('tempo:', tempos.map((t) => Object.fromEntries(Object.entries(t).map(([k, v]) => [k, Math.round(v * 100) / 100]))));
     expect(tempos.length).toBe(4);
   });
-  it('passes are struck firmly: a push on water leaves the stick at 12 m/s or more on average (was 11.8)', () => { expect(avg('passLaunch')).toBeGreaterThanOrEqual(12); });
+  // 11.5 since 0.9.0: handedness means a share of every match's passes are struck off the reverse,
+  // which is genuinely slower (player/handedness.ts). The guard's job is that the game does not go
+  // back to the pedestrian 5.5–8.5 m/s rolls of the first build, and 11.5 still holds that line.
+  it('passes are struck firmly: a push on water leaves the stick at 11.5 m/s or more on average', () => { expect(avg('passLaunch')).toBeGreaterThanOrEqual(11.5); });
   it('the ball itself is quick: live-ball mean speed ≥ 5.5 m/s', () => { expect(avg('ballLive')).toBeGreaterThanOrEqual(5.5); });
   // Calibration guard (docs/rules/calibration.md, men 4.9–5.9 goals per match over 96 matches; four matches are noisy, so the band is wide):
   // firmer passes must not turn the game into a shooting gallery or a stalemate.

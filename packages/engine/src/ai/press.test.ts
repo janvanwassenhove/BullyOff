@@ -11,7 +11,8 @@ import { aiMatchSetup } from '../sim/fixtures.js';
 import { MENS } from '../profile.js';
 import { FRAME_PLAYER_STRIDE } from '../events/events.js';
 import { aiController, squadsFromSetup } from './brain.js';
-import { DEFAULT_TACTICS, MENTALITY_LINE, PRESS_HEIGHT, backLineM, pressLineM, type PressId, type TeamTactics } from './tactics.js';
+import { DEFAULT_TACTICS, MENTALITY_LINE, PRESS_HEIGHT, backLineM, jockeySpot, pressLineM, type PressId, type Shepherd, type TeamTactics } from './tactics.js';
+import { lateralOf } from '../player/handedness.js';
 
 /** Team 0's defensive shape while team 1 has the ball inside team 0's half. */
 interface Shape {
@@ -117,5 +118,41 @@ describe('the two lines a system means (Phase 10.3)', () => {
   it('both lines stay on the pitch', () => {
     for (const p of Object.values(PRESS_HEIGHT)) { expect(pressLineM(p)).toBeGreaterThan(0); expect(pressLineM(p)).toBeLessThan(91.4); }
     for (const d of Object.values(MENTALITY_LINE)) { expect(backLineM(d)).toBeGreaterThan(0); expect(backLineM(d)).toBeLessThan(91.4); }
+  });
+});
+
+/**
+ * The pressing angle (Phase 11b, §6.1). A press is a place relative to the man: `toReverse` closes
+ * the carrier's open stick channel so the only way forward is onto his reverse. Geometry, not
+ * statistics — the emergent version is measured in sim/handedness.test.ts.
+ */
+describe('the pressing angle', () => {
+  const ball = { x: 0, y: 0 };
+  const facing = 0; // the carrier is running towards +x
+  const spot = (sh: Shepherd): { x: number; y: number } => jockeySpot(sh, ball, facing, -1, 1, false);
+
+  it('toReverse stands on the carrier\'s open stick shoulder; the other systems do not', () => {
+    // a carrier facing +x has his open stick to −y (every stick is right-handed)
+    expect(lateralOf(facing, ball, spot('toReverse'))).toBeLessThan(-0.5);
+    expect(lateralOf(facing, ball, spot('toInside'))).toBeGreaterThan(0);
+    expect(Math.abs(lateralOf(facing, ball, spot('toLine')))).toBeLessThan(0.2);
+  });
+
+  it('and it follows the carrier, not the pitch: turn him round and the angle turns with him', () => {
+    for (const heading of [0, 1.1, 2.6, -0.8, -2.2]) {
+      const s = jockeySpot('toReverse', ball, heading, -1, 1, false);
+      expect(lateralOf(heading, ball, s)).toBeLessThan(-0.5);
+    }
+  });
+
+  it('every system still jockeys goal-side and within a stick\'s working distance', () => {
+    for (const sh of (['toLine', 'toInside', 'toReverse'] as Shepherd[])) {
+      for (const end of ([1, -1] as const)) {
+        const s = jockeySpot(sh, ball, facing, end, 1, false);
+        expect(Math.sign(s.x - ball.x) || -end).toBe(-end);          // between the ball and our goal
+        expect(Math.hypot(s.x - ball.x, s.y - ball.y)).toBeLessThan(2.6); // not standing on the ball, not miles off
+        expect(Math.hypot(s.x - ball.x, s.y - ball.y)).toBeGreaterThan(1);
+      }
+    }
   });
 });

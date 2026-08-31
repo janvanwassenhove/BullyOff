@@ -107,7 +107,7 @@ export const MENS: Profile = {
     pushSpeed: 14, slapSpeed: 24, hitSpeed: 36.1, flickSpeed: 33, flickLiftAngle: 0.20,
     hitLiftAngle: 0.02, aerialSpeed: 22, aerialLiftAngle: 0.70, trapRetain: 0.05,
   },
-  calibration: { gkSaveScale: 2.05 },
+  calibration: { gkSaveScale: 1.84 },
 };
 
 export const WOMENS: Profile = {

@@ -1,6 +1,6 @@
 # Calibration — targets vs achieved (Phase 4)
 
-Run: `pnpm calibrate:run` (96 matches per profile, level 12 ± 2 quality spread, `FIH_OUTDOOR_FAST` laws, watered turf, 8 worker processes ≈ 45 s each). Targets and sources: [`calibration-data.md`](calibration-data.md) / `tools/calibrate/src/targets.ts`. Bands: ±10 % on measured rows, wider on `EST` rows. This file is a running log — the sections below are historical passes in order; the current state is the last section (engine **0.8.0**, 2026-08-30: men 14/15, women 12/15, all measured rows pass).
+Run: `pnpm calibrate:run` (96 matches per profile, level 12 ± 2 quality spread, `FIH_OUTDOOR_FAST` laws, watered turf, 8 worker processes ≈ 45 s each). Targets and sources: [`calibration-data.md`](calibration-data.md) / `tools/calibrate/src/targets.ts`. Bands: ±10 % on measured rows, wider on `EST` rows. This file is a running log — the sections below are historical passes in order; the current state is the last section (engine **0.9.0**, 2026-08-31, handedness: men 13–14/15, women 11–14/15; all measured rows pass on an independent seed set, and the draw-rate row on the standard set is noise — the section says why).
 
 ## Men's (`mens`) — measured rows all pass except PC share (near-miss)
 
@@ -149,3 +149,26 @@ Same 96-match protocol, final state:
 | Poisson shape | p > 0.01 | 0.002 MISS | 0.006 MISS (borderline; 0.11 on the previous seed set) | 0.011 | **0.074 ok** |
 
 **Men 14/15 bands, women 12/15 — and every directly-measured row passes for both profiles.** The three women's misses and the men's shape test all sit within a whisker of their (EST) band edges and flip with the seed set. Known residuals, in coaching terms: the women's game still penetrates the circle a shade less than the target (the target itself is an estimate), and both games still keep the ball in play more than a real match (side-ins are the missing restart volume). The scoreline over-dispersion is partly *real* (a ±2-level league is top-heavy) — revisit the target before revisiting the model.
+
+## Handedness (engine 0.9.0, 2026-08-31)
+
+Phase 11b put stick handedness into the engine (`docs/design/hockey-systems.md` §6, `docs/handoff/phase-11b.md`): every stick is right-handed, so the side a ball sits on scales receiving, striking and carrying, and where a tackler stands relative to the carrier decides whether the tackle is the clean one or the foul. That is a real cost added to the game, and the 96-match numbers moved:
+
+| metric | target | 0.8.2 | **0.9.0** | note |
+|---|---|---|---|---|
+| goals / match (men) | 5.40 | 5.30 | **5.56** | ok — but see the drift below |
+| goals / match (women) | 3.60 | 3.43 | **3.78** | ok |
+| PCs / match (men) | 9 | 10.4 | **9.5** | ok, and now from the right cause |
+| PC (+PS) goal share (men) | 0.33 | 0.36 | **0.33** | ok |
+| circle entries / match (men) | 36 | 28.2 | **27.7** | ok (est) |
+| team-goals shape vs Poisson (men) | p > 0.01 | 0.006 MISS | **ok** | the tail shrank — see below |
+
+**What had to be re-tuned, and why it is not knob-turning.** Handedness took quality away from every attacking action at once, and the first full run fell out of band (goals 4.38, PC conversion 0.13). Three things were wrong in the *model*, not in the numbers:
+
+1. **The reverse is about which face plays the ball, not where you aim.** Keying the strike penalty to the aim direction made a drag flick at a corner count as a reverse — hence PC conversion 0.13. It is now keyed to where the ball sits relative to the striker.
+2. **A set piece has no reverse.** At a stroke, a free hit or a corner the ball is stationary and the clock is stopped: the taker walks round it and plays it off his forehand. Nobody takes a stroke on the reverse; before this exemption stroke conversion sat at 0.51.
+3. **`gkSaveScale` was carrying part of this mechanism.** It is labelled PROVISIONAL precisely as "the part of the gap that shot speed alone does not explain". Handedness now explains some of that gap for real, so the men's scale came down 2.05 → 1.84. That is the knob doing its job and shrinking, which is the point of it.
+
+**And one that was a genuine hockey error.** The first version scaled the reverse penalty steeply with skill (a good player paid a third of what a weak one paid). Class then compounded: 6+ goal team scores nearly doubled (12 → 21 per 192 team-innings) and the Poisson shape failed. The truer statement is that *the reverse is awkward for everybody* and what a good player really owns is the footwork to avoid being put on it — which the AI models by choosing better passes and carries. With a shallow skill term the tail came back to 11 and the shape test passes.
+
+**Seed sensitivity, stated plainly.** On the standard seed set (42–137) the men's draw rate reads 0.23 and the women's 0.13, both just outside their bands and in *opposite* directions from the same code — the signature of a statistic whose standard error at n = 96 is ±0.04. On an independent set (`--seed 900`) both profiles return **measured-all-pass: yes** (men 13/15, goals 5.82, draws 0.14; women 14/15, goals 3.66, draws 0.23). Read the draw-rate row as noise unless it moves in the same direction in both profiles.

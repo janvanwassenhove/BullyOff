@@ -249,7 +249,7 @@ Also required, and missing today:
 
 ---
 
-## 6. Handedness — confirmed 2026-08-22: its own phase, full scope
+## 6. Handedness — SHIPPED 2026-08-31 (engine 0.9.0, `docs/handoff/phase-11b.md`)
 
 Every stick is right-handed. The engine knows no difference between left and right anywhere: `grep -n "reverse\|openStick\|handed"` over `packages/engine` and `packages/rules` returns only array reversals. Jan has chosen the full version, so this is a phase of its own (11b — phase 10 is the commercial redesign that landed on main) rather than a note.
 
@@ -332,7 +332,7 @@ And the situational deck gains scenarios named for what they test: `press-full-b
 | Phase | Content | Why in this order |
 |---|---|---|
 | **11 — Systems** | §2–§4 assignments + press systems as data (**merged 2026-08-22**, with a calibration regression as known debt — `docs/handoff/phase-11.md`); §5 PC defence systems; §7 entry patterns | the action space. Nothing can read or learn without it. **Do not split the defensive and attacking halves again**: shipping §2–§4 alone dropped goals per match from 5.49 to 4.33, out of the calibration band, because both sides defend better and the attack was given nothing to answer with |
-| **11b — Handedness** | §6, full scope: pressing angle, tackle side, receiving, carrying, striking | confirmed as its own phase. It makes every pressing angle read correctly and is the right cause for the PC shortfall (question 18) |
+| ~~**11b — Handedness**~~ **SHIPPED** | §6, full scope: pressing angle, tackle side, receiving, carrying, striking | done 2026-08-31, engine 0.9.0. Every pressing angle reads correctly (`jockeySpot`), and corners now come from stick tackles and feet rather than an abstract foul rate |
 | **12 — Naturalness** | `adaptive-play.md` layer D | commitment, softmax, anticipation, timed runs — now applied to real assignments |
 | **13 — Reads** | layer B (`ScoutMemory`) | reads *choose between systems and variants*: trap channel, PC runner line and height, entry pattern |
 | **14 — Fitting** | layer A (`PolicyWeights`, `pnpm fit`) | fit the utility weights **and** the system parameters against calibration |
