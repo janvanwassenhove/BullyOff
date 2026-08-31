@@ -10,5 +10,5 @@
  */
 export const PACKAGE_NAME = '@bullyoff/worldgen' as const;
 export { REAL_CLUBS, normaliseName, significantTokens, isBlocked, blockedBy } from './blocklist.js';
-export { FIRST_M, FIRST_W, LAST, NATIONALITY_WEIGHTS, nationalityTable, pickNationality, pickFirstName, pickLastName, generatePersonName, type Lang, type Nationality, type RegionFlavour, type GeneratedName } from './names.js';
-export { PALETTE, BADGE_SHAPES, BADGE_MOTIFS, generateTown, generateClubIdentities, shortCode, type ClubIdentity, type BadgeShape, type BadgeMotif } from './clubs.js';
+export { FIRST_M, FIRST_W, LAST, NATIONALITY_WEIGHTS, nationalityTable, countryTable, pickNationality, pickFirstName, pickLastName, generatePersonName, type Lang, type Nationality, type RegionFlavour, type NameCountry, type GeneratedName } from './names.js';
+export { PALETTE, BADGE_SHAPES, BADGE_MOTIFS, generateTown, generateClubIdentities, shortCode, type ClubIdentity, type BadgeShape, type BadgeMotif, type Country, type ClubLang } from './clubs.js';

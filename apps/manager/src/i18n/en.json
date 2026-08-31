@@ -115,7 +115,7 @@
     "mens": "MEN'S",
     "womens": "WOMEN'S",
     "flavour": "REGION FLAVOUR",
-    "flavourHint": "name and town pools",
+    "flavourHint": "name and town pools", "country": "COUNTRY", "countryHint": "which league you will coach in",
     "mixed": "MIXED",
     "vlaanderen": "VLAANDEREN",
     "wallonie": "WALLONIE",
@@ -191,7 +191,7 @@
       "table": "TABLE",
       "fixtures": "FIXTURES",
       "results": "RESULTS",
-      "history": "HISTORY"
+      "history": "HISTORY", "europe": "EUROPE", "nations": "NATIONS"
     },
     "cols": {
       "pos": "#",
@@ -224,7 +224,7 @@
       "regular": "regular",
       "playoff-semi": "semi",
       "playoff-final": "final",
-      "playdown": "play-down"
+      "playdown": "play-down", "eu-quarter": "EU · quarter", "eu-semi": "EU · semi", "eu-final": "EU · final"
     },
     "form": "FORM · LAST FIVE",
     "formNote": "{gf} goals / match at home",
@@ -235,7 +235,7 @@
     "treatmentEmpty": "everybody fit",
     "daysOut": "{d} d",
     "light": "fit — light",
-    "noResults": "No results yet.",
+    "noResults": "No results yet.", "foreignNote": "top flight only — you follow this country from a distance", "eu": {"quarters":"QUARTER-FINALS","semis":"SEMI-FINALS","final":"FINAL","none":"The European knockout is played in the winter break — eight clubs, one block.","champion":"{club} wins the European cup."}, "nations": {"team":"NATION","recent":"LATEST INTERNATIONALS","note":"Nine nations, home and away, the table decides — no play-offs, no relegation.","champion":"{nation} wins the nations competition."},
     "noHistory": "No seasons completed yet.",
     "histLine": "champion {champion} (regular winner {regular}) · final: {final} · up: {up} · down: {down}",
     "so": "SO {a}–{b}",
@@ -1026,5 +1026,7 @@
     },
     "replay": "Replay",
     "playing": "playing…"
-  }
+  },
+  "country": {"BE":"BELGIUM","NL":"NETHERLANDS","EN":"ENGLAND","FR":"FRANCE","DE":"GERMANY"},
+  "nation": {"BEL":"Belgium","NED":"Netherlands","GER":"Germany","GBR":"Great Britain","FRA":"France","ESP":"Spain","ARG":"Argentina","AUS":"Australia","IND":"India"}
 }

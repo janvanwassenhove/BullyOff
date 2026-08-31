@@ -118,7 +118,7 @@ export function developSeason(w: World, facilitiesOf: (club: string | null) => n
     for (let i = 0; i < n; i++) {
       const roles = ['GK', 'DEF', 'DEF', 'MID', 'MID', 'FWD', 'FWD'] as const;
       const role = gks + i < 2 ? 'GK' : roles[rng.int(roles.length)] ?? 'MID'; // every club keeps two keepers coming through
-      const p = makePerson(w.nextPersonId++, rng, w.profile, role, c.level - 3 + (c.facilities - 3) * 0.6, w.year + 1, true, w.flavour);
+      const p = makePerson(w.nextPersonId++, rng, w.profile, role, c.level - 3 + (c.facilities - 3) * 0.6, w.year + 1, true, w.flavour, c.country);
       p.club = c.id; w.persons[p.id] = p; rep.intake++;
     }
   }
@@ -139,12 +139,16 @@ export const TIER2_ANCHOR = 10;
 export function normaliseLevels(w: World, rng: Rng, anchors: [number, number] = [TIER1_ANCHOR, TIER2_ANCHOR]): [number, number] {
   const out: [number, number] = [0, 0];
   for (const tier of [1, 2] as const) {
-    const cs = Object.values(w.clubs).filter((c) => c.tier === tier);
-    if (cs.length === 0) continue;
-    const mean = cs.reduce((s, c) => s + c.level, 0) / cs.length;
+    // The scale is pinned on the USER's league ("a 13 is a 13 against today's top flight") and the
+    // same shift is applied to every league in that tier world-wide: the calibrated mean holds AND
+    // the deliberate gaps between the national leagues (the Dutch lead, the French trail) survive
+    // twenty seasons of development instead of being averaged away.
+    const homeCs = Object.values(w.clubs).filter((c) => c.tier === tier && c.country === w.country);
+    if (homeCs.length === 0) continue;
+    const mean = homeCs.reduce((s, c) => s + c.level, 0) / homeCs.length;
     const delta = clamp(((anchors[tier - 1] ?? TIER1_ANCHOR) - mean) * 0.5, -0.6, 0.6);
     if (Math.abs(delta) < 0.05) continue;
-    const ids = new Set(cs.map((c) => c.id));
+    const ids = new Set(Object.values(w.clubs).filter((c) => c.tier === tier).map((c) => c.id));
     for (const p of Object.values(w.persons)) {
       if (p.retired || p.club === null || !ids.has(p.club)) continue;
       for (const g of GROUPS) shift(p, g, delta, rng);

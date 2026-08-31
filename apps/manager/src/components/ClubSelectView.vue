@@ -12,10 +12,10 @@ const app = useAppStore();
 const season = useSeasonStore();
 const hex = (c: number): string => '#' + c.toString(16).padStart(6, '0');
 const world = computed(() => season.world);
-const clubs = computed(() => (world.value ? Object.values(world.value.clubs).sort((a, b) => a.tier - b.tier || b.level - a.level) : []));
+const clubs = computed(() => (world.value ? Object.values(world.value.clubs).filter((c) => c.country === world.value?.country).sort((a, b) => a.tier - b.tier || b.level - a.level) : []));
 const selectedId = ref<string | null>(app.selectedClub ?? clubs.value[0]?.id ?? null);
 const selected = computed(() => clubs.value.find((c) => c.id === selectedId.value) ?? clubs.value[0] ?? null);
-const tierLevel = (tier: number): number => { const cs = clubs.value.filter((c) => c.tier === tier); return cs.length ? Math.round((10 * cs.reduce((s, c) => s + c.level, 0)) / cs.length) / 10 : 0; };
+const tierLevel = (tier: number): number => { const cs = clubs.value.filter((c) => c.tier === tier); return cs.length ? Math.round((10 * cs.reduce((sum, c) => sum + c.level, 0)) / cs.length) / 10 : 0; };
 const detail = computed(() => {
   const c = selected.value; const w = world.value; if (!c || !w) return null;
   const squad = clubPlayers(w, c.id), youth = clubPlayers(w, c.id, true).length - squad.length;

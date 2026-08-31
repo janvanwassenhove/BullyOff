@@ -8,13 +8,15 @@ import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAppStore } from '../stores/app';
 import { useSeasonStore } from '../stores/season';
-import type { RegionFlavour } from '@bullyoff/worldgen';
+import type { Country, RegionFlavour } from '@bullyoff/worldgen';
 
 const { t } = useI18n();
 const app = useAppStore();
 const season = useSeasonStore();
 const profile = ref<'mens' | 'womens'>('mens');
 const flavour = ref<RegionFlavour>('mixed');
+const country = ref<Country>('BE');
+const COUNTRIES: Country[] = ['BE', 'NL', 'EN', 'FR', 'DE'];
 const history = ref<0 | 10 | 20>(20);
 const seed = ref(2026);
 const progress = ref(0);
@@ -37,11 +39,11 @@ function reroll(): void { seed.value = Math.floor(1000 + Math.random() * 9000); 
 async function generate(): Promise<void> {
   progress.value = 4;
   // the worker gives no per-season progress for creation; animate towards 96 % at the measured pace (~0.6 s / 20 seasons)
-  const expectedMs = 400 + history.value * 60;
+  const expectedMs = 1200 + history.value * 260; // six leagues: ≈ 230 ms per generated season
   const t0 = performance.now();
   timer = window.setInterval(() => { progress.value = Math.min(96, 4 + (92 * (performance.now() - t0)) / expectedMs); }, 60);
   season.turf = turf.value;
-  await season.newWorld(seed.value, profile.value, flavour.value, history.value);
+  await season.newWorld(seed.value, profile.value, flavour.value, history.value, country.value);
   if (timer) { clearInterval(timer); timer = null; }
   progress.value = 100;
 }
@@ -92,6 +94,24 @@ async function onImport(ev: Event): Promise<void> { const f = (ev.target as HTML
           </div>
         </div>
         <div class="group">
+          <div class="gh"><span class="eyebrow">{{ t('career.country') }}</span><span class="hint">{{ t('career.countryHint') }}</span></div>
+          <div class="chips">
+            <button
+              v-for="c in COUNTRIES"
+              :key="c"
+              class="choice"
+              :class="{ on: country === c }"
+              :disabled="busy"
+              @click="country = c"
+            >
+              {{ t('country.' + c) }}
+            </button>
+          </div>
+        </div>
+        <div
+          v-if="country === 'BE'"
+          class="group"
+        >
           <div class="gh"><span class="eyebrow">{{ t('career.flavour') }}</span><span class="hint">{{ t('career.flavourHint') }}</span></div>
           <div class="chips">
             <button

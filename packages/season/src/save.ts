@@ -5,7 +5,7 @@
  */
 import type { World } from './model.js';
 
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 
 export interface SaveFile {
   format: 'bullyoff-save';
@@ -57,6 +57,24 @@ export const MIGRATIONS: Record<number, Migration> = {
     const clubs = world['clubs'] as Record<string, Record<string, unknown>>;
     for (const c of Object.values(clubs)) { c['lineup'] ??= null; c['pcBattery'] ??= null; c['captain'] ??= null; }
     return { ...d, version: 4, world };
+  },
+  // 4 → 5 (Phase 12, competitions of Europe): the world learns its country. An old save stays a
+  // purely Belgian world — the foreign leagues, Europe and the nations competition start with the
+  // NEXT season (newSeason builds what the world contains; we do not invent half-played competitions).
+  4: (d) => {
+    const world = d['world'] as Record<string, unknown>;
+    world['country'] ??= 'BE';
+    world['nations'] ??= [];
+    const clubs = world['clubs'] as Record<string, Record<string, unknown>>;
+    for (const c of Object.values(clubs)) c['country'] ??= 'BE';
+    const season = world['season'] as Record<string, unknown> | undefined;
+    if (season) {
+      season['europe'] ??= null;
+      season['nations'] ??= null;
+      for (const f of (season['fixtures'] as Record<string, unknown>[] | undefined) ?? []) f['country'] ??= 'BE';
+      for (const p of (season['playoffs'] as Record<string, unknown>[] | undefined) ?? []) p['country'] ??= 'BE';
+    }
+    return { ...d, version: 5, world };
   },
 };
 

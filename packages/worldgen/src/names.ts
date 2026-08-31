@@ -47,11 +47,45 @@ export const NATIONALITY_WEIGHTS: { nat: Nationality; lang: Lang; w: number }[] 
 ];
 
 export type RegionFlavour = 'mixed' | 'vlaanderen' | 'wallonie' | 'bruxelles';
+export type NameCountry = 'BE' | 'NL' | 'EN' | 'FR' | 'DE';
 
 /** Region flavour shifts the nl/fr mix of Belgian names; foreigners unchanged. */
 export function nationalityTable(flavour: RegionFlavour): { nat: Nationality; lang: Lang; w: number }[] {
   const nlShare = flavour === 'vlaanderen' ? 0.85 : flavour === 'wallonie' ? 0.15 : flavour === 'bruxelles' ? 0.35 : 0.62;
   return NATIONALITY_WEIGHTS.map((r) => (r.nat === 'BEL' ? { ...r, w: 84 * (r.lang === 'nl' ? nlShare : 1 - nlShare) } : r));
+}
+
+/**
+ * Each country's league draws overwhelmingly on its own nationals, with the sprinkling of foreign
+ * players club hockey actually has (Dutch and Belgians cross the border both ways; the German and
+ * English leagues attract the odd Spaniard, Argentine or Indian international).
+ */
+const COUNTRY_TABLES: Record<Exclude<NameCountry, 'BE'>, { nat: Nationality; lang: Lang; w: number }[]> = {
+  NL: [
+    { nat: 'NED', lang: 'nl', w: 86 }, { nat: 'BEL', lang: 'nl', w: 4 }, { nat: 'GER', lang: 'de', w: 2.5 },
+    { nat: 'ESP', lang: 'es', w: 1.5 }, { nat: 'ARG', lang: 'es', w: 2 }, { nat: 'GBR', lang: 'en', w: 1.2 },
+    { nat: 'AUS', lang: 'en', w: 1 }, { nat: 'NZL', lang: 'en', w: 0.5 }, { nat: 'IND', lang: 'in', w: 0.8 }, { nat: 'ITA', lang: 'it', w: 0.5 },
+  ],
+  EN: [
+    { nat: 'GBR', lang: 'en', w: 80 }, { nat: 'IRL', lang: 'en', w: 6 }, { nat: 'AUS', lang: 'en', w: 3.5 },
+    { nat: 'NZL', lang: 'en', w: 2 }, { nat: 'NED', lang: 'nl', w: 2.5 }, { nat: 'BEL', lang: 'nl', w: 1 },
+    { nat: 'GER', lang: 'de', w: 1.5 }, { nat: 'ESP', lang: 'es', w: 1 }, { nat: 'ARG', lang: 'es', w: 1.2 }, { nat: 'IND', lang: 'in', w: 1.3 },
+  ],
+  FR: [
+    { nat: 'FRA', lang: 'fr', w: 86 }, { nat: 'BEL', lang: 'fr', w: 4 }, { nat: 'NED', lang: 'nl', w: 2 },
+    { nat: 'ESP', lang: 'es', w: 2.5 }, { nat: 'ARG', lang: 'es', w: 2 }, { nat: 'GER', lang: 'de', w: 1.5 },
+    { nat: 'GBR', lang: 'en', w: 1 }, { nat: 'ITA', lang: 'it', w: 1 },
+  ],
+  DE: [
+    { nat: 'GER', lang: 'de', w: 87 }, { nat: 'NED', lang: 'nl', w: 3 }, { nat: 'BEL', lang: 'nl', w: 1.5 },
+    { nat: 'ESP', lang: 'es', w: 2 }, { nat: 'ARG', lang: 'es', w: 2 }, { nat: 'GBR', lang: 'en', w: 1.5 },
+    { nat: 'AUS', lang: 'en', w: 1 }, { nat: 'IND', lang: 'in', w: 1 }, { nat: 'ITA', lang: 'it', w: 1 },
+  ],
+};
+
+/** The nationality mix for a league country ('BE' uses the region-flavoured Belgian table). */
+export function countryTable(country: NameCountry, flavour: RegionFlavour): { nat: Nationality; lang: Lang; w: number }[] {
+  return country === 'BE' ? nationalityTable(flavour) : COUNTRY_TABLES[country];
 }
 
 export function pickNationality(rng: Rng, table: readonly { nat: Nationality; lang: Lang; w: number }[]): { nat: Nationality; lang: Lang } {
@@ -74,9 +108,9 @@ export function pickLastName(rng: Rng, lang: Lang): string {
 
 export interface GeneratedName { first: string; last: string; nationality: Nationality; lang: Lang }
 
-/** A complete person name for a profile (men's/women's pools) under a region flavour. */
-export function generatePersonName(rng: Rng, gender: 'm' | 'w', flavour: RegionFlavour = 'mixed'): GeneratedName {
-  const { nat, lang } = pickNationality(rng, nationalityTable(flavour));
+/** A complete person name for a profile (men's/women's pools) under a region flavour and league country. */
+export function generatePersonName(rng: Rng, gender: 'm' | 'w', flavour: RegionFlavour = 'mixed', country: NameCountry = 'BE'): GeneratedName {
+  const { nat, lang } = pickNationality(rng, countryTable(country, flavour));
   const lastLang: Lang = nat === 'BEL' && rng.chance(0.12) ? (lang === 'nl' ? 'fr' : 'nl') : lang;
   return { first: pickFirstName(rng, lang, gender), last: pickLastName(rng, lastLang), nationality: nat, lang };
 }

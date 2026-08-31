@@ -3,7 +3,7 @@
  * day (or the rest of the season) is played through the engine, the World goes
  * back (ADR-008: state crosses the boundary as data; the UI never simulates).
  */
-import { advanceDay, createWorld, engineRunner, newSeason, recordCoachedFixture, type World, type WorldOptions } from '@bullyoff/season';
+import { advanceDay, createWorld, engineRunner, newSeason, quickRunner, recordCoachedFixture, type Fixture, type World, type WorldOptions } from '@bullyoff/season';
 import { decodeReplay } from '@bullyoff/engine';
 import type { MatchLog } from '@bullyoff/engine';
 
@@ -34,11 +34,21 @@ self.onmessage = (ev): void => {
     const played: number[] = [];
     const total = Math.max(1, w.season.days - w.season.day);
     let days = 0;
+    // Phase 12: the user's own league (and any match the user's club plays, Europe included) runs
+    // through the real engine; the four foreign leagues resolve with the labelled quick model —
+    // six engine matches a day instead of thirty-six.
+    const runnerFor = (f: Fixture): typeof engineRunner =>
+      (f.country === w.country || f.home === m.userClub || f.away === m.userClub ? engineRunner : quickRunner);
     const runDay = (perFixture: boolean): void => {
       const fx = advanceDay(w, {
-        runner: engineRunner, keepReplayFor: m.userClub,
-        // one sim day takes real seconds: for a single-day sim, report every fixture as it starts
-        ...(perFixture ? { onFixture: (i: number, n: number, f: { home: string; away: string }) => { self.postMessage({ type: 'progress', id: m.id, done: i, total: n, label: `${w.clubs[f.home]?.short ?? f.home} — ${w.clubs[f.away]?.short ?? f.away}` }); } } : {}),
+        runner: engineRunner, runnerFor, keepReplayFor: m.userClub,
+        // one sim day takes real seconds: for a single-day sim, report every ENGINE fixture as it
+        // starts (the quick foreign results are instant — reporting them would only flicker)
+        ...(perFixture ? { onFixture: (_i: number, _n: number, f: Fixture) => {
+          if (runnerFor(f) !== engineRunner) return;
+          const todays = w.season.fixtures.filter((x) => x.day === w.season.day && runnerFor(x) === engineRunner);
+          self.postMessage({ type: 'progress', id: m.id, done: todays.filter((x) => x.played).length, total: Math.max(1, todays.length), label: `${w.clubs[f.home]?.short ?? f.home} — ${w.clubs[f.away]?.short ?? f.away}` });
+        } } : {}),
       });
       days++;
       if (!perFixture) self.postMessage({ type: 'progress', id: m.id, done: days, total, label: `day ${w.season.day}/${w.season.days}` });

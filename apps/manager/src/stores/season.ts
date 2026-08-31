@@ -2,7 +2,7 @@ import { useAppStore } from './app';
 import { defineStore } from 'pinia';
 import { markRaw, toRaw } from 'vue';
 import { ENGINE_VERSION, type CoachInstruction, type MatchLog, type MatchSetup, type TeamTactics } from '@bullyoff/engine';
-import { FORMATION_ROLES, availableFor, squadSeed, teamSheet, deserialize, serialize, standings, fixturesToday, fixtureSetup, clubPlayers, ageOf, overall, type ClubId, type Fixture, type Person, type TableRow, type World, type SaveFile } from '@bullyoff/season';
+import { FORMATION_ROLES, availableFor, squadSeed, teamSheet, deserialize, serialize, standings, fixturesToday, fixtureSetup, clubPlayers, ageOf, overall, type ClubId, type Country, type Fixture, type Person, type TableRow, type World, type SaveFile } from '@bullyoff/season';
 import type { RegionFlavour } from '@bullyoff/worldgen';
 import SeasonWorker from '../engine/season.worker?worker';
 import type { FromSeason, ToSeason } from '../engine/season.worker';
@@ -186,10 +186,10 @@ export const useSeasonStore = defineStore('season', {
     },
   },
   actions: {
-    async newWorld(seed: number, profile: 'mens' | 'womens', flavour: RegionFlavour = 'mixed', historyYears = 20): Promise<void> {
+    async newWorld(seed: number, profile: 'mens' | 'womens', flavour: RegionFlavour = 'mixed', historyYears = 20, country: Country = 'BE'): Promise<void> {
       this.busy = true; this.error = ''; this.message = historyYears > 0 ? tr('season.msgWriting', { n: historyYears }) : tr('season.msgGenerating');
       try {
-        const r = await ask({ type: 'create', seed, profile, opts: { flavour, historyYears } });
+        const r = await ask({ type: 'create', seed, profile, opts: { flavour, historyYears, country } });
         if (r.type === 'world') { this.world = r.world; this.lastUserLog = null; this.lastMatch = null; this.message = tr('season.msgNewWorld', { n: r.world.history.length }); }
       } catch (e) { this.error = e instanceof Error ? e.message : String(e); } finally { this.busy = false; }
     },

@@ -11,7 +11,7 @@ import { fixturesToday } from './season.js';
 import { deserialize, serialize, SAVE_VERSION } from './save.js';
 import type { World } from './model.js';
 
-const world = (): World => createWorld(11, 'mens');
+const world = (): World => createWorld(11, 'mens', { domesticOnly: true });
 /** The first fixture of the season, and the home club's seed for it. */
 const firstFixture = (w: World): { f: ReturnType<typeof fixturesToday>[number]; club: string } => {
   const f = fixturesToday(w)[0];

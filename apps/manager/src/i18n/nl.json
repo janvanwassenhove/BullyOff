@@ -115,7 +115,7 @@
     "mens": "HEREN",
     "womens": "DAMES",
     "flavour": "REGIO",
-    "flavourHint": "naam- en gemeentepools",
+    "flavourHint": "naam- en gemeentepools", "country": "LAND", "countryHint": "in welke competitie je gaat coachen",
     "mixed": "GEMENGD",
     "vlaanderen": "VLAANDEREN",
     "wallonie": "WALLONIË",
@@ -191,7 +191,7 @@
       "table": "KLASSEMENT",
       "fixtures": "KALENDER",
       "results": "UITSLAGEN",
-      "history": "GESCHIEDENIS"
+      "history": "GESCHIEDENIS", "europe": "EUROPA", "nations": "LANDEN"
     },
     "cols": {
       "pos": "#",
@@ -224,7 +224,7 @@
       "regular": "regulier",
       "playoff-semi": "halve finale",
       "playoff-final": "finale",
-      "playdown": "barrage"
+      "playdown": "barrage", "eu-quarter": "EU · kwart", "eu-semi": "EU · halve", "eu-final": "EU · finale"
     },
     "form": "VORM · LAATSTE VIJF",
     "formNote": "{gf} goals / wedstrijd thuis",
@@ -235,7 +235,7 @@
     "treatmentEmpty": "iedereen fit",
     "daysOut": "{d} d",
     "light": "fit — licht",
-    "noResults": "Nog geen uitslagen.",
+    "noResults": "Nog geen uitslagen.", "foreignNote": "alleen de hoogste klasse — je volgt dit land van op afstand", "eu": {"quarters":"KWARTFINALES","semis":"HALVE FINALES","final":"FINALE","none":"De Europese knock-out wordt in de winterstop gespeeld — acht clubs, één blok.","champion":"{club} wint de Europese beker."}, "nations": {"team":"LAND","recent":"LAATSTE INTERLANDS","note":"Negen landen, heen en terug, het klassement beslist — geen play-offs, geen dalers.","champion":"{nation} wint de landencompetitie."},
     "noHistory": "Nog geen seizoenen afgewerkt.",
     "histLine": "kampioen {champion} (reguliere winnaar {regular}) · finale: {final} · omhoog: {up} · omlaag: {down}",
     "so": "SO {a}–{b}",
@@ -1026,5 +1026,7 @@
     },
     "replay": "Opnieuw afspelen",
     "playing": "speelt af…"
-  }
+  },
+  "country": {"BE":"BELGIË","NL":"NEDERLAND","EN":"ENGELAND","FR":"FRANKRIJK","DE":"DUITSLAND"},
+  "nation": {"BEL":"België","NED":"Nederland","GER":"Duitsland","GBR":"Groot-Brittannië","FRA":"Frankrijk","ESP":"Spanje","ARG":"Argentinië","AUS":"Australië","IND":"India"}
 }

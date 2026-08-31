@@ -3,16 +3,38 @@
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { adviseSeason } from '@bullyoff/insight';
+import { LEAGUE_COUNTRIES, nationsTable, standings, type Country, type Fixture } from '@bullyoff/season';
 import { useAppStore } from '../stores/app';
 import { useSeasonStore } from '../stores/season';
 
 const { t } = useI18n();
 const app = useAppStore();
 const season = useSeasonStore();
-const tab = ref<'table' | 'fixtures' | 'results' | 'history'>('table');
+const tab = ref<'table' | 'fixtures' | 'results' | 'history' | 'europe' | 'nations'>('table');
 const hex = (c: number): string => '#' + c.toString(16).padStart(6, '0');
 const world = computed(() => season.world);
-const table = computed(() => season.table);
+/** Which league the table shows: your own by default, any of the five on a chip. */
+const viewCountry = ref<Country | null>(null);
+const countries = computed(() => { const w = world.value; return w && LEAGUE_COUNTRIES.some((c) => c !== w.country && Object.values(w.clubs).some((x) => x.country === c)) ? LEAGUE_COUNTRIES : []; });
+const table = computed(() => {
+  const w = world.value;
+  const c = viewCountry.value ?? w?.country ?? 'BE';
+  if (!w) return season.table;
+  return c === w.country ? season.table : standings(w, 1, c);
+});
+const euRounds = computed(() => {
+  const w = world.value; const eu = w?.season.europe;
+  if (!w || !eu) return [];
+  const fx = (ids: number[]): Fixture[] => ids.map((id) => w.season.fixtures.find((f) => f.id === id)).filter((f): f is Fixture => !!f);
+  return [
+    { key: 'quarters', fixtures: fx(eu.quarters) },
+    { key: 'semis', fixtures: fx(eu.semis) },
+    { key: 'final', fixtures: fx(eu.final) },
+  ].filter((r) => r.fixtures.length > 0);
+});
+const natRows = computed(() => (world.value ? nationsTable(world.value) : []));
+const natColour = (id: string): number => world.value?.nations.find((n) => n.id === id)?.colours[0] ?? 0x444444;
+const natRecent = computed(() => [...(world.value?.season.nations?.fixtures ?? [])].filter((f) => f.played && f.result).slice(-8).reverse());
 const zone = (i: number): string => (i < 4 ? 'var(--accent)' : i === table.value.length - 2 ? 'var(--signal)' : i === table.value.length - 1 ? 'var(--danger)' : 'var(--fg-dim)');
 const advice = computed(() => (world.value?.userClub ? adviseSeason(world.value, world.value.userClub) : []));
 const form = computed(() => season.form);
@@ -38,7 +60,7 @@ function openPlayer(id: number | undefined): void { if (id !== undefined) { app.
     <div class="main">
       <div class="tabs">
         <button
-          v-for="k in (['table', 'fixtures', 'results', 'history'] as const)"
+          v-for="k in (['table', 'fixtures', 'results', 'history', 'europe', 'nations'] as const)"
           :key="k"
           class="pill-tab"
           :class="{ on: tab === k }"
@@ -60,6 +82,24 @@ function openPlayer(id: number | undefined): void { if (id !== undefined) { app.
         v-if="tab === 'table'"
         class="panel tbl"
       >
+        <div
+          v-if="countries.length"
+          class="landrow"
+        >
+          <button
+            v-for="c in countries"
+            :key="c"
+            class="land mono"
+            :class="{ on: (viewCountry ?? world.country) === c }"
+            @click="viewCountry = c"
+          >
+            {{ t('country.' + c) }}
+          </button>
+          <span
+            v-if="(viewCountry ?? world.country) !== world.country"
+            class="landnote"
+          >{{ t('hub.foreignNote') }}</span>
+        </div>
         <div class="thead mono">
           <span>{{ t('hub.cols.pos') }}</span><span>{{ t('hub.cols.club') }}</span><span class="r">{{ t('hub.cols.p') }}</span><span class="r">{{ t('hub.cols.w') }}</span><span class="r">{{ t('hub.cols.d') }}</span><span class="r">{{ t('hub.cols.l') }}</span><span class="r">{{ t('hub.cols.gf') }}</span><span class="r">{{ t('hub.cols.ga') }}</span><span class="r">{{ t('hub.cols.pts') }}</span>
         </div>
@@ -127,6 +167,80 @@ function openPlayer(id: number | undefined): void { if (id !== undefined) { app.
           >{{ outcome(f) }}</span>
           <span>{{ season.clubName(f.home) }}</span><span>{{ season.clubName(f.away) }}</span><span class="r mono">{{ res(f) }}</span>
         </div>
+      </div>
+
+      <div
+        v-else-if="tab === 'europe'"
+        class="panel tbl"
+      >
+        <p
+          v-if="!euRounds.length"
+          class="empty"
+        >
+          {{ t('hub.eu.none') }}
+        </p>
+        <template
+          v-for="round in euRounds"
+          :key="round.key"
+        >
+          <div class="euh mono">{{ t('hub.eu.' + round.key) }}</div>
+          <div
+            v-for="f in round.fixtures"
+            :key="f.id"
+            class="trow fx"
+            :class="{ me: f.home === world.userClub || f.away === world.userClub }"
+          >
+            <span class="mono num">{{ f.day + 1 }}</span>
+            <span class="mono small">{{ world.clubs[f.home]?.country }}–{{ world.clubs[f.away]?.country }}</span>
+            <span>{{ season.clubName(f.home) }}</span><span>{{ season.clubName(f.away) }}</span><span class="r mono">{{ res(f) }}</span>
+          </div>
+        </template>
+        <p
+          v-if="world.season.europe?.champion"
+          class="euchamp"
+        >
+          {{ t('hub.eu.champion', { club: season.clubName(world.season.europe.champion) }) }}
+        </p>
+      </div>
+
+      <div
+        v-else-if="tab === 'nations'"
+        class="panel tbl"
+      >
+        <div class="thead mono natg">
+          <span>{{ t('hub.cols.pos') }}</span><span>{{ t('hub.nations.team') }}</span><span class="r">{{ t('hub.cols.p') }}</span><span class="r">{{ t('hub.cols.w') }}</span><span class="r">{{ t('hub.cols.d') }}</span><span class="r">{{ t('hub.cols.l') }}</span><span class="r">{{ t('hub.cols.gf') }}</span><span class="r">{{ t('hub.cols.ga') }}</span><span class="r">{{ t('hub.cols.pts') }}</span>
+        </div>
+        <div
+          v-for="(r, i) in natRows"
+          :key="r.id"
+          class="trow natg"
+        >
+          <span class="mono pos">{{ i + 1 }}</span>
+          <span class="clubcell"><span
+            class="sw"
+            :style="{ background: hex(natColour(r.id)) }"
+          /><span class="cn">{{ t('nation.' + r.id) }}</span></span>
+          <span class="r mono num">{{ r.p }}</span><span class="r mono num">{{ r.w }}</span><span class="r mono num">{{ r.d }}</span><span class="r mono num">{{ r.l }}</span><span class="r mono num">{{ r.gf }}</span><span class="r mono num">{{ r.ga }}</span><span class="r mono pts">{{ r.pts }}</span>
+        </div>
+        <div class="legend"><span>{{ t('hub.nations.note') }}</span></div>
+        <template v-if="natRecent.length">
+          <div class="euh mono">{{ t('hub.nations.recent') }}</div>
+          <div
+            v-for="(f, i) in natRecent"
+            :key="i"
+            class="trow fx"
+          >
+            <span class="mono num">{{ f.day + 1 }}</span>
+            <span class="mono small" />
+            <span>{{ t('nation.' + f.home) }}</span><span>{{ t('nation.' + f.away) }}</span><span class="r mono">{{ f.result ? f.result.home + '–' + f.result.away : '—' }}</span>
+          </div>
+        </template>
+        <p
+          v-if="world.season.nations?.champion"
+          class="euchamp"
+        >
+          {{ t('hub.nations.champion', { nation: t('nation.' + world.season.nations.champion) }) }}
+        </p>
       </div>
 
       <div
@@ -245,6 +359,12 @@ function openPlayer(id: number | undefined): void { if (id !== undefined) { app.
 .pts { font-size: 14px; color: var(--fg); }
 .small { font-size: 11px; letter-spacing: 0.08em; color: var(--fg-muted); }
 .year { font-size: 13px; color: var(--accent-soft); }
+.landrow { display: flex; gap: 6px; align-items: center; padding: 10px 16px 0; flex-wrap: wrap; }
+.land { background: none; border: 1px solid var(--hairline); border-radius: 999px; color: var(--fg-muted); font-size: 10.5px; letter-spacing: 0.1em; padding: 5px 12px; cursor: pointer; }
+.land.on { border-color: var(--accent); color: var(--accent-soft); }
+.landnote { font-size: 11.5px; color: var(--fg-dim); }
+.euh { padding: 12px 16px 6px; font-size: 10px; letter-spacing: 0.14em; color: var(--fg-dim); border-bottom: 1px solid var(--hairline); }
+.euchamp { padding: 12px 16px; margin: 0; font-family: var(--font-display); font-size: 16px; color: var(--accent-soft); }
 .legend { display: flex; gap: 18px; padding: 11px 16px; font-size: 12.5px; color: var(--fg-dim); flex-wrap: wrap; }
 .legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; }
 .empty { padding: 14px 16px; font-size: 13.5px; color: var(--fg-dim); }

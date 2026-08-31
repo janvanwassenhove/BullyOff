@@ -4,12 +4,13 @@
  * (never Math.random). Regular-phase fixtures only.
  */
 import { Rng } from '@bullyoff/shared';
-import type { ClubId, Fixture, TableRow, Tier, World } from './model.js';
+import type { ClubId, Country, Fixture, TableRow, Tier, World } from './model.js';
 
-export function standings(w: World, tier: Tier): TableRow[] {
+export function standings(w: World, tier: Tier, country?: Country): TableRow[] {
+  const land = country ?? w.country;
   const rows = new Map<ClubId, TableRow>();
-  for (const c of Object.values(w.clubs)) if (c.tier === tier) rows.set(c.id, { club: c.id, p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 });
-  const played = w.season.fixtures.filter((f) => f.tier === tier && f.phase === 'regular' && f.played && f.result);
+  for (const c of Object.values(w.clubs)) if (c.tier === tier && c.country === land) rows.set(c.id, { club: c.id, p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 });
+  const played = w.season.fixtures.filter((f) => f.tier === tier && f.country === land && f.phase === 'regular' && f.played && f.result);
   for (const f of played) {
     const r = f.result; if (!r) continue;
     const h = rows.get(f.home), a = rows.get(f.away);

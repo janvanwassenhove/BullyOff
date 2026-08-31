@@ -31,10 +31,10 @@ describe('fixtures', () => {
     expect(seen.size).toBe(66);
   });
   it('a world has two tiers of 12, 22 regular rounds each with a winter break, and deterministic fixtures', () => {
-    const w = createWorld(7, 'mens');
-    const w2 = createWorld(7, 'mens');
+    const w = createWorld(7, 'mens', { domesticOnly: true });
+    const w2 = createWorld(7, 'mens', { domesticOnly: true });
     expect(JSON.stringify(w.season.fixtures)).toBe(JSON.stringify(w2.season.fixtures));
-    expect(Object.values(w.clubs).filter((c) => c.tier === 1).length).toBe(TIER_SIZE);
+    expect(Object.values(w.clubs).filter((c) => c.tier === 1 && c.country === w.country).length).toBe(TIER_SIZE);
     expect(w.season.fixtures.filter((f) => f.tier === 1 && f.phase === 'regular').length).toBe(TIER_SIZE * (TIER_SIZE - 1));
     const days = new Set(w.season.fixtures.map((f) => f.day));
     for (let d = w.season.winterBreak[0]; d <= w.season.winterBreak[1]; d++) expect(days.has(d)).toBe(false);
@@ -48,7 +48,7 @@ describe('fixtures', () => {
 });
 
 describe('ten seasons with the quick resolver (structure)', () => {
-  const w = createWorld(42, 'mens');
+  const w = createWorld(42, 'mens', { domesticOnly: true });
   const champions: string[] = [];
   let regularWinnerLostFinal = 0, shootOuts = 0, tierChanges = 0;
   for (let s = 0; s < 10; s++) {
@@ -91,7 +91,7 @@ describe('ten seasons with the quick resolver (structure)', () => {
     expect(youngGrown).toBeGreaterThan(5);
     for (const c of Object.values(w.clubs)) expect(clubPlayers(w, c.id).length).toBeGreaterThanOrEqual(11);
     // clubs' levels drift but stay in a hockey-shaped band; tier 1 stronger than tier 2 on average
-    const lv = (t: 1 | 2): number => { const cs = Object.values(w.clubs).filter((c) => c.tier === t); return cs.reduce((s, c) => s + c.level, 0) / cs.length; };
+    const lv = (t: 1 | 2): number => { const cs = Object.values(w.clubs).filter((c) => c.tier === t && c.country === w.country); return cs.reduce((s, c) => s + c.level, 0) / cs.length; };
     expect(lv(1)).toBeGreaterThan(lv(2));
     expect(lv(1)).toBeLessThan(19); expect(lv(2)).toBeGreaterThan(5);
   });
@@ -99,7 +99,7 @@ describe('ten seasons with the quick resolver (structure)', () => {
     for (const c of Object.values(w.clubs)) { expect(Math.abs(c.finances.balance)).toBeLessThan(2_000_001); expect(c.finances.membershipIncome).toBeGreaterThan(50_000); }
   });
   it('is deterministic: the same seed replays the same ten seasons', () => {
-    const w2 = createWorld(42, 'mens');
+    const w2 = createWorld(42, 'mens', { domesticOnly: true });
     for (let s = 0; s < 10; s++) { playSeason(w2, quickRunner); newSeason(w2); }
     expect(w2.history.map((h) => h.champion)).toEqual(champions);
   });
@@ -107,7 +107,7 @@ describe('ten seasons with the quick resolver (structure)', () => {
 
 describe('the real engine on a match day and a short season', () => {
   it('plays a whole tier-1 match day through the engine with squads from the world; results, stats, goals and injuries land on the world', () => {
-    const w = createWorld(3, 'mens', { tierSize: 6 }); // 6 fixtures ≈ 15–25 s of engine time; keeps the vitest worker heartbeat alive
+    const w = createWorld(3, 'mens', { tierSize: 6, domesticOnly: true }); // 6 fixtures ≈ 15–25 s of engine time; keeps the vitest worker heartbeat alive
     const today = fixturesToday(w).length;
     expect(today).toBe(6); // 3 per tier
     const played = advanceDay(w, { runner: engineRunner, keepReplayFor: null });
@@ -123,7 +123,7 @@ describe('the real engine on a match day and a short season', () => {
   }, 120_000);
 
   it('a full season with 4-club tiers through the real engine finishes with a champion and a kept replay for the user club', async () => {
-    const w = createWorld(11, 'womens', { tierSize: 4 });
+    const w = createWorld(11, 'womens', { tierSize: 4, domesticOnly: true });
     w.userClub = 'c1';
     // yield to the event loop between match days so the vitest worker RPC keeps its heartbeat during ~50 s of sync sim
     const short = engineRunnerWith(FIH_OUTDOOR_SHORT_TEST); // 4-minute quarters: the same laws, a quarter of the sim time
@@ -143,7 +143,7 @@ describe('the real engine on a match day and a short season', () => {
 
 describe('saves', () => {
   it('serialises, deserialises and migrates; refuses newer saves', () => {
-    const w = createWorld(5, 'mens', { tierSize: 6 });
+    const w = createWorld(5, 'mens', { tierSize: 6, domesticOnly: true });
     playSeason(w, quickRunner);
     const json = JSON.stringify(serialize(w, ENGINE_VERSION, '2026-08-19T00:00:00Z'));
     const back = deserialize(json);
@@ -164,7 +164,7 @@ describe('saves', () => {
 describe('coached fixture (Phase 7)', () => {
   it('the user coaches their fixture live with instructions, the log is recorded like any other, and the rest of the day plays on', async () => {
     const { simulateMatch, createAi, squadsFromSetup, getProfile } = await import('@bullyoff/engine');
-    const w = createWorld(8, 'mens', { tierSize: 4 });
+    const w = createWorld(8, 'mens', { tierSize: 4, domesticOnly: true });
     w.userClub = 'c2';
     const mine = fixturesToday(w).find((f) => f.home === 'c2' || f.away === 'c2')!;
     const team = mine.home === 'c2' ? 0 : 1;
@@ -190,21 +190,23 @@ describe('generated history (Phase 8)', () => {
     const t0 = performance.now();
     const w = createWorld(2026, 'womens', { historyYears: 20, flavour: 'vlaanderen' });
     const ms = performance.now() - t0;
-    expect(ms).toBeLessThan(4000); // ≈ 0.6 s on a laptop; phone budget 2 s is a Phase 9 measurement
+    expect(ms).toBeLessThan(15_000); // Phase 12: six leagues + nations ≈ 4.5 s on a laptop (was 0.6 s for the single-country world); vitest parallel load roughly doubles it
     expect(w.year).toBe(2026);
     expect(w.history.length).toBe(20);
     expect(w.history[0]?.year).toBe(2006);
     expect(w.history[19]?.year).toBe(2025);
     // internal consistency: promotions = relegations each year; tiers stay 12/12; honours match history
     for (const h of w.history) { expect(h.promoted.length).toBe(h.relegated.length); expect(h.promoted.length).toBeGreaterThanOrEqual(1); }
-    expect(Object.values(w.clubs).filter((c) => c.tier === 1).length).toBe(TIER_SIZE);
-    expect(Object.values(w.clubs).reduce((s, c) => s + c.honours.titles.length, 0)).toBe(20);
-    for (const c of Object.values(w.clubs)) for (const y of c.honours.titles) expect(w.history.find((h) => h.year === y)?.champion).toBe(c.id);
+    expect(Object.values(w.clubs).filter((c) => c.tier === 1 && c.country === w.country).length).toBe(TIER_SIZE);
+    // every season crowns a champion in each of the five top flights
+    expect(Object.values(w.clubs).filter((c) => c.country === w.country).reduce((s, c) => s + c.honours.titles.length, 0)).toBe(20);
+    expect(Object.values(w.clubs).reduce((s, c) => s + c.honours.titles.length, 0)).toBe(20 * 5);
+    for (const c of Object.values(w.clubs)) for (const y of c.honours.titles) { const h = w.history.find((x) => x.year === y); expect(h && (h.champion === c.id || Object.values(h.foreignChampions ?? {}).includes(c.id))).toBe(true); }
     // clean identities
     for (const c of Object.values(w.clubs)) { expect(isBlocked(c.name), c.name).toBe(false); expect(c.town.length).toBeGreaterThan(3); expect(c.founded).toBeLessThan(2007); expect(c.founded).toBeGreaterThan(1900); }
-    expect(new Set(Object.values(w.clubs).map((c) => c.name)).size).toBe(24);
+    expect(new Set(Object.values(w.clubs).map((c) => c.name)).size).toBe(Object.keys(w.clubs).length); // all 72 distinct
     // plausible squads: 18–22 first-squad players, ≥ 1 keeper, ages 15–40, women's first names only
-    const men = new Set([...FIRST_M.nl, ...FIRST_M.fr]), women = new Set([...FIRST_W.nl, ...FIRST_W.fr, ...FIRST_W.en, ...FIRST_W.de, ...FIRST_W.es, ...FIRST_W.it, ...FIRST_W.in]);
+    const men = new Set([...FIRST_M.nl, ...FIRST_M.fr, ...FIRST_M.en, ...FIRST_M.de, ...FIRST_M.es, ...FIRST_M.it, ...FIRST_M.in]), women = new Set([...FIRST_W.nl, ...FIRST_W.fr, ...FIRST_W.en, ...FIRST_W.de, ...FIRST_W.es, ...FIRST_W.it, ...FIRST_W.in]);
     for (const c of Object.values(w.clubs)) {
       const sq = clubPlayers(w, c.id);
       expect(sq.length).toBeGreaterThanOrEqual(18); expect(sq.length).toBeLessThanOrEqual(22);
@@ -212,7 +214,7 @@ describe('generated history (Phase 8)', () => {
       for (const p of sq) { const a = ageOf(p, w.year); expect(a).toBeGreaterThanOrEqual(15); expect(a).toBeLessThanOrEqual(40); expect(women.has(p.first) || !men.has(p.first)).toBe(true); }
     }
     // tier levels sit on the calibrated scale
-    const lv = (t: 1 | 2): number => { const cs = Object.values(w.clubs).filter((c) => c.tier === t); return cs.reduce((s, c) => s + c.level, 0) / cs.length; };
+    const lv = (t: 1 | 2): number => { const cs = Object.values(w.clubs).filter((c) => c.tier === t && c.country === w.country); return cs.reduce((s, c) => s + c.level, 0) / cs.length; };
     expect(lv(1)).toBeGreaterThan(11.5); expect(lv(1)).toBeLessThan(14.5); expect(lv(2)).toBeGreaterThan(8.5); expect(lv(2)).toBeLessThan(11.5);
     // the present season is fresh and the world is deterministic
     expect(w.season.day).toBe(0); expect(w.season.fixtures.every((f) => !f.played)).toBe(true);
@@ -221,7 +223,7 @@ describe('generated history (Phase 8)', () => {
     expect(w2.clubs['c1']?.name).toBe(w.clubs['c1']?.name);
   }, 60_000);
   it('save migration 1 → 2 adds identity fields to old clubs', () => {
-    const w = createWorld(4, 'mens', { tierSize: 4 });
+    const w = createWorld(4, 'mens', { tierSize: 4, domesticOnly: true });
     const legacyWorld = JSON.parse(JSON.stringify(w)) as Record<string, unknown>;
     delete legacyWorld['flavour'];
     for (const c of Object.values(legacyWorld['clubs'] as Record<string, Record<string, unknown>>)) { delete c['town']; delete c['badge']; delete c['honours']; delete c['founded']; delete c['lang']; delete c['nickname']; }

@@ -7,6 +7,11 @@
  */
 import type { Attributes, MatchStats, ProfileId, Role, SurfaceState, ReplayFile } from '@bullyoff/engine';
 import type { TeamTactics } from '@bullyoff/engine';
+import type { Country, ClubLang } from '@bullyoff/worldgen';
+
+export type { Country, ClubLang } from '@bullyoff/worldgen';
+/** The nine nations of the nations competition (Pro League format). Codes match Person.nationality. */
+export type NationId = 'BEL' | 'NED' | 'GER' | 'GBR' | 'FRA' | 'ESP' | 'ARG' | 'AUS' | 'IND';
 
 export type ClubId = string;
 export type PersonId = number;
@@ -60,7 +65,9 @@ export interface Club {
   colours: [number, number];
   /** Phase 8 identity (worldgen): invented town, language community, optional nickname, badge, founding year. */
   town: string;
-  lang: 'nl' | 'fr';
+  lang: ClubLang;
+  /** Which national league the club plays in. */
+  country: Country;
   nickname: string | null;
   badge: ClubBadge;
   founded: number;
@@ -84,7 +91,7 @@ export interface Club {
   seasonsInTier: number;
 }
 
-export type FixturePhase = 'regular' | 'playoff-semi' | 'playoff-final' | 'playdown';
+export type FixturePhase = 'regular' | 'playoff-semi' | 'playoff-final' | 'playdown' | 'eu-quarter' | 'eu-semi' | 'eu-final';
 
 export interface Fixture {
   id: FixtureId;
@@ -92,6 +99,8 @@ export interface Fixture {
   day: number;
   tier: Tier;
   phase: FixturePhase;
+  /** Which national league the fixture belongs to; the European rounds carry the user country as a label only. */
+  country: Country;
   home: ClubId;
   away: ClubId;
   /** For two-legged ties: 1 or 2; the tie id groups both legs. */
@@ -114,6 +123,10 @@ export interface SeasonSummary {
   playoffFinal: [ClubId, ClubId, string];
   promoted: ClubId[];
   relegated: ClubId[];
+  /** Phase 12: champions of the foreign leagues, the European knockout and the nations competition. */
+  foreignChampions?: Partial<Record<Country, ClubId>>;
+  europeChampion?: ClubId | null;
+  nationsChampion?: NationId | null;
   topScorer: { person: PersonId; goals: number } | null;
 }
 
@@ -127,9 +140,30 @@ export interface Season {
   fixtures: Fixture[];
   /** Filled at the end of the regular phase. */
   regularDone: boolean;
-  playoffs: { tier: Tier; semis: FixtureId[]; final: FixtureId[]; champion: ClubId | null }[];
+  playoffs: { tier: Tier; country: Country; semis: FixtureId[]; final: FixtureId[]; champion: ClubId | null }[];
   playdowns: { tier1Club: ClubId; tier2Club: ClubId; fixtures: FixtureId[]; winner: ClubId | null } | null;
+  /** The European club knockout, played in the winter break (EHL-style block). null before Phase 12. */
+  europe: { entrants: ClubId[]; quarters: FixtureId[]; semis: FixtureId[]; final: FixtureId[]; champion: ClubId | null } | null;
+  /** The nations competition: a double round robin in a Pro League-like format, resolved off-screen. */
+  nations: { fixtures: NationsFixture[]; champion: NationId | null } | null;
   finished: boolean;
+}
+
+/** One nations-competition match: no engine, no clubs — resolved from nation strength on its day. */
+export interface NationsFixture {
+  day: number;
+  home: NationId;
+  away: NationId;
+  played: boolean;
+  seed: number;
+  result?: { home: number; away: number };
+}
+
+/** A national side in the nations competition: named by its country code, strength refreshed each season. */
+export interface Nation {
+  id: NationId;
+  level: number;
+  colours: [number, number];
 }
 
 export interface World {
@@ -145,6 +179,10 @@ export interface World {
   season: Season;
   history: SeasonSummary[];
   userClub: ClubId | null;
+  /** The country whose league the user coaches in (its fixtures run through the real engine). */
+  country: Country;
+  /** The nine national sides of the nations competition. */
+  nations: Nation[];
   /** Rng state is not stored: every random draw is seeded from (seed, year, fixture id / person id) so saves resume identically. */
 }
 

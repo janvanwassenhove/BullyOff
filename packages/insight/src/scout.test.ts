@@ -23,7 +23,7 @@ const stats = (over: Partial<MatchStats> = {}): MatchStats => ({
  * is home in one fixture and away in the next — the same mistake the report itself must not make.
  */
 function withResults(results: [number, number][], their: { pc?: [number, number]; fouls?: number } = {}): { w: World; them: ClubId } {
-  const w = createWorld(7, 'mens');
+  const w = createWorld(7, 'mens', { domesticOnly: true });
   const them = Object.keys(w.clubs)[0] ?? 'c1';
   const theirs = w.season.fixtures.filter((f) => f.home === them || f.away === them).sort((a, b) => a.day - b.day);
   results.forEach(([gf, ga], i) => {
@@ -45,7 +45,7 @@ function withResults(results: [number, number][], their: { pc?: [number, number]
 
 describe('scouting the opposition', () => {
   it('an opponent nobody has seen yet gets one honest line and no plan', () => {
-    const w = createWorld(3, 'mens');
+    const w = createWorld(3, 'mens', { domesticOnly: true });
     const them = Object.keys(w.clubs)[1] ?? 'c2';
     const r = scoutOpponent(w, them);
     expect(r.played).toBe(0);

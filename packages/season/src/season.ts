@@ -5,13 +5,14 @@
  * into the next season. Deterministic; a save resumes identically.
  */
 import { Rng, clamp } from '@bullyoff/shared';
-import type { ClubId, Fixture, Season, SeasonSummary, Tier, World } from './model.js';
-import { generateFinal, generateFixtures, generatePlaydown, generatePlayoffs } from './fixtures.js';
+import type { ClubId, Country, Fixture, NationId, NationsFixture, Season, SeasonSummary, World } from './model.js';
+import { generateFinal, generateFixtures, generatePlaydown, generatePlayoffs, leaguesOf } from './fixtures.js';
 import { fixtureSetup, playFixture, recordFixture, resolveShootOut, type MatchRunner } from './matchday.js';
 import { matchStats, type MatchLog } from '@bullyoff/engine';
 import { standings, tieAggregate } from './table.js';
 import { normaliseLevels, developSeason, recomputeClubLevels } from './develop.js';
 import { seasonFinances } from './finance.js';
+import { buildNations } from './nations.js';
 
 export interface AdvanceOptions {
   runner: MatchRunner;
@@ -22,6 +23,12 @@ export interface AdvanceOptions {
   /** Called before each fixture is played — a match day takes real seconds, and a user staring at a
    *  dead button assumes the game hung. `i` is 0-based, `n` the day's fixture count. */
   onFixture?: (i: number, n: number, f: Fixture) => void;
+  /**
+   * Pick a different runner per fixture (Phase 12): the app runs the user's own league through the
+   * real engine and the four foreign leagues through the labelled quick resolver — six engine
+   * matches a day, not thirty-six. Omitted = `runner` for everything.
+   */
+  runnerFor?: (f: Fixture) => MatchRunner;
 }
 
 /** Fixtures scheduled on the current day. */
@@ -43,10 +50,12 @@ export function advanceDay(w: World, opts: AdvanceOptions): Fixture[] {
   today.forEach((f, i) => {
     opts.onFixture?.(i, today.length, f);
     const keep = !!opts.keepReplayFor && (f.home === opts.keepReplayFor || f.away === opts.keepReplayFor);
-    playFixture(w, f, opts.runner, keep);
+    playFixture(w, f, opts.runnerFor?.(f) ?? opts.runner, keep);
     settleKnockout(w, f);
     played.push(f);
   });
+  // the nations competition plays its rounds alongside the club calendar, resolved off-screen
+  resolveNationsDay(w);
   // injuries heal by a day
   for (const p of Object.values(w.persons)) if (p.injuredDays > 0) p.injuredDays--;
   // winter break: a real interval — recovery (extra healing) and a training block (small physical uptick)
@@ -69,7 +78,8 @@ export function advanceDay(w: World, opts: AdvanceOptions): Fixture[] {
 function settleKnockout(w: World, f: Fixture): void {
   const s = w.season;
   if (f.phase === 'regular' || !f.result) return;
-  const tieFixtures = s.fixtures.filter((x) => x.tieId === f.tieId && x.phase === f.phase && x.tier === f.tier);
+  // country included: five leagues share the same tie numbering (semi 1 exists in every country)
+  const tieFixtures = s.fixtures.filter((x) => x.tieId === f.tieId && x.phase === f.phase && x.tier === f.tier && x.country === f.country);
   if (tieFixtures.some((x) => !x.played)) return; // second leg still to come
   const a = tieFixtures[0]?.home === f.home && f.leg !== 2 ? f.home : (tieFixtures[0]?.away ?? f.away);
   const b = a === f.home ? f.away : f.home;
@@ -83,7 +93,36 @@ function settleKnockout(w: World, f: Fixture): void {
     ga = sa; gb = sb;
   } else winner = ga > gb ? a : b;
 
-  const po = s.playoffs.find((p) => p.tier === f.tier);
+  // European rounds: quarters → semis → final, all inside the winter-break block
+  if (f.phase.startsWith('eu-') && s.europe) {
+    const eu = s.europe;
+    const done = (ids: number[]): boolean => ids.map((id) => s.fixtures.find((x) => x.id === id)).every((x) => x?.played);
+    const winnerOf = (id: number): ClubId | null => { const x = s.fixtures.find((y) => y.id === id); return x ? semiWinner(x) : null; };
+    if (f.phase === 'eu-quarter' && done(eu.quarters) && eu.semis.length === 0) {
+      const ws = eu.quarters.map(winnerOf).filter((x): x is ClubId => !!x);
+      const rng = new Rng(w.seed, 3300 + w.year);
+      const semis: Fixture[] = [0, 1].map((i) => ({
+        id: w.nextFixtureId++, day: s.day + 1, tier: 1, phase: 'eu-semi' as const, country: w.country,
+        home: ws[i] ?? '', away: ws[3 - i] ?? '', played: false, seed: rng.nextU32(), tieId: 110 + i,
+      }));
+      s.fixtures.push(...semis); eu.semis = semis.map((x) => x.id);
+      s.days = Math.max(s.days, s.day + 3);
+    } else if (f.phase === 'eu-semi' && done(eu.semis) && eu.final.length === 0) {
+      const ws = eu.semis.map(winnerOf).filter((x): x is ClubId => !!x);
+      const rng = new Rng(w.seed, 3400 + w.year);
+      const final: Fixture = {
+        id: w.nextFixtureId++, day: s.day + 1, tier: 1, phase: 'eu-final', country: w.country,
+        home: ws[0] ?? '', away: ws[1] ?? '', played: false, seed: rng.nextU32(), tieId: 120,
+      };
+      s.fixtures.push(final); eu.final = [final.id];
+      s.days = Math.max(s.days, s.day + 3);
+    } else if (f.phase === 'eu-final') {
+      eu.champion = winner;
+    }
+    return;
+  }
+
+  const po = s.playoffs.find((p) => p.tier === f.tier && p.country === f.country);
   if (f.phase === 'playoff-semi' && po) {
     const semisDone = po.semis.map((id) => s.fixtures.find((x) => x.id === id)).every((x) => x?.played);
     if (semisDone) {
@@ -91,7 +130,7 @@ function settleKnockout(w: World, f: Fixture): void {
       const [w1, w2] = winners;
       if (w1 && w2 && po.final.length === 0) {
         const twoLeg = w.profile === 'womens'; // Belgian W 2024–25: two-leg final; M: single (open question #4)
-        const finals = generateFinal(w, f.tier, w1, w2, s.day + 1, twoLeg);
+        const finals = generateFinal(w, f.tier, f.country, w1, w2, s.day + 1, twoLeg);
         s.fixtures.push(...finals); po.final = finals.map((x) => x.id);
         s.days = Math.max(s.days, s.day + 3);
       }
@@ -101,6 +140,42 @@ function settleKnockout(w: World, f: Fixture): void {
   } else if (f.phase === 'playdown' && s.playdowns) {
     s.playdowns.winner = winner;
   }
+}
+
+/**
+ * Resolve today's nations-competition matches: Poisson goals from the two nations' strengths (the
+ * same labelled model as the quick club resolver — these matches never run the engine).
+ */
+function resolveNationsDay(w: World): void {
+  const s = w.season;
+  if (!s.nations) return;
+  const level = (id: string): number => w.nations.find((n) => n.id === id)?.level ?? 14;
+  const play = (f: NationsFixture): void => {
+    const rng = new Rng(f.seed, 6100);
+    const base = w.profile === 'womens' ? 1.6 : 2.4; // international hockey is tighter than club hockey
+    const diff = (level(f.home) - level(f.away)) * 0.16;
+    const pois = (m: number): number => { let k = 0, p = 1; const L = Math.exp(-m); do { k++; p *= rng.next(); } while (p > L); return k - 1; };
+    f.result = { home: pois(clamp(base * Math.exp(diff + 0.08), 0.3, 6)), away: pois(clamp(base * Math.exp(-diff - 0.08), 0.3, 6)) };
+    f.played = true;
+  };
+  for (const f of s.nations.fixtures) if (!f.played && f.day <= s.day) play(f);
+  if (s.nations.champion === null && s.nations.fixtures.every((f) => f.played)) {
+    s.nations.champion = (nationsTable(w)[0]?.id as NationId | undefined) ?? null;
+  }
+}
+
+/** The nations-competition table (3/1/0 points, then goal difference, goals for, name). */
+export function nationsTable(w: World): { id: string; p: number; w: number; d: number; l: number; gf: number; ga: number; pts: number }[] {
+  const rows = new Map<string, { id: string; p: number; w: number; d: number; l: number; gf: number; ga: number; pts: number }>();
+  for (const n of w.nations) rows.set(n.id, { id: n.id, p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 });
+  for (const f of w.season.nations?.fixtures ?? []) {
+    const r = f.result; if (!f.played || !r) continue;
+    const h = rows.get(f.home), a = rows.get(f.away);
+    if (!h || !a) continue;
+    h.p++; a.p++; h.gf += r.home; h.ga += r.away; a.gf += r.away; a.ga += r.home;
+    if (r.home > r.away) { h.w++; a.l++; h.pts += 3; } else if (r.home < r.away) { a.w++; h.l++; a.pts += 3; } else { h.d++; a.d++; h.pts++; a.pts++; }
+  }
+  return [...rows.values()].sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf || a.id.localeCompare(b.id));
 }
 
 function semiWinner(f: Fixture): ClubId | null {
@@ -114,17 +189,20 @@ function semiWinner(f: Fixture): ClubId | null {
 function startPlayoffs(w: World): void {
   const s = w.season;
   s.playoffs = [];
-  for (const tier of [1, 2] as Tier[]) {
-    const table = standings(w, tier).map((r) => r.club);
-    const { semis } = generatePlayoffs(w, tier, table, w.profile === 'womens');
+  // Every league in the world closes its season with a title final four — the format the Belgian,
+  // Dutch, German and French top flights actually use (England's championship pool is modelled the
+  // same way as data; the differences that matter are the pyramid, not the bracket).
+  for (const { country, tier } of leaguesOf(w)) {
+    const table = standings(w, tier, country).map((r) => r.club);
+    const { semis } = generatePlayoffs(w, tier, country, table, w.profile === 'womens');
     s.fixtures.push(...semis);
-    s.playoffs.push({ tier, semis: semis.map((x) => x.id), final: [], champion: null });
+    s.playoffs.push({ tier, country, semis: semis.map((x) => x.id), final: [], champion: null });
   }
-  // play-down: tier-1 second-last vs tier-2 runner-up, two legs
-  const t1 = standings(w, 1).map((r) => r.club), t2 = standings(w, 2).map((r) => r.club);
+  // play-down: only where the pyramid exists (the user's country has two tiers)
+  const t1 = standings(w, 1, w.country).map((r) => r.club), t2 = standings(w, 2, w.country).map((r) => r.club);
   const secondLast = t1[t1.length - 2], runnerUp2 = t2[1];
-  if (secondLast && runnerUp2) {
-    const pd = generatePlaydown(w, secondLast, runnerUp2, s.day);
+  if (secondLast && runnerUp2 && t2.length > 0) {
+    const pd = generatePlaydown(w, w.country, secondLast, runnerUp2, s.day);
     s.fixtures.push(...pd);
     s.playdowns = { tier1Club: secondLast, tier2Club: runnerUp2, fixtures: pd.map((x) => x.id), winner: null };
   }
@@ -134,9 +212,12 @@ function startPlayoffs(w: World): void {
 function finishSeason(w: World): void {
   const s = w.season;
   s.finished = true;
+  // any nations rounds the calendar never reached (a season cut short) still resolve
+  resolveNationsDay(w);
+  if (s.nations?.champion === null) { for (const f of s.nations.fixtures) f.day = Math.min(f.day, s.day); resolveNationsDay(w); }
   const t1 = standings(w, 1), t2 = standings(w, 2);
-  const champion = s.playoffs.find((p) => p.tier === 1)?.champion ?? t1[0]?.club ?? '';
-  const t2champion = s.playoffs.find((p) => p.tier === 2)?.champion ?? t2[0]?.club ?? '';
+  const champion = s.playoffs.find((p) => p.tier === 1 && p.country === w.country)?.champion ?? t1[0]?.club ?? '';
+  const t2champion = s.playoffs.find((p) => p.tier === 2 && p.country === w.country)?.champion ?? t2[0]?.club ?? '';
   const relegatedAuto = t1[t1.length - 1]?.club;
   const promoted: ClubId[] = [], relegated: ClubId[] = [];
   // tier-2 play-off champion up, tier-1 last down
@@ -154,15 +235,24 @@ function finishSeason(w: World): void {
     }
     if (up && !promoted.includes(up)) promoted.push(up);
   }
-  const finalFx = s.playoffs.find((p) => p.tier === 1)?.final.map((id) => s.fixtures.find((x) => x.id === id)).filter((x): x is Fixture => !!x) ?? [];
+  const finalFx = s.playoffs.find((p) => p.tier === 1 && p.country === w.country)?.final.map((id) => s.fixtures.find((x) => x.id === id)).filter((x): x is Fixture => !!x) ?? [];
   const finalStr = finalFx.map((x) => `${x.home} ${x.result?.home ?? 0}-${x.result?.away ?? 0} ${x.away}${x.result?.shootOut ? ` (SO ${x.result.shootOut[0]}-${x.result.shootOut[1]})` : ''}`).join(' / ');
   const scorers = Object.values(w.persons).filter((p) => p.goals > 0).sort((a, b) => b.goals - a.goals || a.id - b.id)[0];
+  // the foreign champions: each league's play-off winner (regular-season leader as fallback)
+  const foreignChampions: Partial<Record<Country, ClubId>> = {};
+  for (const { country, tier } of leaguesOf(w)) {
+    if (tier !== 1 || country === w.country) continue;
+    const c = s.playoffs.find((p) => p.tier === 1 && p.country === country)?.champion ?? standings(w, 1, country)[0]?.club;
+    if (c) foreignChampions[country] = c;
+  }
   const summary: SeasonSummary = {
     year: w.year, champion, regularWinner: t1[0]?.club ?? '', playoffFinal: [finalFx[0]?.home ?? '', finalFx[0]?.away ?? '', finalStr],
     promoted, relegated, topScorer: scorers ? { person: scorers.id, goals: scorers.goals } : null,
+    foreignChampions, europeChampion: s.europe?.champion ?? null, nationsChampion: s.nations?.champion ?? null,
   };
   w.history.push(summary);
   w.clubs[champion]?.honours.titles.push(w.year);
+  for (const c of Object.values(foreignChampions)) w.clubs[c]?.honours.titles.push(w.year);
   for (const id of promoted) w.clubs[id]?.honours.promotions.push(w.year);
 }
 
@@ -205,6 +295,8 @@ export function newSeason(w: World): void {
   recomputeClubLevels(w);
   for (const c of Object.values(w.clubs)) c.reputation = clamp(c.reputation * 0.9 + (c.tier === 1 ? 6 : 2) + (last.champion === c.id ? 12 : 0) + (last.relegated.includes(c.id) ? -10 : 0), 5, 99);
   w.year++;
+  // national squads develop with their players; a nation is only ever as good as its best fourteen
+  w.nations = buildNations(w.persons, w.year);
   w.season = generateFixtures(w);
 }
 

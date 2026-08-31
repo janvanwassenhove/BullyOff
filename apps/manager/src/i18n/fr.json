@@ -115,7 +115,7 @@
     "mens": "MESSIEURS",
     "womens": "DAMES",
     "flavour": "RÉGION",
-    "flavourHint": "pools de noms et de communes",
+    "flavourHint": "pools de noms et de communes", "country": "PAYS", "countryHint": "le championnat que vous allez coacher",
     "mixed": "MIXTE",
     "vlaanderen": "FLANDRE",
     "wallonie": "WALLONIE",
@@ -191,7 +191,7 @@
       "table": "CLASSEMENT",
       "fixtures": "CALENDRIER",
       "results": "RÉSULTATS",
-      "history": "HISTORIQUE"
+      "history": "HISTORIQUE", "europe": "EUROPE", "nations": "NATIONS"
     },
     "cols": {
       "pos": "#",
@@ -224,7 +224,7 @@
       "regular": "classique",
       "playoff-semi": "demi-finale",
       "playoff-final": "finale",
-      "playdown": "barrage"
+      "playdown": "barrage", "eu-quarter": "EU · quart", "eu-semi": "EU · demie", "eu-final": "EU · finale"
     },
     "form": "FORME · CINQ DERNIERS",
     "formNote": "{gf} buts / match à domicile",
@@ -235,7 +235,7 @@
     "treatmentEmpty": "tout le monde est apte",
     "daysOut": "{d} j",
     "light": "apte — léger",
-    "noResults": "Aucun résultat pour l'instant.",
+    "noResults": "Aucun résultat pour l'instant.", "foreignNote": "élite uniquement — vous suivez ce pays de loin", "eu": {"quarters":"QUARTS DE FINALE","semis":"DEMI-FINALES","final":"FINALE","none":"Le knock-out européen se joue pendant la trêve hivernale — huit clubs, un seul bloc.","champion":"{club} remporte la coupe d’Europe."}, "nations": {"team":"NATION","recent":"DERNIERS INTERNATIONAUX","note":"Neuf nations, aller-retour, le classement décide — pas de play-offs, pas de relégation.","champion":"{nation} remporte la compétition des nations."},
     "noHistory": "Aucune saison terminée pour l'instant.",
     "histLine": "champion {champion} (vainqueur de la phase classique {regular}) · finale : {final} · montées : {up} · descentes : {down}",
     "so": "SO {a}–{b}",
@@ -1026,5 +1026,7 @@
     },
     "replay": "Rejouer",
     "playing": "lecture…"
-  }
+  },
+  "country": {"BE":"BELGIQUE","NL":"PAYS-BAS","EN":"ANGLETERRE","FR":"FRANCE","DE":"ALLEMAGNE"},
+  "nation": {"BEL":"Belgique","NED":"Pays-Bas","GER":"Allemagne","GBR":"Grande-Bretagne","FRA":"France","ESP":"Espagne","ARG":"Argentine","AUS":"Australie","IND":"Inde"}
 }
