@@ -6,8 +6,8 @@
 import { Rng, clamp, dmath } from '@bullyoff/shared';
 import { FIH_OUTDOOR_FAST, type Laws } from '@bullyoff/rules';
 import {
-  aiController, getProfile, matchStats, simulateMatch, squadsFromSetup, encodeReplay,
-  type MatchLog, type MatchSetup, type MatchStats, type PcBattery, type PlayerSetup, type Role, type TeamTactics,
+  aiController, getProfile, matchStats, simulateMatch, squadsFromSetup, encodeReplay, pcDefenceFor,
+  type MatchLog, type MatchSetup, type MatchStats, type PcBattery, type PcDefenceId, type PlayerSetup, type Role, type TeamTactics,
 } from '@bullyoff/engine';
 import type { Club, ClubId, Fixture, Person, World } from './model.js';
 import { ageOf, clubPlayers } from './world.js';
@@ -103,7 +103,20 @@ export function fixtureSetup(w: World, f: Fixture, keepFrames = true): { setup: 
   const r = toSetup(w, f, keepFrames);
   const home = w.clubs[f.home], away = w.clubs[f.away];
   if (!home || !away) throw new Error(`fixture ${f.id}: unknown club`);
-  return { ...r, tactics: [gamePlan(w, home, away, tacticsFor(home, r.idMap)), gamePlan(w, away, home, tacticsFor(away, r.idMap))] };
+  return { ...r, tactics: [gamePlan(w, home, away, tacticsFor(w, home, r.idMap)), gamePlan(w, away, home, tacticsFor(w, away, r.idMap))] };
+}
+
+/**
+ * How a club runs out at a penalty corner (hockey-systems.md §5). The user's club plays what the
+ * coach set on the tactics screen; an AI club plays what its players allow — a flyer who can fly, a
+ * keeper who can read, or the honest block when it has neither. Read from the senior squad, so the
+ * scouting report and the match agree.
+ */
+export function pcDefenceOf(w: World, club: Club): PcDefenceId {
+  if (club.id === w.userClub) return club.tactics.pcDefence;
+  const squad = clubPlayers(w, club.id).filter((p) => !p.youth);
+  const gk = [...squad].filter((p) => p.role === 'GK').sort((a, b) => (b.attrs.goalkeeper.reflexes + b.attrs.goalkeeper.pcReading) - (a.attrs.goalkeeper.reflexes + a.attrs.goalkeeper.pcReading))[0];
+  return pcDefenceFor(squad.filter((p) => p.role !== 'GK').map((p) => p.attrs), gk?.attrs);
 }
 
 /**
@@ -134,9 +147,10 @@ function gamePlan(w: World, club: Club, opp: Club, t: TeamTactics): TeamTactics 
  * make the eleven simply drops out of the battery and the AI picks that role, which is what happens
  * on a real Saturday.
  */
-function tacticsFor(club: Club, idMap: Map<number, number>): TeamTactics {
+function tacticsFor(w: World, club: Club, idMap: Map<number, number>): TeamTactics {
   const picks = club.pcBattery;
-  if (!picks) return { ...club.tactics };
+  const base: TeamTactics = { ...club.tactics, pcDefence: pcDefenceOf(w, club) };
+  if (!picks) return base;
   const local = new Map<number, number>();
   for (const [id, person] of idMap) local.set(person, id);
   const battery: PcBattery = {};
@@ -145,7 +159,7 @@ function tacticsFor(club: Club, idMap: Map<number, number>): TeamTactics {
     if (id !== undefined) battery[role] = id;
   };
   set('injector', picks.injector); set('trapper', picks.trapper); set('striker', picks.striker);
-  return Object.keys(battery).length > 0 ? { ...club.tactics, pcBattery: battery } : { ...club.tactics };
+  return Object.keys(battery).length > 0 ? { ...base, pcBattery: battery } : base;
 }
 
 function toSetup(w: World, f: Fixture, keepFrames: boolean): { setup: MatchSetup; idMap: Map<number, number> } {
@@ -184,7 +198,7 @@ export const engineRunnerWith = (laws: Laws): MatchRunner => (w, f, opts) => {
   setup.laws = laws;
   const home = w.clubs[f.home], away = w.clubs[f.away];
   if (!home || !away) throw new Error(`fixture ${f.id}: unknown club`);
-  const tactics: [TeamTactics, TeamTactics] = [gamePlan(w, home, away, tacticsFor(home, idMap)), gamePlan(w, away, home, tacticsFor(away, idMap))];
+  const tactics: [TeamTactics, TeamTactics] = [gamePlan(w, home, away, tacticsFor(w, home, idMap)), gamePlan(w, away, home, tacticsFor(w, away, idMap))];
   const log = simulateMatch(setup, f.seed, aiController(f.seed, squadsFromSetup(setup.players, tactics), { profile: getProfile(w.profile), surface: setup.surface }));
   const stats = matchStats(log);
   return { home: stats.goals[0], away: stats.goals[1], stats, log, idMap };

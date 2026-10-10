@@ -181,6 +181,7 @@ export function tick(s: MatchState, commands: readonly Command[]): MatchEvent[] 
       case 'move': {
         const p = playerOf(s, c.playerId); if (!p) break;
         p.wantDir = { x: c.dx, y: c.dy }; p.wantEffort = clamp01(c.effort);
+        p.posture = c.posture ?? null;
         break;
       }
       case 'aim': {
@@ -213,15 +214,22 @@ export function tick(s: MatchState, commands: readonly Command[]): MatchEvent[] 
           // …and why a set piece has no reverse at all: at a stroke, a free hit or a corner the ball
           // is stationary and the clock is stopped, so the taker simply walks round it and plays it
           // off his forehand. Nobody in hockey takes a stroke on the reverse.
-          const setPiece = s.rules.psActive || s.rules.restart !== null;
+          // …and the battery's strikes off a stopped ball at a corner are the same routine: the
+          // trapper puts it where the hitter has set his feet (the slip hitter included).
+          const batteryBall = s.rules.pcActive && p.team === s.rules.pcTeam && ball.vel.x ** 2 + ball.vel.y ** 2 < 16;
+          const setPiece = s.rules.psActive || s.rules.restart !== null || batteryBall;
           const strikeSide = setPiece ? -1 : lateralOf(p.heading, p.pos, ball.pos);
           speed *= strikeSideSpeed(p.attrs, c.strike, strikeSide);
           // A penalty stroke is a practiced strike off a stationary ball with the game stopped: half
           // the in-play spray. At full spray ±0.5 m the taker fed the keeper's body ~1 in 5 strokes
           // and conversion sat at 0.45–0.53 where real strokes convert ~0.75.
-          const spray = strikeErrorSd(p.attrs, c.strike, p.stamina) * strikeSideError(p.attrs, c.strike, strikeSide) * (s.rules.psActive ? 0.45 : 1);
+          // …and the first strike of a penalty corner is the same kind of thing: a stationary ball, a
+          // planted trapper, a routine drilled every Tuesday. Not a stroke (the runner is coming), so
+          // 0.7 of the in-play spray rather than 0.45, and the lift is grooved too.
+          const pcFirst = s.rules.pcActive && s.rules.restart === null && s.rules.pcFirstShot === null && p.team === s.rules.pcTeam;
+          const spray = strikeErrorSd(p.attrs, c.strike, p.stamina) * strikeSideError(p.attrs, c.strike, strikeSide) * (s.rules.psActive ? 0.45 : pcFirst ? 0.7 : 1);
           angle = dmath.wrapAngle(angle + s.rng.gaussian(0, spray));
-          if (lift > 0) lift = Math.max(0.005, lift + s.rng.gaussian(0, lift * 0.25));
+          if (lift > 0) lift = Math.max(0.005, lift + s.rng.gaussian(0, lift * (pcFirst ? 0.15 : 0.25)));
         }
         p.stickAngle = angle;
         // The stick brings the ball round in front of the body before it is played: you cannot hit *through* yourself.
@@ -243,8 +251,18 @@ export function tick(s: MatchState, commands: readonly Command[]): MatchEvent[] 
         if (!s.sandbox && !gateCommand(s.rules, view0, 'trap', p.id, laws)) break;
         const isGk = s.goalkeepers.has(p.id);
         if (t < p.trapCooldownUntil) break; // beaten a moment ago: no second bite at the same ball
-        if (!ballInReach(s, p, isGk ? gkReach(p.attrs) : undefined, isGk ? 2.0 : undefined)) break;
+        const pr = postureReach(s, p, isGk);
+        if (!ballInReach(s, p, pr.reach, pr.maxHeight)) break;
         const incoming = Math.sqrt(ball.vel.x ** 2 + ball.vel.y ** 2 + ball.vel.z ** 2);
+        // A stick raised at a lifted, fast ball is a guess at where the ball will be: most flicks go
+        // past it untouched, and there is no time to swing a full reach at one — the block is made
+        // with the ball coming at the body, which is why the flyer runs ON the shooting line and why
+        // arriving early matters: close to the striker the two corners are a stride apart, near the
+        // goal they are a metre and more either side of him. Only a touch is a block (clean or not).
+        // (Measured without this the flyer "blocked" every flick within a stick's reach, and a late
+        // runner blocked as many as an early one.)
+        const stickInAir = !isGk && !s.sandbox && ball.pos.z > STICK_IN_AIR_Z && incoming > STICK_IN_AIR_SPEED * (profile.strike.pushSpeed / 14);
+        if (stickInAir && (!ballInReach(s, p, pr.reach * STICK_IN_AIR_REACH, pr.maxHeight) || !s.rng.chance(STICK_IN_AIR_TOUCH))) break;
         // Cutting out an opponent's firm pass is not receiving: the ball crosses you at pace and you
         // get one stick-length lunge at it. Measured before this penalty existed: 146 passes a match
         // were cleanly cut (real hockey has perhaps 20–30 interceptions), possession churned every
@@ -257,12 +275,17 @@ export function tick(s: MatchState, commands: readonly Command[]): MatchEvent[] 
         if (!s.sandbox) {
           const dxb = ball.pos.x - p.pos.x, dyb = ball.pos.y - p.pos.y;
           let pClean = isGk
-            ? (s.rules.psActive && s.rules.restart === null ? gkStrokeSaveChance(p.attrs) : Math.min(0.97, profile.calibration.gkSaveScale * gkSaveChance(p.attrs, incoming, Math.sqrt(dxb * dxb + dyb * dyb))))
+            ? (s.rules.psActive && s.rules.restart === null ? gkStrokeSaveChance(p.attrs) : Math.min(0.97, profile.calibration.gkSaveScale * gkSaveChance(p.attrs, incoming, Math.sqrt(dxb * dxb + dyb * dyb)) * gkSetFactor(p, ball.pos.z)))
             : trapSuccess(p.attrs, incoming, ball.pos.z, speedRef)
               // Handedness (§6.3): on the reverse the stick has to be turned over and the body
               // cannot get behind it. A good player opens up onto the forehand and barely pays.
               * receiveSideFactor(p.attrs, lateralOf(p.heading, p.pos, ball.pos));
           if (intercepting) pClean *= 0.45;
+          // The stop at a penalty corner is a drilled skill: the trapper has the stick flat on the
+          // turf and knows the line the ball is coming on. That is why the injection can be struck
+          // firmly (and why the whole sequence takes 1.5 s, not 3) — the flyer's race is against
+          // THAT clock, which is the entire contest of a corner.
+          if (s.rules.pcActive && s.rules.restart === null && s.rules.pcFirstShot === null && p.team === s.rules.pcTeam && !isGk) pClean = Math.min(0.95, pClean * 1.35);
           clean = s.rng.chance(pClean);
         }
         if (clean) {
@@ -371,7 +394,13 @@ export function tick(s: MatchState, commands: readonly Command[]): MatchEvent[] 
   if (!ballDead) {
     const step = stepBall(ball, DT, profile.ball, surface);
     if (step.bounced) events.push({ t: 'BallBounce', tick: t, x: step.next.pos.x, y: step.next.pos.y, speedBefore: step.speedBeforeBounce });
-    const bodies: BodyCollider[] = s.players.filter((p) => p.onPitch).map((p) => ({ playerId: p.id, pos: p.pos, radius: profile.player.radius, height: profile.player.height }));
+    // A body sliding out low with the stick along the turf (§5) is a wide, low barrier: it stops
+    // what rolls and is cleared by what is lifted — that is the whole bet of a low runner.
+    const bodies: BodyCollider[] = s.players.filter((p) => p.onPitch).map((p) => (p.posture === 'low'
+      ? { playerId: p.id, pos: p.pos, radius: LOW_BLOCK_RADIUS, height: LOW_BLOCK_HEIGHT }
+      : p.posture === 'high'
+        ? { playerId: p.id, pos: p.pos, radius: HIGH_BODY_RADIUS, height: profile.player.height }
+        : { playerId: p.id, pos: p.pos, radius: profile.player.radius, height: profile.player.height }));
     // The last toucher's own body does not collide with the ball while it is slow at their feet (dribbling: it's on
     // the stick, not the boot) or moving AWAY from them (they just played it). Anyone else's body still collides → feet.
     let ignore: PlayerId | null = struckBy;
@@ -416,8 +445,11 @@ export function tick(s: MatchState, commands: readonly Command[]): MatchEvent[] 
             // block on a goal-bound ball is the body, and that body is what the stroke is FOR
             const ownGx = (p.team === 0 ? -1 : 1) * HALF_LENGTH;
             const onLine = inOwnCircle && (e.x - ownGx) ** 2 + e.y ** 2 < 16;
+            // a man sliding out low has put his stick on the floor ON PURPOSE: a ball that reaches
+            // him there is a stick block far more often than a foot (and a flick clears him entirely)
+            const lowBlock = p.posture === 'low' && e.z <= LOW_BLOCK_HEIGHT;
             const stickSave = !s.sandbox && !s.goalkeepers.has(p.id)
-              && s.rng.chance(clamp(0.35 + 0.4 * ((p.attrs.technical.trapping - 1) / 19) - (speedBefore - 6 * svRef) / (50 * svRef) - (pointBlank ? 0.28 : 0) - (inOwnCircle ? 0.17 : 0) - (onLine ? 0.2 : 0), 0.05, 0.65));
+              && s.rng.chance(lowBlock ? LOW_BLOCK_STICK : clamp(0.35 + 0.4 * ((p.attrs.technical.trapping - 1) / 19) - (speedBefore - 6 * svRef) / (50 * svRef) - (pointBlank ? 0.28 : 0) - (inOwnCircle ? 0.17 : 0) - (onLine ? 0.2 : 0), 0.05, 0.65));
             if (!stickSave) sig.bodyContacts.push({ playerId: p.id, team: p.team, at: { x: e.x, y: e.y, z: e.z }, ballSpeed: speedBefore, ballHeight: e.z });
             ball.lastTouch = p.id; s.lastTouchTeam = p.team;
           }
@@ -536,6 +568,48 @@ function playerOf(s: MatchState, id: PlayerId): PlayerState | undefined {
 }
 
 /** Ball is playable if it's within stick reach of the body and not above waist height. */
+/** A stick in the air at a lifted ball above this height and speed touches it this often. */
+const STICK_IN_AIR_Z = 0.5;
+const STICK_IN_AIR_SPEED = 18;
+const STICK_IN_AIR_TOUCH = 0.45;
+const STICK_IN_AIR_REACH = 0.6;
+/** A low block: the sliding runner's stick along the turf. Wide, and anything above it is clear. */
+const LOW_BLOCK_RADIUS = 1.1;
+const LOW_BLOCK_HEIGHT = 0.4;
+/** An upright runner with the stick up is a narrow body: the low ball passes beside his legs. */
+const HIGH_BODY_RADIUS = 0.3;
+/** How often a ball that reaches a low block meets the stick rather than the feet. */
+const LOW_BLOCK_STICK = 0.6;
+/** Where a lifted ball is "over" an advancing keeper: he is moving and low, and cannot get up to it. */
+const GK_ADVANCED_FROM = 2.5;
+const GK_ADVANCED_LIFT = 0.9;
+const GK_ADVANCED_FACTOR = 0.4;
+
+/**
+ * What a stick can reach given the body's posture (§5). Upright: the standard reach to 0.6 m. Low:
+ * the stick is along the turf — wider, but nothing above 0.45 m. High: hands up for the rising
+ * flick to chest height, and the stick is OFF the floor, so a rolling ball only meets the feet.
+ * The keeper's set is the same idea: a keeper coming out low smothers but cannot rise to a lift.
+ */
+function postureReach(s: MatchState, p: PlayerState, isGk: boolean): { reach: Scalar; maxHeight: Scalar } {
+  if (isGk) return { reach: gkReach(p.attrs), maxHeight: p.posture === 'low' ? 1.0 : 2.0 };
+  const base = s.profile.player.reach;
+  if (p.posture === 'low') return { reach: base * 1.25, maxHeight: LOW_BLOCK_HEIGHT };
+  if (p.posture === 'high') return s.ball.pos.z < 0.25 ? { reach: base * 0.25, maxHeight: 0.25 } : { reach: base, maxHeight: 1.3 };
+  return { reach: base, maxHeight: 0.6 };
+}
+
+/**
+ * A keeper who has come off his line (keeperLeads, or out to a one-on-one) narrows the angle and
+ * smothers the low ball — the geometry already rewards him for that — but he is moving forward and
+ * low, and the lift over him is the counter every attacking coach knows.
+ */
+function gkSetFactor(p: PlayerState, ballZ: Scalar): Scalar {
+  const ownGx = (p.team === 0 ? -1 : 1) * HALF_LENGTH;
+  const offLine = Math.abs(p.pos.x - ownGx);
+  return offLine > GK_ADVANCED_FROM && ballZ > GK_ADVANCED_LIFT ? GK_ADVANCED_FACTOR : 1;
+}
+
 function ballInReach(s: MatchState, p: PlayerState, reachOverride?: Scalar, maxHeight = 0.6): boolean {
   if (!p.onPitch) return false;
   const reach = reachOverride ?? s.profile.player.reach;

@@ -458,6 +458,16 @@
       "high": "HAUT"
     },
     "pcDesigner": "ROUTINE DE PENALTY CORNER",
+    "pcDefenceLabel": "SYSTÈME DE SORTIE",
+    "pcDefenceHint": "comment les cinq derrière la ligne défendent un corner — chaque système a son trou",
+    "pcDefence": { "runnerLeads": "sortant d'abord", "keeperLeads": "gardien d'abord", "doubleCharge": "double sortie", "block": "bloc" },
+    "pcDefenceWhy": { "runnerLeads": "Le sortant parie sur la ligne du flick et arrive quand la balle part. Meurt sur le slip.", "keeperLeads": "Le gardien sort bas, le sortant prend le but. Étouffe le coup bas ; se fait lober.", "doubleCharge": "Deux sortants : un sur le stoppeur, un côté slip. Tue slips et coups ; le flick droit passe au-dessus de deux corps bas.", "block": "Personne ne sort, cinq corps remplissent le but. Concède la frappe propre, jamais un trou." },
+    "runnerLabel": "PREMIER SORTANT",
+    "runner": { "auto": "selon le système", "low": "bas", "high": "haut" },
+    "runnerHint": "bas, il bloque le coup et se fait lober ; haut, il bloque le flick et le coup bas passe dessous",
+    "entryLabel": "CHEMIN VERS LE CERCLE",
+    "entry": { "auto": "lire le jeu", "baseline": "ligne de fond & retrait", "switchAndSlip": "renversement & décalage", "deepDiagonal": "diagonale profonde", "drawTheFoot": "provoquer le pied", "overload": "surnombre côté faible" },
+    "entryHint": "le schéma dont le coureur part avant la passe — laissez ouvert et l'adjoint choisit le meilleur à chaque attaque",
     "variant": "variante",
     "aiPicks": "l'adjoint choisit",
     "injector": "injecteur",
@@ -639,6 +649,7 @@
       "body": "Vous avez perdu {lost} réceptions aériennes sur {n}. Sur gazon {surface}, la balle à plat est de toute façon plus rapide.",
       "hint": "Trop d’aériens perdus — jouez à plat au sol."
     },
+    "pcDefenceLeaks": { "title": "Votre système de sortie fuit", "body": "{n} corners contre sont rentrés. Chaque système de sortie a son trou ; regardez la variante jouée et opposez-lui un autre système.", "hint": "Changez de système de sortie : ce qu'ils frappent dit ce qu'il faut couvrir." },
     "pcBattery": {
       "title": "La batterie a besoin de travail",
       "body": "{n} penalty corners, aucun but. Changez de variante quand le gardien a lu le flick.",
@@ -766,7 +777,7 @@
     "balance": "solde"
   },
   "sheet": { "title": "FEUILLE DE MATCH", "eleven": "LE ONZE", "bench": "BANC", "missing": "INDISPONIBLE", "missingHint": "remplacé par l'adjoint", "edit": "MODIFIER LA COMPOSITION", "tactics": "TACTIQUE", "start": "COMMENCER LE MATCH", "cancel": "RETOUR", "plan": "{formation} · {press} · {mentality}", "home": "à domicile contre {opp}", "away": "en déplacement à {opp}" },
-  "scout": { "title": "SCOUTING", "planLabel": "LE PLAN", "unseen": "Pas encore vus cette saison — pas de rapport.", "system": "Ils jouent en {formation}, {press}, {mentality}.", "form": "Joués : {played} · {gf} buts par match, {ga} encaissés.", "pc": "{pcs} penalty corners par match, {share} % rentrent.", "discipline": "{fouls} coups francs concédés par match, {cards} cartes.", "dangerMan": "{name} ({role}) en a marqué {goals}.", "leaky": "Ils encaissent {ga} buts par match.", "plan": { "disciplineInD": "Le corner est leur arme. Pas de faute dans votre cercle : ni stick, ni pied, ni risque.", "attackEarly": "Leur défense prend l'eau. Pressez tôt et allez vite au cercle.", "overTheTop": "Ils pressent tout terrain. Passez par-dessus — longue balle ou aérien — plutôt qu'à travers.", "patientWide": "Ils s'installent en zone. Patience et largeur : renversez le jeu et travaillez le haut du cercle.", "switchSides": "Split press : ils vous poussent d'un côté. Renversez vite sur l'autre aile." } },
+  "scout": { "title": "SCOUTING", "planLabel": "LE PLAN", "unseen": "Pas encore vus cette saison — pas de rapport.", "system": "Ils jouent en {formation}, {press}, {mentality}.", "pcDefence": "Sur corner contre, ils sortent en {system} — le trou, c'est {variant}.", "form": "Joués : {played} · {gf} buts par match, {ga} encaissés.", "pc": "{pcs} penalty corners par match, {share} % rentrent.", "discipline": "{fouls} coups francs concédés par match, {cards} cartes.", "dangerMan": "{name} ({role}) en a marqué {goals}.", "leaky": "Ils encaissent {ga} buts par match.", "plan": { "disciplineInD": "Le corner est leur arme. Pas de faute dans votre cercle : ni stick, ni pied, ni risque.", "attackEarly": "Leur défense prend l'eau. Pressez tôt et allez vite au cercle.", "overTheTop": "Ils pressent tout terrain. Passez par-dessus — longue balle ou aérien — plutôt qu'à travers.", "patientWide": "Ils s'installent en zone. Patience et largeur : renversez le jeu et travaillez le haut du cercle.", "switchSides": "Split press : ils vous poussent d'un côté. Renversez vite sur l'autre aile." } },
   "rules": {
     "stageHint": "Cliquez une règle pour la voir sur le terrain — la scène tourne en boucle.", "stageLabel": "SUR LE TERRAIN",
     "view": { "figures": "FIGURES", "pitch": "SUR LE TERRAIN" },
@@ -934,7 +945,7 @@
       "steps": {
         "battery": {
           "title": "La batterie",
-          "body": "Injecteur, stoppeur, tireur. L'injection doit arriver vers 8 m/s : plus fort, le stoppeur ne l'arrête pas ; plus doux, le sortant arrive avant la balle."
+          "body": "Injecteur, stoppeur, tireur. L'injection est un slap ferme qui arrive vers 12 m/s — le stop en haut du cercle est travaillé — pour que la balle parte avant l'arrivée du sortant. Tout, dans un corner, est une course contre cette seconde et demie."
         },
         "variants": {
           "title": "Les variantes",
@@ -947,7 +958,23 @@
         "wearOut": {
           "title": "L'usure",
           "body": "Neuf fois la même variante et l'adversaire s'y prépare. Gardez-en une pour les matchs qui comptent."
-        }
+        },
+      "runnerLeads": {
+        "title": "Sortant d'abord",
+        "body": "Le sortant part à l'injection sur la ligne du stop et arrive quand la balle part ; le gardien reste sur sa ligne, les poteaux tiennent, le cinquième couvre le haut du D. Gagne contre le flick droit — et meurt sur le slip, parce qu'il est engagé sur une ligne que la balle ne suit plus."
+      },
+      "keeperLeads": {
+        "title": "Gardien d'abord",
+        "body": "Le gardien sort bas vers le point de frappe et le sortant descend sur la ligne pour prendre le but. Étouffe le coup bas et la déviation courte ; se fait lober, et chaque rebond tombe sur un joueur de champ dans le but."
+      },
+      "doubleCharge": {
+        "title": "Double sortie",
+        "body": "Deux sortants : un sur le stoppeur, un côté slip que le cinquième devine. Tue slips et coups. Deux corps engagés vers l'avant et bas sont deux corps qui ne sont pas dans le but — le flick droit passe au-dessus."
+      },
+      "block": {
+        "title": "Le bloc",
+        "body": "Personne ne sort ; cinq corps remplissent le but et les angles courts. Vous concédez la frappe propre mais jamais un trou, jamais un sortant battu. Ce qu'on joue avec des sortants lents, contre un grand flickeur, ou pour tenir un score."
+      }
       }
     },
     "buildUp": {
@@ -1021,7 +1048,19 @@
         "drawTheFoot": {
           "title": "Provoquer le pied",
           "body": "Une passe ferme sur un défenseur placé entre la balle et le but. Un pied dans le cercle, c'est un corner — c'est de là que viennent la plupart des corners en club."
-        }
+        },
+      "deepDiagonal": {
+        "title": "La diagonale profonde",
+        "body": "La balle précoce depuis l'aile dans la poche du second poteau, pour une déviation. Le coureur part avant la passe — une poche atteinte après la balle n'a jamais existé."
+      },
+      "overload": {
+        "title": "Surnombre côté faible",
+        "body": "Leur bloc a glissé côté balle. Renversez par l'homme libre vers le côté abandonné, et le milieu qui arrive là entre dans le D."
+      },
+      "intoSpace": {
+        "title": "Passer dans l'espace",
+        "body": "Pas sur l'homme mais sur le point devant lui : la balle qu'il atteint avant l'arrière. Donnez-la dans les pieds et tout reste à faire ; lancez-le et il est parti."
+      }
       }
     },
     "replay": "Rejouer",

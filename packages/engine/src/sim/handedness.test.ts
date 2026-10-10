@@ -83,10 +83,11 @@ describe('handedness in a played match', () => {
    */
   it('the tackle side matters: from the open stick side you win it more often', () => {
     let openN = 0, openWon = 0, openFoul = 0, acrossN = 0, acrossWon = 0, acrossFoul = 0;
-    // Twice the seeds of the receiving test: a tackle across the body in open play is *rare* now —
-    // the AI shepherds onto the reverse and its defenders wait for the clean side — so the bucket
-    // this claim needs has to be filled from more matches.
-    for (const seed of [...SEEDS, 9, 10, 11, 12, 13, 14, 15, 16]) {
+    // Three times the seeds of the receiving test: a tackle across the body in open play is *rare* now —
+    // the AI shepherds onto the reverse and its defenders wait for the clean side — and since 0.10.0
+    // more of the ball is played into space ahead of runners, so the bucket this claim needs has
+    // to be filled from more matches.
+    for (const seed of [...SEEDS, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]) {
       const log = play(seed);
       for (const e of log.events) {
         if (e.t !== 'Tackle') continue;

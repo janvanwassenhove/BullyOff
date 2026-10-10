@@ -1,10 +1,13 @@
 /**
  * Golden hash of the canonical sandbox fixture (seed 42, mens/watered, 600 ticks, sandbox mode).
- *          · 0.9.0 → 2c22986d5b9e092a (Phase 11b handedness: every stick is right-handed, so the
+ *          · 0.10.0 → 6820f5faef893ae8 (Phase 11c: penalty-corner defence systems and entry patterns —
+ *            posture on the move command, the castle's trap reach by height, the drilled stop at a
+ *            corner, gkSaveScale 1.70/1.69. Version-only for the sandbox log; every AI scenario changes.)
+ * History: 0.9.0 → 2c22986d5b9e092a (Phase 11b handedness: every stick is right-handed, so the
  *            side a ball sits on scales receiving, striking, carrying and the tackle contest, and
  *            `toReverse` shepherds a carrier onto his backhand — version-only for the sandbox log,
  *            every AI scenario changes.)
- * History: 0.1.0 → 60abc0490dcdf885 · 0.2.0 → 4bd0c4840e5778f0 (body contact updates lastTouch)
+ *          · 0.1.0 → 60abc0490dcdf885 · 0.2.0 → 4bd0c4840e5778f0 (body contact updates lastTouch)
  *          · 0.8.2 → 14b39f56c9724b59 (keeper reflex slope halved with the calibrated mean kept:
  *            gkSaveScale multiplies the whole save chance, so the old 0.75 slope made one keeper
  *            worth ±5 goals a match and the weakest club lost 0-10 — version-only change to the
@@ -28,4 +31,4 @@
  * the log, bump ENGINE_VERSION and update this value — never silently.
  */
 export const SANDBOX_GOLDEN = { seed: 42, ticks: 600, profile: 'mens', surface: 'watered' } as const;
-export const SANDBOX_GOLDEN_HASH = '2c22986d5b9e092a';
+export const SANDBOX_GOLDEN_HASH = '6820f5faef893ae8';

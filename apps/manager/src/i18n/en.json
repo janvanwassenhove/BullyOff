@@ -458,6 +458,16 @@
       "high": "HIGH"
     },
     "pcDesigner": "PENALTY-CORNER ROUTINE",
+    "pcDefenceLabel": "RUNNING-OUT SYSTEM",
+    "pcDefenceHint": "how the five behind the line defend a corner — every system has a hole",
+    "pcDefence": { "runnerLeads": "runner leads", "keeperLeads": "keeper leads", "doubleCharge": "double charge", "block": "block" },
+    "pcDefenceWhy": { "runnerLeads": "The flyer bets on the flick's line and arrives as the ball leaves. Dies to the slip.", "keeperLeads": "The keeper comes out low, the flyer takes the goal. Smothers the low hit; gets lifted over.", "doubleCharge": "Two runners: one at the trapper, one on the slip side. Kills slips and hits; the straight flick goes over two low bodies.", "block": "Nobody charges, five bodies fill the goal. Concedes the clean strike, never a gap." },
+    "runnerLabel": "FIRST RUNNER",
+    "runner": { "auto": "as the system", "low": "low", "high": "high" },
+    "runnerHint": "low blocks the hit and is flicked over; high blocks the flick and the low hit goes under",
+    "entryLabel": "WAY INTO THE CIRCLE",
+    "entry": { "auto": "read the picture", "baseline": "baseline & pull-back", "switchAndSlip": "switch & slip", "deepDiagonal": "deep diagonal", "drawTheFoot": "draw the foot", "overload": "weak-side overload" },
+    "entryHint": "the pattern whose runner leaves before the pass — leave it open and the assistant picks the best one each attack",
     "variant": "variant",
     "aiPicks": "assistant picks",
     "injector": "injector",
@@ -639,6 +649,7 @@
       "body": "You lost {lost} of {n} aerial receptions. On {surface} turf the flat ball is faster anyway.",
       "hint": "Too many aerials lost — keep it flat along the ground."
     },
+    "pcDefenceLeaks": { "title": "Your running-out system leaks", "body": "{n} corners against went in. Every running-out system has a hole; look at which variant they played and set a different system against it.", "hint": "Change the running-out system: what they strike tells you what to cover." },
     "pcBattery": {
       "title": "The battery needs work",
       "body": "{n} penalty corners, no goal. Change the variant when the keeper has read the flick.",
@@ -766,7 +777,7 @@
     "balance": "balance"
   },
   "sheet": { "title": "TEAM SHEET", "eleven": "THE ELEVEN", "bench": "BENCH", "missing": "UNAVAILABLE", "missingHint": "replaced by the assistant", "edit": "CHANGE THE LINE-UP", "tactics": "TACTICS", "start": "START THE MATCH", "cancel": "BACK", "plan": "{formation} · {press} · {mentality}", "home": "at home to {opp}", "away": "away at {opp}" },
-  "scout": { "title": "SCOUTING", "planLabel": "THE PLAN", "unseen": "Not seen yet this season — no report.", "system": "They play {formation}, {press}, {mentality}.", "form": "Played: {played} · {gf} goals a match, {ga} against.", "pc": "{pcs} penalty corners a match, {share} % of them go in.", "discipline": "{fouls} free hits a match given away, {cards} cards.", "dangerMan": "{name} ({role}) has {goals}.", "leaky": "They concede {ga} goals a match.", "plan": { "disciplineInD": "The corner is their weapon. Stay out of trouble in your own circle: no stick, no foot, no risk.", "attackEarly": "Their defence leaks. Press them early and get to the circle quickly.", "overTheTop": "They press full-court. Go over it — long ball or aerial — rather than through it.", "patientWide": "They sit in a zone. Patience and width: switch the play and work the top of the circle.", "switchSides": "Split press: they steer you to one side. Switch quickly to the other flank." } },
+  "scout": { "title": "SCOUTING", "planLabel": "THE PLAN", "unseen": "Not seen yet this season — no report.", "system": "They play {formation}, {press}, {mentality}.", "pcDefence": "Defending a corner they run out {system} — the hole is {variant}.", "form": "Played: {played} · {gf} goals a match, {ga} against.", "pc": "{pcs} penalty corners a match, {share} % of them go in.", "discipline": "{fouls} free hits a match given away, {cards} cards.", "dangerMan": "{name} ({role}) has {goals}.", "leaky": "They concede {ga} goals a match.", "plan": { "disciplineInD": "The corner is their weapon. Stay out of trouble in your own circle: no stick, no foot, no risk.", "attackEarly": "Their defence leaks. Press them early and get to the circle quickly.", "overTheTop": "They press full-court. Go over it — long ball or aerial — rather than through it.", "patientWide": "They sit in a zone. Patience and width: switch the play and work the top of the circle.", "switchSides": "Split press: they steer you to one side. Switch quickly to the other flank." } },
   "rules": {
     "stageHint": "Click a rule to see it on the pitch — the scene loops.", "stageLabel": "ON THE PITCH",
     "view": { "figures": "FIGURES", "pitch": "ON THE PITCH" },
@@ -934,7 +945,7 @@
       "steps": {
         "battery": {
           "title": "The battery",
-          "body": "Injector, trapper, striker. The injection has to arrive at about 8 m/s: harder and the trapper cannot stop it, softer and the runner beats the ball to the spot."
+          "body": "Injector, trapper, striker. The injection is a firm slap arriving at about 12 m/s — the stop at the top is drilled — so the ball leaves before the runner gets there. Everything about a corner is a race against that second and a half."
         },
         "variants": {
           "title": "The variants",
@@ -947,7 +958,23 @@
         "wearOut": {
           "title": "Wearing it out",
           "body": "Run the same variant nine times and they set up for it. Keep one back for when it matters."
-        }
+        },
+      "runnerLeads": {
+        "title": "Runner leads",
+        "body": "The flyer leaves on the injection along the line of the trap and arrives as the ball leaves; the keeper stays on his line, the posts hold, the fifth man covers the top of the D. Wins against the straight flick — and dies to the slip, because he is committed to a line the ball no longer travels."
+      },
+      "keeperLeads": {
+        "title": "Keeper leads",
+        "body": "The keeper comes out low to the striking point and the flyer drops onto the line to take the goal. Smothers the low hit and the close deflection; gets lifted over, and every rebound lands on an outfielder in the goal."
+      },
+      "doubleCharge": {
+        "title": "Double charge",
+        "body": "Two runners: one at the trapper, one on the slip side the fifth man guesses. Kills slips and hits. Two bodies committed forward and low are two bodies not in the goal — the straight flick goes over them."
+      },
+      "block": {
+        "title": "The block",
+        "body": "Nobody charges; five bodies fill the goal and the near angles. You concede the clean strike but never a gap and never a beaten runner. What you play with slow runners, against an elite flicker, or to protect a lead."
+      }
       }
     },
     "buildUp": {
@@ -1021,7 +1048,19 @@
         "drawTheFoot": {
           "title": "Drawing the foot",
           "body": "A firm push at a defender standing between the ball and the goal. A foot in the circle is a corner — that is where most club-level corners come from."
-        }
+        },
+      "deepDiagonal": {
+        "title": "The deep diagonal",
+        "body": "The early ball from wide into the far-post pocket, for a deflection. The runner leaves before the pass — a pocket reached after the ball is a pocket that never existed."
+      },
+      "overload": {
+        "title": "Weak-side overload",
+        "body": "Their block has slid to the ball side. Switch through the free man to the side they have given up, and the midfielder arriving there runs into the D."
+      },
+      "intoSpace": {
+        "title": "Passing into space",
+        "body": "Not to the man but to the point ahead of him: the ball he reaches before the back does. Play someone to feet and he still has everything to do; play him in and he is gone."
+      }
       }
     },
     "replay": "Replay",

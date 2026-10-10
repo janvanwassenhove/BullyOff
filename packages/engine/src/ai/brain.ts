@@ -18,11 +18,11 @@ import {
   type End, type Scalar, type Vec2,
 } from '@bullyoff/shared';
 import { attackingEnd, type PlayerView, type RulesState, type RulesView, type TeamId } from '@bullyoff/rules';
-import type { Command } from '../match/commands.js';
+import type { Command, Posture } from '../match/commands.js';
 import type { Controller, PlayerSetup } from '../match/match.js';
-import { attributesFor, norm, type Attributes, type Role } from '../player/attributes.js';
+import { attributesFor, norm, paceFactor, type Attributes, type Role } from '../player/attributes.js';
 import { carrySideFactor, lateralOf, lateralOfDir, receiveSideFactor, strikeSideSpeed } from '../player/handedness.js';
-import { jockeySpot, pressLineM, backLineM, DEFAULT_TACTICS, FORMATION_433, FORMATIONS, PRESS_SYSTEMS, assignSlots, channelOf, lineOf, presetPatch, shapeTarget, slotToPitch, type PressSystem, type Slot, type TeamTactics } from './tactics.js';
+import { jockeySpot, pressLineM, backLineM, entryPocket, DEFAULT_TACTICS, ENTRY_PATTERNS, FORMATION_433, FORMATIONS, PC_DEFENCES, PRESS_SYSTEMS, assignSlots, channelOf, lineOf, presetPatch, shapeTarget, slotToPitch, type EntryPatternId, type EntryTrigger, type PcDefenceSystem, type Pocket, type PressSystem, type Slot, type TeamTactics } from './tactics.js';
 import { laneEntersCircle, pitchValue, shotQuality } from './valueGrid.js';
 import { MENS, type Profile, type SurfaceState } from '../profile.js';
 import { strikeSpeedFactor } from '../player/attributes.js';
@@ -62,10 +62,16 @@ export function squadsFromSetup(setup: readonly PlayerSetup[], tactics: [TeamTac
   return [mk(0), mk(1)];
 }
 
-interface PcRoles { key: number; injector: number | null; trapper: number | null; striker: number | null; injSide?: number; strikerArrivingUntil?: number }
+interface PcRoles {
+  key: number; injector: number | null; trapper: number | null; striker: number | null; injSide?: number; strikerArrivingUntil?: number;
+  /** the runners in pocket order: far post / deflector, rebounder, trailer, wide */
+  runners?: number[];
+  /** the defending castle, fixed per corner like the battery (§5) */
+  defKey: number; flyer: number | null; second: number | null; postNear: number | null; postFar: number | null; defInjSide?: number;
+}
 
 interface Ctx {
-  view: RulesView; rules: Readonly<RulesState>; tick: number; rng: Rng; pcRoles: PcRoles;
+  view: RulesView; rules: Readonly<RulesState>; tick: number; rng: Rng; pcRoles: PcRoles; attack: AttackState;
   team: AiTeam; end: End; opp: PlayerView[]; mine: PlayerView[]; onPitch: PlayerView[];
   ball: Vec2; ballZ: Scalar; ballSpeed: Scalar; ballVel: Vec2;
   keeperOpp: PlayerView | undefined; keeperMine: PlayerView | undefined;
@@ -139,7 +145,9 @@ export function createAi(seed: number, squads: [AiTeam, AiTeam], opts: AiOptions
   const lastTackleTick = new Map<number, number>();
   // sticky marking state, one per team (marks are handed over on a switch, not on a wobble)
   const defence: [DefenceState, DefenceState] = [newDefenceState(), newDefenceState()];
-  const pcRoles: PcRoles = { key: -1, injector: null, trapper: null, striker: null };
+  // the attack's intention, one per team: the entry pattern it has committed to and who is running it
+  const attack: [AttackState, AttackState] = [newAttackState(), newAttackState()];
+  const pcRoles: PcRoles = { key: -1, injector: null, trapper: null, striker: null, defKey: -1, flyer: null, second: null, postNear: null, postFar: null };
 
   const apply = (view: RulesView, tick: number): void => {
     if (queue.length === 0) return;
@@ -195,7 +203,7 @@ export function createAi(seed: number, squads: [AiTeam, AiTeam], opts: AiOptions
       const mine = onPitch.filter((p) => p.team === team.team);
       const opp = onPitch.filter((p) => p.team !== team.team);
       const ctx: Ctx = {
-        view, rules, tick, rng, pcRoles, team, end, opp, mine, onPitch, ball, ballZ: b.pos.z, ballSpeed, ballVel,
+        view, rules, tick, rng, pcRoles, attack: attack[team.team], team, end, opp, mine, onPitch, ball, ballZ: b.pos.z, ballSpeed, ballVel,
         keeperOpp: opp.find((p) => p.isGoalkeeper), keeperMine: mine.find((p) => p.isGoalkeeper),
         attrsOf: (id) => attrsMap.get(id) ?? attributesFor(roleMap.get(id) ?? 'MID'),
         slotOf: (id) => slotMap.get(id) ?? { role: 'MID', xp: 30, y: 0 },
@@ -298,6 +306,8 @@ function teamTick(c: Ctx, leaving: Map<number, number>, lastTackleTick: Map<numb
 
   // ── open play ──────────────────────────────────────────────────────────────
   if (carrier?.team === team.team) {
+    trackPossession(c, carrier);
+    entryPattern(c, carrier, ballXp, ballY);
     // carrier decides every tick
     const opt = bestOption(c, carrier, false);
     issue(c, carrier, opt);
@@ -319,7 +329,7 @@ function teamTick(c: Ctx, leaving: Map<number, number>, lastTackleTick: Map<numb
 
 type Option =
   | { kind: 'shoot'; angle: Scalar; strike: 'hit' | 'flick' | 'push'; power: Scalar; u: Scalar }
-  | { kind: 'pass'; to: PlayerView; angle: Scalar; strike: 'push' | 'slap' | 'hit' | 'aerial'; power: Scalar; u: Scalar }
+  | { kind: 'pass'; to: PlayerView; at?: Vec2; angle: Scalar; strike: 'push' | 'slap' | 'hit' | 'aerial'; power: Scalar; u: Scalar }
   | { kind: 'carry'; dir: Vec2; u: Scalar }
   | { kind: 'clear'; angle: Scalar; u: Scalar };
 
@@ -379,6 +389,15 @@ function bestOption(c: Ctx, me: PlayerView, restart: boolean): Option {
     }
   }
 
+  // Up-back-through (§7): a pressed man who has JUST received lays it back first time to the free
+  // man behind him — and the free man plays through the line the press has just vacated. The
+  // first is a one-touch window (0.6 s) under pressure; the second is a short window after a
+  // lay-back in which a ball past where the pressed man stood is worth more than it looks.
+  const st = c.attack;
+  const oneTouch = c.tick - st.receivedAt < 12 && pressure > 0.45;
+  const afterLayBack = st.layBackFrom !== null && c.tick - st.layBackAt < 30 ? st.layBackFrom : null;
+  const ment = team.tactics.mentality === 'attacking' ? 0.12 : team.tactics.mentality === 'defensive' ? -0.08 : 0;
+
   // passes
   for (const mate of mine) {
     if (mate.id === me.id || mate.isGoalkeeper) continue;
@@ -390,13 +409,15 @@ function bestOption(c: Ctx, me: PlayerView, restart: boolean): Option {
     const open = clamp((nearestDist(opp, lead) - 1.5) / 4, 0, 1);
     const lengthPen = d > 28 ? (d - 28) / 30 : d < 7 ? (7 - d) / 10 : 0;
     // A pass INTO the circle is the most valuable object on the pitch (valueGrid): weight it like one.
-    const ment = team.tactics.mentality === 'attacking' ? 0.12 : team.tactics.mentality === 'defensive' ? -0.08 : 0;
     // 0.75: measured with 0.45 and 0.6 the safe recycle around the top of the D (u ≈ 0.4) still beat
     // the entry ball every time — 80 possessions a match died in the attacking quarter on 15 entries.
     // The entry pass has to WIN that comparison or the attack circulates forever.
     const intoD = laneEntersCircle(ball, lead, end) ? 0.9 + ment : (in23(lead, end) && !in23(ball, end) ? 0.2 + ment * 0.5 : 0);
+    const isBack = end * (lead.x - ball.x) < -3;
+    const layBack = oneTouch && isBack && open > 0.5 ? 0.35 : 0;
     // backwards passes are fine when pressed, poor otherwise
-    const backwards = end * (lead.x - ball.x) < -5 ? (pressure > 0.5 ? 0 : 0.12) : 0;
+    const backwards = layBack > 0 ? 0 : end * (lead.x - ball.x) < -5 ? (pressure > 0.5 ? 0 : 0.12) : 0;
+    const through = afterLayBack !== null && end * (lead.x - afterLayBack.x) > 4 ? 0.25 : 0;
     const vision = 0.15 * norm(a.mental.vision);
     // The receiving side (§6.3): the same pass is worth less arriving on a man's reverse, and a
     // passer with vision sees which shoulder he is putting it on.
@@ -410,7 +431,7 @@ function bestOption(c: Ctx, me: PlayerView, restart: boolean): Option {
     // The entry pass itself is also played tighter than a midfield ball: a lane into the D that might be cut
     // is still worth the attempt, because the alternative is recycling around the top forever.
     const riskW = inD ? 0.6 : laneEntersCircle(ball, lead, end) ? 0.8 : 1.4;
-    let u = 0.15 + 1.2 * gain + 0.35 * open - riskW * risk - lengthPen + intoD - backwards + vision - intoOwnD - arriveSide + c.rng.gaussian(0, noise);
+    let u = 0.15 + 1.2 * gain + 0.35 * open - riskW * risk - lengthPen + intoD - backwards + layBack + through + vision - intoOwnD - arriveSide + c.rng.gaussian(0, noise);
     if (restart) u += 0.2; // restarts want to be taken
     const angle = dmath.atan2(lead.y - ball.y, lead.x - ball.x);
     // Arrive firmly: on water a push is played to reach the receiver at 6.5–10 m/s (quicker when the receiver is
@@ -425,6 +446,50 @@ function bestOption(c: Ctx, me: PlayerView, restart: boolean): Option {
     const maxV = (strike === 'push' ? c.profile.strike.pushSpeed : strike === 'slap' ? c.profile.strike.slapSpeed : strike === 'hit' ? c.profile.strike.hitSpeed : c.profile.strike.aerialSpeed) * strikeSpeedFactor(a, strike);
     const power = strike === 'aerial' ? clamp(0.5 + d / 60, 0.5, 1) : clamp(need / maxV, 0.25, 1);
     options.push({ kind: 'pass', to: mate, angle, strike, power, u });
+  }
+
+  // Passing into space (§7): not to a teammate's feet but to a POINT ahead of a runner — the pattern's
+  // pocket, or wherever a man already sprinting forward will be — scored by a pursuit test: can he
+  // reach it before the nearest defender, given both their pace and when the ball gets there. This
+  // is the difference between passing to feet and playing someone in.
+  const targets: { mate: PlayerView; at: Vec2; bonus: Scalar }[] = [];
+  if (st.pattern !== null && st.runner !== null && ENTRY_PATTERNS[st.pattern].passToPocket) {
+    const mate = mine.find((m) => m.id === st.runner);
+    if (mate && mate.id !== me.id) targets.push({ mate, at: pocketPitch(c, ENTRY_PATTERNS[st.pattern].pocket, end * ball.y), bonus: 0.2 });
+  }
+  for (const mate of mine) {
+    if (mate.id === me.id || mate.isGoalkeeper || targets.some((t) => t.mate.id === mate.id)) continue;
+    const sp = Math.sqrt(mate.vel.x ** 2 + mate.vel.y ** 2);
+    if (sp < 2.5 || end * mate.vel.x < 1) continue; // only a man already running forward
+    const lead = Math.min(10, sp * 1.4);
+    targets.push({ mate, at: { x: mate.pos.x + (mate.vel.x / sp) * lead, y: mate.pos.y + (mate.vel.y / sp) * lead }, bonus: 0.1 });
+  }
+  for (const tg of targets.slice(0, 4)) {
+    const at = tg.at;
+    if (Math.abs(at.x) > HALF_LENGTH - 0.5 || Math.abs(at.y) > HALF_WIDTH - 0.5) continue;
+    const d = dist(ball, at);
+    if (d < 4 || d > 40) continue;
+    const vArr = 7.5;
+    const need = passSpeedFor(d, vArr, c.profile, c.surface);
+    const tBall = d / ((need + vArr) / 2);
+    if (!pursuitWins(c, tg.mate, at, tBall)) continue;
+    const gain = pitchValue(at, end) - here;
+    const risk = laneRisk(opp, ball, at);
+    const open = clamp((nearestDist(opp, at) - 1.5) / 4, 0, 1);
+    const entersD = laneEntersCircle(ball, at, end);
+    const intoD = entersD ? 0.9 + ment : (in23(at, end) && !in23(ball, end) ? 0.2 + ment * 0.5 : 0);
+    // The pull-back (baseline pattern): from the deep-wide pocket back to the spot is a ball from
+    // inside the D to inside the D, which the entry term cannot see — yet it is the largest goal
+    // source in the modern game, because the shot it sets up has the angle the pocket never had.
+    const pullBack = inD && inBaselinePocket(ball, end) && inCircle(at, end) && Math.abs(at.y) < 4 && end * (at.x - ball.x) < 0 ? 0.45 : 0;
+    const through = afterLayBack !== null && end * (at.x - afterLayBack.x) > 4 ? 0.25 : 0;
+    const riskW = inD ? 0.6 : entersD ? 0.8 : 1.4;
+    let u = 0.15 + 1.2 * gain + 0.35 * open - riskW * risk + intoD + pullBack + through + tg.bonus + 0.15 * norm(a.mental.vision) + c.rng.gaussian(0, noise);
+    if (restart) u += 0.2;
+    const angle = dmath.atan2(at.y - ball.y, at.x - ball.x);
+    const strike: 'push' | 'slap' | 'hit' = need <= c.profile.strike.pushSpeed * strikeSpeedFactor(a, 'push') ? 'push' : need <= c.profile.strike.slapSpeed * strikeSpeedFactor(a, 'slap') ? 'slap' : 'hit';
+    const maxV = (strike === 'push' ? c.profile.strike.pushSpeed : strike === 'slap' ? c.profile.strike.slapSpeed : c.profile.strike.hitSpeed) * strikeSpeedFactor(a, strike);
+    options.push({ kind: 'pass', to: tg.mate, at, angle, strike, power: clamp(need / maxV, 0.25, 1), u });
   }
 
   // carries: 8 directions, 5 m ahead
@@ -512,6 +577,13 @@ function moveToShape(c: Ctx, p: PlayerView, inPossession: boolean, ballXp: Scala
 function supportRun(c: Ctx, p: PlayerView, carrier: PlayerView, ballXp: Scalar, ballY: Scalar): void {
   if ((c.tick + p.id) % DECISION_EVERY !== 0) return;
   const { end } = c;
+  // The pattern's runner is already going (§7, layer D4): he attacks the pocket BEFORE the ball is
+  // played, at a sprint, so that the pass has somewhere to arrive.
+  const st = c.attack;
+  if (st.pattern !== null && st.runner === p.id) {
+    moveTo(c, p, pocketPitch(c, ENTRY_PATTERNS[st.pattern].pocket, ballY), 0.95);
+    return;
+  }
   let target = shapeTarget(c.slotOf(p.id), end, ballXp, ballY, true, c.team.tactics);
   const slot = c.slotOf(p.id);
   // forwards: attack the D — top-of-D staging or the far post when the ball is deep and wide
@@ -538,6 +610,139 @@ function supportRun(c: Ctx, p: PlayerView, carrier: PlayerView, ballXp: Scalar, 
   // A forward attacking the D sprints — possession near the circle lives a few seconds, and a pocket
   // reached too late is a pocket that never existed (measured: half an attacker in the D on average).
   moveTo(c, p, target, slot.role === 'FWD' && ballXp > 50 ? 0.9 : 0.65);
+}
+
+// ── the attack's intention (docs/design/hockey-systems.md §7) ──────────────────
+
+/** What the attacking team has decided to do, as a team: the pattern it runs and who runs it. */
+export interface AttackState {
+  pattern: EntryPatternId | null;
+  /** when the pattern was chosen — patterns are committed to for a few seconds, not re-picked at 20 Hz */
+  since: number;
+  runner: number | null;
+  /** who has the ball, since when, and where he stood — for the one-touch lay-back */
+  carrier: number | null;
+  receivedAt: number;
+  carrierPos: Vec2;
+  /** the last first-time lay-back: when, and where the pressed man played it from */
+  layBackAt: number;
+  layBackFrom: Vec2 | null;
+}
+export const newAttackState = (): AttackState => ({ pattern: null, since: -99, runner: null, carrier: null, receivedAt: -99, carrierPos: { x: 0, y: 0 }, layBackAt: -99, layBackFrom: null });
+
+/** Commit to a pattern for this long unless the picture has clearly changed. */
+const PATTERN_COMMIT_TICKS = 60;
+/** Below this the patterns are off: entry patterns are 23-metre ideas. */
+const PATTERN_FROM_XP = 58;
+
+/** Note who has the ball, and whether the last change of hands was a first-time lay-back. */
+function trackPossession(c: Ctx, carrier: PlayerView): void {
+  const st = c.attack;
+  if (st.carrier === carrier.id) { st.carrierPos = carrier.pos; return; }
+  // the previous man played it within a touch of receiving it, and backwards: a lay-back
+  if (st.carrier !== null && c.tick - st.receivedAt <= 12 && c.end * (c.ball.x - st.carrierPos.x) < -3) { st.layBackAt = c.tick; st.layBackFrom = st.carrierPos; }
+  st.carrier = carrier.id; st.receivedAt = c.tick; st.carrierPos = carrier.pos;
+}
+
+/** A pocket in pitch coordinates for this team, with `side` taken from the ball's own-frame y. */
+function pocketPitch(c: Ctx, pocket: Pocket, ballY: Scalar): Vec2 {
+  const pk = entryPocket(pocket, ballY >= 0 ? 1 : -1);
+  return slotToPitch({ xp: HALF_LENGTH * 2 - pk.fromGoal, y: pk.y }, c.end);
+}
+
+/** The deep-wide pocket inside the D — pull-back territory (the value grid's 0.62 floor). */
+function inBaselinePocket(p: Vec2, end: End): boolean {
+  if (!inCircle(p, end)) return false;
+  const d = Math.sqrt((end * HALF_LENGTH - p.x) ** 2 + p.y ** 2);
+  return d > 10 && Math.abs(p.y) > 6;
+}
+
+/**
+ * How strongly the picture asks for a trigger, 0..1. Geometry in the team's own frame: `ballXp`
+ * metres from our own backline, `ballY` across.
+ */
+function triggerScore(c: Ctx, trig: EntryTrigger, ballXp: Scalar, ballY: Scalar): Scalar {
+  const { end, ball, opp } = c;
+  const ay = Math.abs(ballY);
+  switch (trig) {
+    case 'ballDeepWide': return clamp((ballXp - 78) / 5, 0, 1) * clamp((ay - 4) / 3, 0, 1);
+    case 'ballTopCentral': return clamp(1 - Math.abs(ballXp - 75) / 7, 0, 1) * clamp(1 - ay / 8, 0, 1);
+    case 'ballWideEarly': return clamp(1 - Math.abs(ballXp - 70) / 8, 0, 1) * clamp((ay - 8) / 5, 0, 1);
+    case 'defenderOnLine': {
+      if (!inCircle(ball, end)) return 0;
+      const gx = end * HALF_LENGTH;
+      const gvx = gx - ball.x, gvy = -ball.y; const gl = Math.sqrt(gvx * gvx + gvy * gvy) || 1;
+      for (const o of opp) {
+        if (o.isGoalkeeper) continue;
+        const dx = o.pos.x - ball.x, dy = o.pos.y - ball.y;
+        const along = (dx * gvx + dy * gvy) / gl, perp = Math.abs(dx * gvy - dy * gvx) / gl;
+        if (along > 0.5 && along < 4.5 && perp < 1.8) return 1;
+      }
+      return 0;
+    }
+    case 'blockShifted': {
+      // their block has slid across to the ball's side: the far side is there for the taking
+      const defs = opp.filter((o) => !o.isGoalkeeper && end * o.pos.x + HALF_LENGTH > 66);
+      if (defs.length < 3) return 0;
+      const side = ballY >= 0 ? 1 : -1;
+      const shift = defs.reduce((acc, o) => acc + side * end * o.pos.y, 0) / defs.length;
+      return clamp((shift - 2) / 4, 0, 1) * clamp((ay - 4) / 4, 0, 1);
+    }
+  }
+}
+
+/** Who makes a pattern's run, from the formation: the roles are slots, never names. */
+function pickRunner(c: Ctx, pattern: EntryPatternId, ballY: Scalar, carrierId: number): PlayerView | undefined {
+  const want = ENTRY_PATTERNS[pattern].runner;
+  const side = ballY >= 0 ? 1 : -1;
+  const cands = c.mine.filter((p) => !p.isGoalkeeper && p.id !== carrierId);
+  const fwds = cands.filter((p) => c.slotOf(p.id).role === 'FWD');
+  const by = (ps: PlayerView[], score: (p: PlayerView) => number): PlayerView | undefined => [...ps].sort((a, b) => score(b) - score(a) || a.id - b.id)[0];
+  switch (want) {
+    case 'cf': return by(fwds, (p) => -Math.abs(c.slotOf(p.id).y));
+    case 'farWinger': return by(fwds, (p) => -side * c.slotOf(p.id).y);
+    case 'nearWinger': return by(fwds, (p) => side * c.slotOf(p.id).y);
+    case 'mid': return by(cands.filter((p) => c.slotOf(p.id).role === 'MID'), (p) => c.slotOf(p.id).xp);
+  }
+}
+
+/**
+ * Choose the circle-entry pattern (§7): every pattern is scored against the picture (its trigger),
+ * the value of its pocket and the space there, and the best one is committed to for a few seconds.
+ * The coach's preferred entry is a thumb on the scale, not an order — a pull-back with nobody wide
+ * is not a plan.
+ */
+function entryPattern(c: Ctx, carrier: PlayerView, ballXp: Scalar, ballY: Scalar): void {
+  const st = c.attack;
+  if ((c.tick + c.team.team) % DECISION_EVERY !== 0) return;
+  if (ballXp < PATTERN_FROM_XP) { st.pattern = null; st.runner = null; return; }
+  const score = (id: EntryPatternId): Scalar => {
+    const pat = ENTRY_PATTERNS[id];
+    const trig = triggerScore(c, pat.trigger, ballXp, ballY);
+    if (trig <= 0) return 0;
+    const at = pocketPitch(c, pat.pocket, ballY);
+    const space = clamp((nearestDist(c.opp, at) - 1.0) / 5, 0.25, 1);
+    return trig * (0.4 + pitchValue(at, c.end)) * space * (c.team.tactics.entry === id ? 1.4 : 1);
+  };
+  // commitment: keep the pattern while it still reads and the window is open
+  if (st.pattern !== null && c.tick - st.since < PATTERN_COMMIT_TICKS && score(st.pattern) > 0.12) {
+    if (st.runner === null || st.runner === carrier.id || !c.mine.some((p) => p.id === st.runner && p.onPitch)) st.runner = pickRunner(c, st.pattern, ballY, carrier.id)?.id ?? null;
+    return;
+  }
+  let best: EntryPatternId | null = null, bs = 0.12;
+  for (const id of Object.keys(ENTRY_PATTERNS) as EntryPatternId[]) { const v = score(id); if (v > bs) { bs = v; best = id; } }
+  if (best !== st.pattern) st.since = c.tick;
+  st.pattern = best;
+  st.runner = best === null ? null : pickRunner(c, best, ballY, carrier.id)?.id ?? null;
+}
+
+/** Can `mate` reach `at` before the nearest opponent, given the ball arrives in `tBall` seconds? */
+function pursuitWins(c: Ctx, mate: PlayerView, at: Vec2, tBall: Scalar): boolean {
+  const vMax = c.profile.player.maxSpeed;
+  const tMate = dist(mate.pos, at) / (vMax * paceFactor(c.attrsOf(mate.id)) * 0.9);
+  let tDef = Infinity;
+  for (const o of c.opp) { if (o.isGoalkeeper) continue; const t = dist(o.pos, at) / (vMax * paceFactor(c.attrsOf(o.id)) * 0.9); if (t < tDef) tDef = t; }
+  return tMate <= tBall + 0.5 && tDef >= tMate - 0.2;
 }
 
 /**
@@ -896,6 +1101,43 @@ function goalkeeper(c: Ctx, gk: PlayerView, carrier: PlayerView | null): void {
 
 // ── penalty corners ────────────────────────────────────────────────────────────
 
+/** The castle: who is who among the five behind the line, fixed once per corner like the battery. */
+interface Castle { flyer: PlayerView | undefined; second: PlayerView | undefined; postNear: PlayerView | undefined; postFar: PlayerView | undefined }
+
+/** Attack-frame geometry of a corner: where the trap, the strike and the slips happen (pitch coords). */
+function pcSpots(theirEnd: End, injSide: number): { topX: Scalar; trap: Vec2; strike: Vec2; slipL: Vec2; slipR: Vec2 } {
+  const topX = theirEnd * (CIRCLE_TOP_X - 0.6);
+  return {
+    topX,
+    trap: { x: topX, y: injSide * 1.5 },
+    strike: { x: topX - theirEnd * 1.2, y: injSide * 0.2 },
+    // the slip spots in the attack's own words: slipRight is away from the injector. INSIDE the
+    // circle, a stride in from the line — a hitter outside it is a corner that ends on the pass.
+    slipR: { x: topX + theirEnd * 1.2, y: -injSide * 3.0 },
+    slipL: { x: topX + theirEnd * 1.2, y: injSide * 3.0 },
+  };
+}
+
+/**
+ * The angle to strike `target` from where the stick will actually meet the ball: the ball itself if
+ * it already sits in front of the body along that line, else half a stride ahead of the body (the
+ * engine brings the ball round before a strike — match.ts). Aiming from the ball when the ball is
+ * at your heel moves the launch point a metre, and a metre at the launch is a metre at the post.
+ */
+function aimFrom(p: PlayerView, ball: Vec2, target: Vec2): Scalar {
+  const ux0 = target.x - p.pos.x, uy0 = target.y - p.pos.y; const ul = Math.sqrt(ux0 * ux0 + uy0 * uy0) || 1;
+  const ux = ux0 / ul, uy = uy0 / ul;
+  const ahead = (ball.x - p.pos.x) * ux + (ball.y - p.pos.y) * uy;
+  const from = ahead >= 0.25 ? ball : { x: p.pos.x + ux * 0.5, y: p.pos.y + uy * 0.5 };
+  return dmath.atan2(target.y - from.y, target.x - from.x);
+}
+
+/** The point `back` metres goal-side of `t` on the line from `t` to the goal at `goal`. */
+function goalSideOf(t: Vec2, goal: Vec2, back: Scalar): Vec2 {
+  const dx = goal.x - t.x, dy = goal.y - t.y; const l = Math.sqrt(dx * dx + dy * dy) || 1;
+  return { x: t.x + (dx / l) * back, y: t.y + (dy / l) * back };
+}
+
 function pcAttack(c: Ctx, pending: boolean): void {
   const { end, mine, ball, tick, rules } = c;
   const gx = end * HALF_LENGTH;
@@ -906,7 +1148,9 @@ function pcAttack(c: Ctx, pending: boolean): void {
     const carrier = findCarrier(c);
     // The designed sequence has priority: while the trapper has just stopped the ball at the top and the striker is
     // arriving, do NOT let open-play logic take over. Otherwise (rebounds, scrambles) play normally.
-    const scriptedMoment = carrier !== null && carrier.id === c.pcRoles.trapper && (c.pcRoles.strikerArrivingUntil ?? 0) >= tick;
+    // (the slip hitter who has just stopped the slipped ball is in the same scripted moment: with the
+    // open-play logic in charge he passed it straight back to the trapper)
+    const scriptedMoment = carrier !== null && (carrier.id === c.pcRoles.trapper || carrier.id === c.pcRoles.striker) && (c.pcRoles.strikerArrivingUntil ?? 0) >= tick;
     if (carrier?.team === c.team.team && !scriptedMoment) {
       issue(c, carrier, bestOption(c, carrier, false));
       for (const p of outfield) if (p.id !== carrier.id) supportRun(c, p, carrier, end * ball.x + HALF_LENGTH, end * ball.y);
@@ -919,42 +1163,84 @@ function pcAttack(c: Ctx, pending: boolean): void {
   }
   // Roles are assigned ONCE per PC (keyed by the award's restart readyTick) — the injector stays the injector after
   // the ball has left them, the trapper stays the trapper.
-  const topX = end * (CIRCLE_TOP_X - 0.6);
-  const key = rules.pcTakenTick ?? (rules.restart?.readyTick ?? -2) * -1 - 1000; // pending: negative key from readyTick; taken: playing tick
   const injSideNow = ball.y >= 0 ? 1 : -1;
+  const key = rules.pcTakenTick ?? (rules.restart?.readyTick ?? -2) * -1 - 1000; // pending: negative key from readyTick; taken: playing tick
   if (!pending && c.pcRoles.key !== key && c.pcRoles.injector !== null) c.pcRoles.key = key; // injection happened: keep the roles
   if (c.pcRoles.key !== key && pending) {
     const want = c.team.tactics.pcBattery;
     const pick = (id: number | undefined, from: PlayerView[]): PlayerView | undefined => (id === undefined ? undefined : from.find((p) => p.id === id));
     const inj = pick(want?.injector, outfield) ?? nearestTo(outfield, ball);
-    const trapSpot0 = { x: topX, y: injSideNow * 1.5 };
+    const trapSpot0 = pcSpots(end, injSideNow).trap;
     const rest = outfield.filter((p) => p.id !== inj?.id);
     const striker = pick(want?.striker, rest) ?? [...rest].sort((a, b) => norm(c.attrsOf(b.id).technical.dragFlick) - norm(c.attrsOf(a.id).technical.dragFlick) || a.id - b.id)[0];
     const trapper = pick(want?.trapper, rest.filter((p) => p.id !== striker?.id)) ?? nearestTo(rest.filter((p) => p.id !== striker?.id), trapSpot0);
     c.pcRoles.key = key; c.pcRoles.injector = inj?.id ?? null; c.pcRoles.trapper = trapper?.id ?? null; c.pcRoles.striker = striker?.id ?? null;
     c.pcRoles.injSide = injSideNow;
   }
+  if (pending) {
+    // the runners take the pocket nearest to where they stand on the line, so nobody's route to
+    // his pocket crosses the shooting lane as the strike leaves (own feet = free hit out). Resolved
+    // every waiting tick and frozen at the injection: the umpire's placement lands a tick after
+    // the roles are first set, and a pocket handed out from the pre-placement picture sent a
+    // midfielder standing outside the D to the far post.
+    const injS = c.pcRoles.injSide ?? injSideNow;
+    const gx0 = end * HALF_LENGTH, topX0 = end * (CIRCLE_TOP_X - 0.6);
+    const pockets = [{ x: gx0 - end * 5.5, y: -injS * 5 }, { x: topX0 - end * 2.5, y: injS * 4.5 }, { x: topX0 - end * 4.5, y: -injS * 6 }, { x: topX0 - end * 3, y: injS * 9 }];
+    const pool = outfield.filter((p) => p.id !== c.pcRoles.injector && p.id !== c.pcRoles.striker && p.id !== c.pcRoles.trapper);
+    const order: number[] = [];
+    for (const pk of pockets) { const n = nearestTo(pool.filter((p) => !order.includes(p.id)), pk); if (n) order.push(n.id); }
+    c.pcRoles.runners = order;
+  }
   const injSide = c.pcRoles.injSide ?? injSideNow;
-  const trapSpot = { x: topX, y: injSide * 1.5 };
-  const strikeSpot = { x: topX - end * 1.2, y: injSide * 0.2 };
+  const spots = pcSpots(end, injSide);
+  const { topX, trap: trapSpot, strike: strikeSpot } = spots;
   const injector = outfield.find((p) => p.id === c.pcRoles.injector);
   const trapper = outfield.find((p) => p.id === c.pcRoles.trapper);
   const bestFlicker = outfield.find((p) => p.id === c.pcRoles.striker);
-  const others = outfield.filter((p) => p.id !== injector?.id).sort((a, b) => a.id - b.id);
+  const order = c.pcRoles.runners ?? [];
+  const others = outfield.filter((p) => p.id !== injector?.id && p.id !== trapper?.id && p.id !== bestFlicker?.id)
+    .sort((a, b) => (order.includes(a.id) ? order.indexOf(a.id) : 99) - (order.includes(b.id) ? order.indexOf(b.id) : 99) || a.id - b.id);
   const variant = c.team.tactics.pcVariant;
+  const slip = variant === 'slipRight' || variant === 'slipLeft';
   // the battery is "set" when trapper and striker are on their marks (or we've waited 4 s — don't stall)
-  const strikerSpot = (variant === 'slipRight' || variant === 'slipLeft') ? { x: topX - end * 1.5, y: (variant === 'slipRight' ? -injSide : injSide) * 3.5 } : strikeSpot;
+  // The striker stands off the TRAPPER, not off a chalk mark: the ball stops where the trapper
+  // slides to, and a striker a stride away strikes within half a second of the stop. (Measured off
+  // the fixed mark he was 1.5 m short and the strike came a full second after the trap — the
+  // flyer's race is against that half-second.)
+  const strikerSpot = variant === 'slipRight' ? spots.slipR : variant === 'slipLeft' ? spots.slipL
+    : trapper && !pending ? { x: trapper.pos.x - end * 1.1, y: trapper.pos.y - injSide * 0.4 } : strikeSpot;
   const batterySet = (!!trapper && dist(trapper.pos, trapSpot) < 1.6) && (!!bestFlicker && dist(bestFlicker.pos, strikerSpot) < 1.8);
   const waitedLong = rules.restart !== null && tick - rules.restart.readyTick > 160; // 8 s: clock is stopped, nothing lost
+  const firstShotGone = rules.pcFirstShot !== null;
+  // the second ball: the strike has gone and the ball is loose near the goal (a deflection PASS
+  // counts as the first shot to the umpire, so the runners wait for it to be slow or close)
+  const reboundPhase = firstShotGone && (c.ballSpeed < 6 || dist(ball, { x: gx, y: 0 }) < 8);
+  // The runners' pattern per variant (§5 attack gap 1): a deflector at the far post who MAKES CONTACT,
+  // a rebounder at the top of the D, a trailer, and a wide man — not four fixed spots. The far post
+  // is on the side away from the injector, because that is where a ball struck across the goal ends.
+  // The deflector's pocket is wide of the far post, not on it: the lane from the top to the post
+  // itself runs straight past the flyer's line. From 4.5 m wide the touch still has the whole goal.
+  const deflectorSpot = { x: gx - end * 5.5, y: -injSide * 4.5 };
+  const runnerSpots: Vec2[] = [
+    // the far-post runner stands OFF the far-corner lane unless the ball is meant for him: a
+    // strike into your own man's feet is a free hit out
+    variant === 'deflection' ? deflectorSpot : { x: gx - end * 6, y: -injSide * 6 },
+    { x: topX - end * 2.5, y: injSide * 4.5 },     // rebounder at the top of the D
+    { x: topX - end * 4.5, y: -injSide * 6 },      // trailer
+    { x: topX - end * 3, y: injSide * 9 },         // wide, the outlet if the ball is cleared our way
+  ];
   for (const p of outfield) {
     if (p.id === injector?.id) {
       moveTo(c, p, { x: gx - end * 0.4, y: ball.y + injSide * 0.5 }, 0.8);
       if (pending && rules.restart && tick >= rules.restart.readyTick && dist(p.pos, ball) < 1.3 && trapper && (batterySet || waitedLong)) {
-        // injection: firm push to the trapper, arriving at a stoppable ~8 m/s
+        // injection: a firm push to the trapper, arriving at ~12 m/s — the stop is drilled (the
+        // engine knows it: see the trapper's bonus in match.ts), and a slow injection hands the
+        // flyer the race. Measured at 8 m/s the sequence took 3 s and he was on the striker's toes.
+        // A slap, not a push: a push tops out around 11 m/s for a club player and cannot get there.
         const angle = dmath.atan2(trapSpot.y - ball.y, trapSpot.x - ball.x);
-        const need = passSpeedFor(dist(ball, trapSpot), 8, c.profile, c.surface);
-        const maxV = c.profile.strike.pushSpeed * strikeSpeedFactor(c.attrsOf(p.id), 'push');
-        c.cmds.push({ tick, kind: 'strike', playerId: p.id, strike: 'push', angle, power: clamp(need / maxV, 0.5, 1) });
+        const need = passSpeedFor(dist(ball, trapSpot), 12, c.profile, c.surface);
+        const maxV = c.profile.strike.slapSpeed * strikeSpeedFactor(c.attrsOf(p.id), 'slap');
+        c.cmds.push({ tick, kind: 'strike', playerId: p.id, strike: 'slap', angle, power: clamp(need / maxV, 0.4, 1) });
       } else if (!pending) {
         // after injecting: run to the near post for rebounds
         moveTo(c, p, { x: gx - end * 3, y: injSide * 3 }, 0.9);
@@ -969,90 +1255,249 @@ function pcAttack(c: Ctx, pending: boolean): void {
       moveTo(c, p, spot, 1);
       if (!pending && dist(p.pos, ball) < 1.6 && c.ballSpeed > 1 && approaching(c, p)) { c.cmds.push({ tick, kind: 'trap', playerId: p.id }); c.pcRoles.strikerArrivingUntil = tick + 25; }
       // having stopped it: stand still and leave it for the striker (a slip variant plays it sideways instead)
-      if (!pending && c.ballSpeed < 3 && c.view.ball.lastTouch === p.id && !(variant === 'slipRight' || variant === 'slipLeft')) { c.cmds.push({ tick, kind: 'move', playerId: p.id, dx: 0, dy: 0, effort: 0 }); }
+      if (!pending && c.ballSpeed < 3 && c.view.ball.lastTouch === p.id && !slip) { c.cmds.push({ tick, kind: 'move', playerId: p.id, dx: 0, dy: 0, effort: 0 }); }
       // slip variants: trapper plays it to the side for a hitter
-      if (!pending && dist(p.pos, ball) < 1.3 && c.ballSpeed < 3 && c.view.ball.lastTouch === p.id && (variant === 'slipRight' || variant === 'slipLeft')) {
-        const side = variant === 'slipRight' ? -injSide : injSide;
-        c.cmds.push({ tick, kind: 'strike', playerId: p.id, strike: 'push', angle: dmath.atan2(side * 3, -end * 0.5), power: 0.5 });
+      if (!pending && dist(p.pos, ball) < 1.3 && c.ballSpeed < 3 && c.view.ball.lastTouch === p.id && slip) {
+        // a short, weighted push to the hitter's stick — a slip that rolls 8 m past him is a corner
+        // given away, which is what the fixed half-power push used to do
+        const at = bestFlicker ? bestFlicker.pos : (variant === 'slipRight' ? spots.slipR : spots.slipL);
+        const need = passSpeedFor(Math.max(1, dist(ball, at)), 5, c.profile, c.surface);
+        const maxV = c.profile.strike.pushSpeed * strikeSpeedFactor(c.attrsOf(p.id), 'push');
+        c.cmds.push({ tick, kind: 'strike', playerId: p.id, strike: 'push', angle: dmath.atan2(at.y - ball.y, at.x - ball.x), power: clamp(need / maxV, 0.2, 1) });
       }
     } else if (p.id === bestFlicker?.id) {
-      const trapped = !pending && c.ballSpeed < 3 && c.view.ball.lastTouch === trapper?.id;
+      // the ball is stopped and it is his: the striker goes to it. The slip hitter holds his spot
+      // until the slipped ball has reached him (a stop at full stick reach leaves it a stride away).
+      const stopped = !pending && c.ballSpeed < 3 && c.view.ball.lastTouchTeam === c.team.team;
+      const trapped = stopped && (slip ? dist(p.pos, ball) < 3.5 : c.view.ball.lastTouch === trapper?.id);
       moveTo(c, p, trapped ? ball : strikerSpot, 1);
+      // the slipped ball is stopped first — a first-time sweep at a rolling ball went wide half the time
+      if (slip && !pending && dist(p.pos, ball) < 1.6 && c.ballSpeed > 1.5 && approaching(c, p)) { c.cmds.push({ tick, kind: 'trap', playerId: p.id }); c.pcRoles.strikerArrivingUntil = tick + 25; }
       // strike when the ball is stopped at the top of the D
-      if (!pending && dist(p.pos, ball) < 1.4 && c.ballSpeed < 4 && c.view.ball.lastTouch !== p.id) {
-        // Pick the corner with the clearest lane, not just the one away from the keeper: the first
-        // runner is ON the shooting line by design, and a flick into his shins is a cleared corner.
-        // A drag flicker's whole craft is releasing around the runner — measured with the keeper-only
-        // aim, 59 % of corners ended "cleared" and 5 % scored.
-        const keeperY = c.keeperOpp?.pos.y ?? 0;
-        const blockers = c.opp.filter((o) => !o.isGoalkeeper);
-        let targetY = (keeperY > 0 ? -1 : 1) * (GOAL_HALF_WIDTH - 0.45);
-        let bestClear = -1;
-        for (const cand of [-(GOAL_HALF_WIDTH - 0.45), GOAL_HALF_WIDTH - 0.45]) {
-          const rx = gx - ball.x, ry = cand - ball.y; const rl = Math.sqrt(rx * rx + ry * ry) || 1;
-          let clear = 99;
-          for (const b of blockers) {
-            const bx = b.pos.x - ball.x, by = b.pos.y - ball.y;
-            const along = (bx * rx + by * ry) / rl;
-            if (along < 0.5 || along > rl) continue;
-            clear = Math.min(clear, Math.abs(bx * ry - by * rx) / rl);
+      if (!pending && dist(p.pos, ball) < 1.4 && c.ballSpeed < 4 && (slip ? c.view.ball.lastTouch === p.id || c.view.ball.lastTouch === trapper?.id : c.view.ball.lastTouch !== p.id) && c.view.ball.lastTouchTeam === c.team.team) {
+        if (variant === 'deflection') {
+          // The deflection is a PASS, not a shot: a firm ball along the turf to the far-post runner's
+          // stick, struck so it arrives as he does. Before this the "deflection" was a straight
+          // strike with a different name and nobody ever touched it.
+          const deflector = others[0];
+          const at = deflector ? { x: deflector.pos.x + deflector.vel.x * 0.3, y: deflector.pos.y + deflector.vel.y * 0.3 } : deflectorSpot;
+          const angle = dmath.atan2(at.y - ball.y, at.x - ball.x);
+          const need = passSpeedFor(dist(ball, at), 14, c.profile, c.surface);
+          const maxV = c.profile.strike.slapSpeed * strikeSpeedFactor(c.attrsOf(p.id), 'slap');
+          c.cmds.push({ tick, kind: 'strike', playerId: p.id, strike: 'slap', angle, power: clamp(need / maxV, 0.5, 1) });
+        } else {
+          // Pick the corner with the clearest lane, not just the one away from the keeper: the first
+          // runner is ON the shooting line by design, and a flick into his shins is a cleared corner.
+          // A drag flicker's whole craft is releasing around the runner — measured with the keeper-only
+          // aim, 59 % of corners ended "cleared" and 5 % scored.
+          const keeperY = c.keeperOpp?.pos.y ?? 0;
+          // our own runners in the D block a lane just as surely — into their feet is a free hit out
+          const blockers = [...c.opp.filter((o) => !o.isGoalkeeper), ...outfield.filter((o) => o.id !== p.id && inCircle(o.pos, end))];
+          let targetY = (keeperY > 0 ? -1 : 1) * (GOAL_HALF_WIDTH - 0.45);
+          let bestClear = -1;
+          for (const cand of [-(GOAL_HALF_WIDTH - 0.45), GOAL_HALF_WIDTH - 0.45]) {
+            const rx = gx - ball.x, ry = cand - ball.y; const rl = Math.sqrt(rx * rx + ry * ry) || 1;
+            let clear = 99;
+            for (const b of blockers) {
+              const bx = b.pos.x - ball.x, by = b.pos.y - ball.y;
+              const along = (bx * rx + by * ry) / rl;
+              if (along < 0.5 || along > rl) continue;
+              clear = Math.min(clear, Math.abs(bx * ry - by * rx) / rl);
+            }
+            // keeper still matters: his side is a worse corner, all else equal
+            const score = clear - (Math.sign(cand) === Math.sign(keeperY || 1) ? 0.3 : 0);
+            if (score > bestClear) { bestClear = score; targetY = cand; }
           }
-          // keeper still matters: his side is a worse corner, all else equal
-          const score = clear - (Math.sign(cand) === Math.sign(keeperY || 1) ? 0.3 : 0);
-          if (score > bestClear) { bestClear = score; targetY = cand; }
+          const angle = aimFrom(p, ball, { x: gx, y: targetY });
+          const strike = variant === 'lowHit' ? 'hit' : 'flick';
+          c.cmds.push({ tick, kind: 'strike', playerId: p.id, strike, angle, power: 1 });
         }
-        const angle = dmath.atan2(targetY - ball.y, gx - ball.x);
-        const strike = variant === 'lowHit' ? 'hit' : variant === 'deflection' ? 'push' : 'flick';
-        c.cmds.push({ tick, kind: 'strike', playerId: p.id, strike, angle, power: 1 });
       }
     } else {
-      // runners/rebounders: post positions and the top of the D
       const i = others.indexOf(p);
-      const spots = [{ x: gx - end * 4, y: -injSide * 3.5 }, { x: gx - end * 7, y: injSide * 6 }, { x: topX - end * 3, y: -injSide * 5 }, { x: topX - end * 4, y: injSide * 8 }];
-      moveTo(c, p, spots[i % spots.length] ?? strikeSpot, 0.85);
+      // Nobody enters the circle before the injection (FIH 13.3: attackers outside the D until the
+      // ball is played). The placement put them on the line; they wait there.
+      if (pending) { c.cmds.push({ tick, kind: 'move', playerId: p.id, dx: 0, dy: 0, effort: 0 }); continue; }
+      if (i === 0) {
+        // the deflector: attack the far post as the strike leaves, and TOUCH it — a lifted touch
+        // off a ball arriving across him is the deflection variant; off any other variant he is
+        // the far-post rebound. While the ball is coming his way he meets it on its line, like the
+        // trapper does — chasing it is how the first version never touched one.
+        // only the ball played from the top is his — the injection also travels "towards" him and
+        // took him to its line instead of his pocket
+        const comingToMe = firstShotGone && c.ballSpeed > 4 && approaching(c, p) && c.view.ball.lastTouchTeam === c.team.team;
+        let spot = reboundPhase ? goalSideOf(ball, { x: gx, y: 0 }, -1.5) : (runnerSpots[0] ?? deflectorSpot);
+        if (comingToMe) {
+          const vv = c.ballVel.x ** 2 + c.ballVel.y ** 2;
+          const t = clamp(((p.pos.x - ball.x) * c.ballVel.x + (p.pos.y - ball.y) * c.ballVel.y) / (vv || 1), 0, 1.5);
+          spot = { x: ball.x + c.ballVel.x * t, y: ball.y + c.ballVel.y * t };
+        }
+        moveTo(c, p, spot, 1);
+        if (dist(p.pos, ball) < 1.5 && comingToMe && c.ballZ < 0.6 && c.view.ball.lastTouch !== p.id) {
+          // a deflection is a redirect with a lift: the keeper is set low for the ball along the
+          // turf, and the touch takes it over him, well inside the far post (the ball is moving
+          // under the stick, so the touch is aimed from where the man stands, with margin)
+          const keeperY = c.keeperOpp?.pos.y ?? 0;
+          const aim = aimFrom(p, ball, { x: gx, y: (keeperY > 0 ? -1 : 1) * (GOAL_HALF_WIDTH - 0.9) });
+          // 0.75: enough lift to clear a man on the line as well as the keeper who has left it
+          c.cmds.push({ tick, kind: 'strike', playerId: p.id, strike: 'flick', angle: aim, power: 0.75 });
+        }
+      } else if (reboundPhase) {
+        // The rebound is a phase, not an accident (§5 attack gap 3): most club-level PC goals are the
+        // second ball. The rebounder and the trailer arrive on it; the wide man holds the outlet.
+        if (i < 3) moveTo(c, p, goalSideOf(ball, { x: gx, y: 0 }, -2.0), 1);
+        else moveTo(c, p, runnerSpots[3] ?? strikeSpot, 0.7);
+      } else {
+        moveTo(c, p, runnerSpots[i] ?? strikeSpot, 0.9);
+      }
     }
   }
 }
 
+/**
+ * Defending a penalty corner with a SYSTEM (hockey-systems.md §5). The five behind the line have
+ * named jobs — flyer, second charger, near post, far post, free defender — and what each does is a
+ * value in PC_DEFENCES, never a branch per system. The law holds everyone behind the line until the
+ * injection (and the AI does not cheat it); after it, the castle runs the system and the halfway
+ * five come back as the second wave.
+ */
 function pcDefend(c: Ctx, pending: boolean): void {
-  const { end, mine, ball, tick } = c;
+  const { end, mine, ball, tick, team, rules } = c;
   const gx = -end * HALF_LENGTH; // our goal
+  const goal = { x: gx, y: 0 };
+  const theirEnd = -end as End;
+  const sys = PC_DEFENCES[team.tactics.pcDefence];
+  const profile = team.tactics.pcRunnerProfile ?? sys.runnerProfile;
   const outfield = mine.filter((p) => !p.isGoalkeeper);
-  const behind = outfield.filter((p) => Math.abs(p.pos.x - gx) < 2).sort((a, b) => a.id - b.id);
-  const rest = outfield.filter((p) => !behind.includes(p));
-  const injSide = ball.y >= 0 ? 1 : -1;
-  behind.forEach((p, i) => {
-    if (pending) return; // wait for the injection
-    // first runner charges the top of the D; postmen hold the posts; one covers the injector's side
-    if (i === 0) moveTo(c, p, { x: -end * (CIRCLE_TOP_X - 1), y: 0 }, 1);
-    else if (i === 1) moveTo(c, p, { x: gx + end * 0.5, y: -injSide * 1.4 }, 1);
-    else if (i === 2) moveTo(c, p, { x: gx + end * 0.5, y: injSide * 1.4 }, 1);
-    else moveTo(c, p, { x: gx + end * 5, y: injSide * 5 }, 1);
-    // tackle the striker if we get there
-    if (i === 0 && dist(p.pos, ball) < 1.7 && c.view.ball.lastTouch !== null) {
-      const carrier = c.view.playerById(c.view.ball.lastTouch);
-      if (carrier && carrier.team !== c.team.team) c.cmds.push({ tick, kind: 'tackle', playerId: p.id, targetId: carrier.id });
+  const injSide = c.pcRoles.defInjSide ?? (ball.y >= 0 ? 1 : -1);
+  const spots = pcSpots(theirEnd, injSide);
+  // the castle is fixed once per corner, like the battery: the flyer is the man who can actually fly
+  const key = rules.pcTakenTick ?? (rules.restart?.readyTick ?? -2) * -1 - 1000;
+  if (!pending && c.pcRoles.defKey !== key && c.pcRoles.flyer !== null) c.pcRoles.defKey = key;
+  if (c.pcRoles.defKey !== key && pending) {
+    const behind = outfield.filter((p) => Math.abs(p.pos.x - gx) < 2);
+    const flyScore = (p: PlayerView): number => { const a = c.attrsOf(p.id); return norm(a.physical.pace) + norm(a.physical.acceleration) + 0.5 * (norm(a.mental.aggression) - norm(a.mental.discipline)); };
+    const byFly = [...behind].sort((a, b) => flyScore(b) - flyScore(a) || a.id - b.id);
+    const flyer = byFly[0], second = byFly[1];
+    const rest = behind.filter((p) => p.id !== flyer?.id && p.id !== second?.id).sort((a, b) => a.id - b.id);
+    // four outfielders behind the line (the fifth is the keeper): flyer, second (the second charger
+    // in a doubleCharge, the free defender otherwise), and the two posts
+    const postNear = rest[0], postFar = rest[1];
+    c.pcRoles.defKey = key; c.pcRoles.flyer = flyer?.id ?? null; c.pcRoles.second = second?.id ?? null;
+    c.pcRoles.postNear = postNear?.id ?? null; c.pcRoles.postFar = postFar?.id ?? null;
+    c.pcRoles.defInjSide = ball.y >= 0 ? 1 : -1;
+  }
+  const byId = (id: number | null): PlayerView | undefined => (id === null ? undefined : outfield.find((p) => p.id === id));
+  const castle: Castle = { flyer: byId(c.pcRoles.flyer), second: byId(c.pcRoles.second), postNear: byId(c.pcRoles.postNear), postFar: byId(c.pcRoles.postFar) };
+  const castleIds = new Set([castle.flyer?.id, castle.second?.id, castle.postNear?.id, castle.postFar?.id]);
+  const rest = outfield.filter((p) => !castleIds.has(p.id));
+
+  const firstShotGone = rules.pcFirstShot !== null;
+  const carrier = findCarrier(c);
+  const theirCarrier = carrier !== null && carrier.team !== team.team ? carrier : null;
+  // the ball has been stopped at the top and the strike is about to come
+  const stopped = !pending && c.ballSpeed < 3 && c.view.ball.lastTouchTeam !== team.team && inCircle(ball, theirEnd);
+  const slipSide = (which: 'slipLeft' | 'slipRight'): Vec2 => (which === 'slipRight' ? spots.slipR : spots.slipL);
+  const chargeTarget = (line: 'trap' | 'striker'): Vec2 => (line === 'striker' ? spots.strike : spots.trap);
+
+  /** A charger: out to the shooting line goal-side of the target, then onto the ball if committed. */
+  const charge = (p: PlayerView, target: Vec2, commit: Scalar): void => {
+    // once the ball is stopped and the striker is on it, the charge goes to the BALL (that is what
+    // "arrive as the strike leaves" means); until then, to the line the system has guessed
+    // 2.5 m, not a stick length: a flyer who ends up on the striker's toes takes the ball on the
+    // shin (a corner again) — the block is made on the line, a stride or two out
+    const at = stopped && commit > 0.6 ? ball : target;
+    moveTo(c, p, goalSideOf(at, goal, 2.5), 0.7 + 0.3 * commit, profile);
+    if (dist(p.pos, ball) < 1.7 && theirCarrier !== null) c.cmds.push({ tick, kind: 'tackle', playerId: p.id, targetId: theirCarrier.id });
+    if (dist(p.pos, ball) < (profile === 'low' ? 1.9 : 1.4) && c.ballSpeed > 3 && approaching(c, p)) c.cmds.push({ tick, kind: 'trap', playerId: p.id });
+  };
+  /**
+   * A man on the line or at a post: hold, take what comes at him, close the rebound after the shot.
+   * `posture` is what his body does while he waits — a post man lying low with the stick along the
+   * turf is the block's answer to the hit; an upright man with the stick up is its answer to the flick.
+   */
+  const hold = (p: PlayerView, spot: Vec2, posture?: Posture): void => {
+    moveTo(c, p, firstShotGone && c.ballSpeed < 6 && dist(ball, goal) < 12 ? ball : spot, 1, posture);
+    if (dist(p.pos, ball) < (posture === 'low' ? 1.9 : 1.4) && c.ballSpeed > 3 && approaching(c, p)) c.cmds.push({ tick, kind: 'trap', playerId: p.id });
+    if (dist(p.pos, ball) < 1.7 && theirCarrier !== null && firstShotGone) c.cmds.push({ tick, kind: 'tackle', playerId: p.id, targetId: theirCarrier.id });
+  };
+
+  // ON the post, not inside the goal: a post man a stride inside the frame is a body in the
+  // keeper's way, and the ball inside the post is the keeper's — the post covers the angle outside it.
+  // The block is the exception: its posts step inside the frame and lie low, stick along the turf,
+  // because filling the goal IS the system — the keeper takes what is lifted over them.
+  const inFrame = sys.lead === 'none';
+  // (2.3, not 2.1: a body at 2.1 still catches the ball a hand inside the post with its hip — and a
+  // body stop of a goal-bound ball on the line is a stroke, which is what the posts play with the stick to avoid)
+  const linePost = (side: number): Vec2 => ({ x: gx + end * 0.5, y: side * (inFrame ? 1.5 : 2.3) });
+  const postPosture: Posture | undefined = inFrame ? 'low' : undefined;
+  for (const p of outfield) {
+    if (!castleIds.has(p.id)) continue;
+    // The law: nobody leaves the line before the ball is played. (The AI could; it does not.)
+    if (pending) { c.cmds.push({ tick, kind: 'move', playerId: p.id, dx: 0, dy: 0, effort: 0 }); continue; }
+    if (p.id === castle.flyer?.id) {
+      if (sys.lead === 'runner' || sys.lead === 'both') charge(p, chargeTarget(sys.runnerLine === 'split' ? 'trap' : sys.runnerLine), sys.chargeCommit);
+      // keeperLeads: the flyer takes the goal while the keeper goes
+      else if (sys.lead === 'gk') hold(p, { x: gx + end * 0.4, y: 0 });
+      // block: the flyer is the first blocker — a few metres out on the ball line, stick up for the flick
+      else hold(p, goalSideOf(spots.trap, goal, dist(spots.trap, goal) - 3.0), 'high');
+    } else if (p.id === castle.second?.id) {
+      // doubleCharge: the second man charges the slip side the system guessed — that body is the
+      // free defender the system has spent. Otherwise he IS the free defender: on the slip line he
+      // is told to cover, or at the top-of-D rebound/deflector spot.
+      if (sys.lead === 'both') charge(p, sys.freeDefender === 'topOfD' ? spots.strike : slipSide(sys.freeDefender), sys.chargeCommit);
+      // in a block nobody is spare: he is the second body in front of the keeper, off the flyer's shoulder
+      else if (sys.lead === 'none') hold(p, { x: gx + end * 3.0, y: -injSide * 1.6 }, 'high');
+      else if (sys.freeDefender === 'topOfD') hold(p, { x: gx + end * 6, y: injSide * 4.5 });
+      else hold(p, goalSideOf(slipSide(sys.freeDefender), goal, 4));
+    } else if (p.id === castle.postNear?.id) {
+      hold(p, sys.posts === 'stepOnHit' && stopped ? goalSideOf(ball, goal, dist(ball, goal) - 3.5) : linePost(-injSide), postPosture);
+    } else if (p.id === castle.postFar?.id) {
+      hold(p, sys.posts === 'stepOnHit' && stopped ? goalSideOf(ball, goal, dist(ball, goal) - 3.5) : linePost(injSide), postPosture);
     }
-    if (dist(p.pos, ball) < 1.4 && c.ballSpeed > 3 && approaching(c, p)) c.cmds.push({ tick, kind: 'trap', playerId: p.id });
-  });
+  }
   // The halfway group is not decoration: the law only holds them beyond the centre line until the
   // injection. Once the ball is in play, the recoverers SPRINT back into the second-phase zone at
   // the top of our D (rebounds and slipped balls are theirs), while two stay wide around halfway as
   // the counter outlets — exactly where our clearance is aimed.
+  // (`end` is the goal WE attack, so `end * 3` is three metres into the half we attack — beyond the
+  // centre line, where the law puts them. The first version had the sign wrong and parked them in
+  // our own half, which no umpire would allow.)
   const restSorted = [...rest].sort((a, b) => a.id - b.id);
   restSorted.forEach((p, i) => {
-    if (pending) { moveTo(c, p, { x: -end * 3, y: clamp(-18 + i * 9, -20, 20) }, 0.6); return; }
-    if (i < 2) moveTo(c, p, { x: -end * 2, y: (i === 0 ? -1 : 1) * 20 }, 0.7); // outlets for the clear
+    if (pending) { moveTo(c, p, { x: end * 3, y: clamp(-18 + i * 9, -20, 20) }, 0.6); return; }
+    if (i < 2) moveTo(c, p, { x: end * 2, y: (i === 0 ? -1 : 1) * 20 }, 0.7); // outlets for the clear
     else moveTo(c, p, { x: -end * (CIRCLE_TOP_X - 6), y: (i - 3) * 8 }, 0.95); // recoverers join the defence
   });
   // fallback: a loose ball in our circle after the injection → nearest defender clears it
   if (!pending) {
-    const carrier = findCarrier(c);
-    if (carrier?.team === c.team.team) { issue(c, carrier, bestOption(c, carrier, false)); }
+    if (carrier?.team === team.team) { issue(c, carrier, bestOption(c, carrier, false)); }
     else if (!carrier && c.ballSpeed < 3) { const ch = nearestTo(outfield, ball); if (ch) moveTo(c, ch, ball, 1); }
     else if (carrier) { const ch = nearestTo(outfield, ball); if (ch && dist(ch.pos, ball) < 1.7 && c.rng.chance(0.4)) c.cmds.push({ tick, kind: 'tackle', playerId: ch.id, targetId: carrier.id }); }
   }
-  if (c.keeperMine) goalkeeper(c, c.keeperMine, null);
+  if (c.keeperMine) pcKeeper(c, c.keeperMine, sys, pending, spots.trap, firstShotGone);
+}
+
+/**
+ * The keeper's set at a corner (§5): on his line until the strike, or — keeperLeads — out to the
+ * striking point behind the flyer the moment the ball is played, low, to smother the hit and the
+ * close deflection. What he gives up by going is the lift over him and the empty goal behind.
+ */
+function pcKeeper(c: Ctx, gk: PlayerView, sys: PcDefenceSystem, pending: boolean, trapSpot: Vec2, firstShotGone: boolean): void {
+  const { end, ball, tick } = c;
+  const gx = -end * HALF_LENGTH;
+  const goal = { x: gx, y: 0 };
+  if (firstShotGone || pending) {
+    // rebound phase and the wait: the ordinary keeper model (set on the line, react, clear)
+    if (pending) moveTo(c, gk, { x: gx + end * 0.5, y: clamp(ball.y * 0.1, -0.8, 0.8) }, 0.8);
+    else goalkeeper(c, gk, null);
+    return;
+  }
+  if (sys.gkSet === 'advanced') moveTo(c, gk, goalSideOf(trapSpot, goal, dist(trapSpot, goal) - 4.5), 1, 'low');
+  else moveTo(c, gk, { x: gx + end * 0.6, y: clamp(ball.y * 0.15, -1, 1) }, 0.9);
+  // Save: ball moving towards our goal and coming within reach → trap (pads/stick)
+  const towardGoal = end * c.ballVel.x < -3;
+  if (towardGoal && dist(gk.pos, ball) < 2.6 && c.ballZ < 2.0) c.cmds.push({ tick, kind: 'trap', playerId: gk.id });
 }
 
 // ── substitutions ──────────────────────────────────────────────────────────────
@@ -1100,14 +1545,16 @@ function findCarrier(c: Ctx): PlayerView | null {
   return n && dist(n.pos, ball) < 1.2 ? n : null;
 }
 
-function moveTo(c: Ctx, p: PlayerView, target: Vec2, effort: Scalar): void {
+function moveTo(c: Ctx, p: PlayerView, target: Vec2, effort: Scalar, posture?: Posture): void {
   const dx = target.x - p.pos.x, dy = target.y - p.pos.y;
   const d = Math.sqrt(dx * dx + dy * dy);
   // brake before the target: stopping distance at current speed (decel ≈ 7 m/s²) plus a stride
   const v = Math.sqrt(p.vel.x ** 2 + p.vel.y ** 2);
   const brake = (v * v) / 14 + 0.6;
   const e = d < 0.6 ? 0 : d < brake ? Math.min(effort, 0.25) : d < 3 ? effort * 0.6 : effort;
-  c.cmds.push({ tick: c.tick, kind: 'move', playerId: p.id, dx, dy, effort: e });
+  const cmd: Extract<Command, { kind: 'move' }> = { tick: c.tick, kind: 'move', playerId: p.id, dx, dy, effort: e };
+  if (posture !== undefined) cmd.posture = posture;
+  c.cmds.push(cmd);
 }
 
 const dist = (a: Vec2, b: Vec2): Scalar => Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);

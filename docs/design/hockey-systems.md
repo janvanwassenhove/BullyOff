@@ -173,7 +173,9 @@ Two defects to fix at the same time as §3:
 
 ---
 
-## 5. Penalty corners — the running out
+## 5. Penalty corners — the running out — SHIPPED 2026-10-10 (engine 0.10.0, `docs/handoff/phase-11c.md`)
+
+> Shipped as specified: the four systems are data in `PC_DEFENCES` (`ai/tactics.ts`), the coach picks one (`pcDefence`) and may pin the flyer's height (`pcRunnerProfile`), AI clubs pick theirs from the squad (`pcDefenceFor`), and the counter matrix below is asserted relationally in `ai/pcDefence.test.ts`. The flyer's body height is a real engine quantity (`Posture` on the move command: a low block is a wide, low barrier; an upright runner is a narrow body with the stick up). The attack gained the deflector who actually touches the ball, runners per pocket, the rebound as a phase, and nobody enters the D before the injection. The read/counter-read (which variant to run against which system) is still the reads phase; the scouting report names the hole in the meantime.
 
 ### Defence: four systems, chosen by the coach and by the read
 
@@ -275,7 +277,9 @@ It will not show up on screen — capsules do not have hands. It shows up in the
 
 ---
 
-## 7. Attacking play
+## 7. Attacking play — SHIPPED 2026-10-10 (engine 0.10.0, `docs/handoff/phase-11c.md`)
+
+> Shipped: the five entry patterns as data (`ENTRY_PATTERNS`, `entryPocket`) with triggers scored against the picture, commitment for a few seconds and the runner leaving before the pass; passing into space with the pursuit test (`pursuitWins`); the up-back-through as a one-touch lay-back window plus a through-ball window. The overhead as a system and the switch as a named midfield pattern are not separate objects yet — the switch lives in the `overload` pattern's trigger (a shifted block) and in the pass utilities.
 
 **Build-up and outlet.** `shapeTarget` already gets the important one right (backs out of their own D, the 23 m outlet shape). Missing:
 - **Up-back-through** — the defining hockey combination: play into a pressed forward, he lays it back first-time to the free man, who plays through the line the press has just vacated. Needs a two-pass intention, which means the carrier must be able to plan one pass ahead. This single pattern is what makes a build-up look coached.
@@ -331,7 +335,7 @@ And the situational deck gains scenarios named for what they test: `press-full-b
 
 | Phase | Content | Why in this order |
 |---|---|---|
-| **11 — Systems** | §2–§4 assignments + press systems as data (**merged 2026-08-22**, with a calibration regression as known debt — `docs/handoff/phase-11.md`); §5 PC defence systems; §7 entry patterns | the action space. Nothing can read or learn without it. **Do not split the defensive and attacking halves again**: shipping §2–§4 alone dropped goals per match from 5.49 to 4.33, out of the calibration band, because both sides defend better and the attack was given nothing to answer with |
+| **11 — Systems** | §2–§4 assignments + press systems as data (**merged 2026-08-22**, `docs/handoff/phase-11.md`); **§5 PC defence systems and §7 entry patterns — shipped together 2026-10-10 as 11c** (`docs/handoff/phase-11c.md`) | the action space. Nothing can read or learn without it. **Do not split the defensive and attacking halves again**: shipping §2–§4 alone dropped goals per match from 5.49 to 4.33, out of the calibration band, because both sides defend better and the attack was given nothing to answer with |
 | ~~**11b — Handedness**~~ **SHIPPED** | §6, full scope: pressing angle, tackle side, receiving, carrying, striking | done 2026-08-31, engine 0.9.0. Every pressing angle reads correctly (`jockeySpot`), and corners now come from stick tackles and feet rather than an abstract foul rate |
 | **12 — Naturalness** | `adaptive-play.md` layer D | commitment, softmax, anticipation, timed runs — now applied to real assignments |
 | **13 — Reads** | layer B (`ScoutMemory`) | reads *choose between systems and variants*: trap channel, PC runner line and height, entry pattern |

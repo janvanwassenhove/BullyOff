@@ -7,9 +7,17 @@
 import type { Radians, Scalar } from '@bullyoff/shared';
 import type { PlayerId, StrikeKind } from '../events/events.js';
 
+/**
+ * What a player's body is doing besides running (Phase 11c, hockey-systems.md §5). `low` is the
+ * flyer sliding out with the stick along the turf — a wide barrier at ground level that a lifted ball
+ * clears — and the keeper coming out low to smother; `high` is the upright runner with the stick up
+ * who takes the rising flick on the body and lets the low ball past his feet. Omitted = normal.
+ */
+export type Posture = 'low' | 'high';
+
 export type Command =
   /** Set a player's movement intent: direction (any length; normalised) and effort 0..1. Persists until changed. */
-  | { tick: number; kind: 'move'; playerId: PlayerId; dx: Scalar; dy: Scalar; effort: Scalar }
+  | { tick: number; kind: 'move'; playerId: PlayerId; dx: Scalar; dy: Scalar; effort: Scalar; posture?: Posture }
   /** Aim the stick at an absolute angle this tick (otherwise it follows heading). */
   | { tick: number; kind: 'aim'; playerId: PlayerId; angle: Radians }
   /** Strike the ball if within reach: kind selects speed/lift from the profile; power 0..1 scales speed. */

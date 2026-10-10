@@ -5,7 +5,7 @@
  */
 import type { World } from './model.js';
 
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 
 export interface SaveFile {
   format: 'bullyoff-save';
@@ -75,6 +75,18 @@ export const MIGRATIONS: Record<number, Migration> = {
       for (const p of (season['playoffs'] as Record<string, unknown>[] | undefined) ?? []) p['country'] ??= 'BE';
     }
     return { ...d, version: 5, world };
+  },
+  // 5 → 6 (Phase 11c, penalty-corner defence systems + entry patterns): every club's tactics gain
+  // a running-out system. Old saves start on runnerLeads — the classic — and the coach changes it
+  // on the tactics screen; AI clubs pick theirs from the squad on each match day anyway.
+  5: (d) => {
+    const world = d['world'] as Record<string, unknown>;
+    const clubs = world['clubs'] as Record<string, Record<string, unknown>>;
+    for (const c of Object.values(clubs)) {
+      const t = c['tactics'] as Record<string, unknown> | undefined;
+      if (t) t['pcDefence'] ??= 'runnerLeads';
+    }
+    return { ...d, version: 6, world };
   },
 };
 

@@ -8,7 +8,7 @@
  */
 import { computed, onBeforeUnmount, onMounted, reactive, ref, shallowRef } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { FRAME_PLAYER_STRIDE, MENTALITY_LINE, PRESS_HEIGHT, quarterStats, type CoachInstruction, type FormationId, type Frame, type MatchEvent, type MatchLog, type Mentality, type PcVariant, type PressId, type QuarterStats, type TeamTactics } from '@bullyoff/engine';
+import { FRAME_PLAYER_STRIDE, MENTALITY_LINE, PRESS_HEIGHT, quarterStats, type CoachInstruction, type FormationId, type Frame, type MatchEvent, type MatchLog, type Mentality, type PcDefenceId, type PcVariant, type PressId, type QuarterStats, type TeamTactics } from '@bullyoff/engine';
 import { analyse, pcCandidates, type Finding } from '@bullyoff/insight';
 import { createMatchView, type CameraChoice, type HudState, type MatchView, type OverlayId } from '@bullyoff/render';
 import { inCircle } from '@bullyoff/shared';
@@ -50,6 +50,7 @@ const BUFFER = 50;
 const CAMS: CameraChoice[] = ['full', 'broadcast', 'circle', 'director'];
 const FORMATION_IDS: FormationId[] = ['4-3-3', '3-4-3', '4-4-2', '5-3-2', '3-3-3-1', '4-2-3-1'];
 const PRESS_IDS: PressId[] = ['full', 'half', 'split', 'zone'];
+const PC_DEFENCES: PcDefenceId[] = ['runnerLeads', 'keeperLeads', 'doubleCharge', 'block'];
 const MENTALITIES: Mentality[] = ['defensive', 'balanced', 'attacking'];
 const tempoWord = (x: number): 'low' | 'normal' | 'high' => (x < 0.4 ? 'low' : x > 0.65 ? 'high' : 'normal');
 const TEMPO = { low: 0.25, normal: 0.5, high: 0.8 } as const;
@@ -135,10 +136,11 @@ async function send(ins: CoachInstruction[]): Promise<void> {
     Object.assign(tactics, tac[me]);
   } catch (e) { error.value = e instanceof Error ? e.message : String(e); }
 }
-function setTactic(k: 'formation' | 'press' | 'mentality' | 'tempo' | 'rotateBelowStamina' | 'buildUp' | 'pcVariant', val: number | string): void {
+function setTactic(k: 'formation' | 'press' | 'mentality' | 'tempo' | 'rotateBelowStamina' | 'buildUp' | 'pcVariant' | 'pcDefence', val: number | string): void {
   const patch: Partial<TeamTactics> =
     k === 'buildUp' ? { buildUp: val as TeamTactics['buildUp'] }
       : k === 'pcVariant' ? { pcVariant: val as PcVariant }
+        : k === 'pcDefence' ? { pcDefence: val as PcDefenceId }
         : k === 'formation' ? { formation: val as FormationId }
           : k === 'press' ? { press: val as PressId, pressHeight: PRESS_HEIGHT[val as PressId] }
             : k === 'mentality' ? { mentality: val as Mentality, defensiveLine: MENTALITY_LINE[val as Mentality] }
@@ -469,6 +471,23 @@ onBeforeUnmount(() => { destroyed = true; view.value?.destroy(); client.destroy(
               v-if="pcRead[0]?.name"
               class="dghint"
             >{{ t('coach.pcWho', { name: pcRead[0].name, rating: pcRead[0].rating }) }}</span>
+          </div>
+          <div class="dgroup">
+            <div class="dgh">
+              <span class="eyebrow">{{ t('coach.pcDefenceLabel') }}</span>
+              <span class="dghint">{{ t('coach.pcDefenceWhy.' + tactics.pcDefence) }}</span>
+            </div>
+            <div class="chips">
+              <button
+                v-for="d in PC_DEFENCES"
+                :key="d"
+                class="chip chip-mode"
+                :class="{ on: tactics.pcDefence === d }"
+                @click="setTactic('pcDefence', d)"
+              >
+                {{ t('coach.pcDefence.' + d) }}
+              </button>
+            </div>
           </div>
           <div class="dgroup">
             <span class="eyebrow">{{ t('coach.rotation') }}</span>

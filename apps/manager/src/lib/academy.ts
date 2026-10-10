@@ -89,6 +89,27 @@ export const ACADEMY: Topic[] = [
       { id: 'wearOut', view: 'behindGoal',
         markers: [us(30.5, 1.5, 'T'), us(29.3, 0.2, 'S'), them(45.7, 0, 'K'), them(45.3, 0.2, 'R'), them(43, 3), ball(30.5, 1.5)],
         arrows: [run([45.3, 0.2], [31.2, 1.3]), pass([30.5, 1.5], [29.3, 0.2]), pass([29.3, 0.2], [45.7, 1.2])] },
+      // ── the four running-out systems (engine: PC_DEFENCES) — the defence's half of the corner ──
+      // runnerLeads: the flyer charges the trap spot as the ball is injected; the keeper stays on
+      // his line, the posts hold, the free man covers the top of the D. Beaten by the slip.
+      { id: 'runnerLeads', view: 'behindGoal',
+        markers: [us(45.7, 9.1, 'I'), us(30.5, 1.5, 'T'), us(31.7, -3, 'S'), them(45.7, 0, 'K'), them(45.3, 1.6, 'R'), them(45.3, -2.1, 'P'), them(45.3, 2.1, 'P'), them(39.7, 4.5), ball(45.7, 9.1)],
+        arrows: [pass([45.7, 9.1], [30.5, 1.5]), run([45.3, 1.6], [33.5, 1.2]), pass([30.5, 1.5], [31.7, -3]), pass([31.7, -3], [45.7, 1.2])] },
+      // keeperLeads: the keeper comes out low to the striking point and the flyer drops onto the
+      // line to take the goal. Smothers the low hit; beaten by the lift over him.
+      { id: 'keeperLeads', view: 'behindGoal',
+        markers: [us(45.7, 9.1, 'I'), us(30.5, 1.5, 'T'), us(29.3, 0.2, 'S'), them(45.5, 0, 'K'), them(45.3, 1.6, 'R'), them(45.3, -2.1, 'P'), them(45.3, 2.1, 'P'), ball(45.7, 9.1)],
+        arrows: [pass([45.7, 9.1], [30.5, 1.5]), run([45.5, 0], [41, 0.7]), run([45.3, 1.6], [45.3, 0]), pass([30.5, 1.5], [45.7, -1.2])] },
+      // doubleCharge: two chargers — one at the trapper, one at the slip side the fifth man guesses.
+      // Kills slips and hits; the straight flick goes over two bodies committed low.
+      { id: 'doubleCharge', view: 'behindGoal',
+        markers: [us(45.7, 9.1, 'I'), us(30.5, 1.5, 'T'), us(29.3, 0.2, 'S'), them(45.7, 0, 'K'), them(45.3, 1.6, 'R'), them(45.3, -1.6, 'R'), them(45.3, -2.1, 'P'), them(45.3, 2.1, 'P'), ball(45.7, 9.1)],
+        arrows: [pass([45.7, 9.1], [30.5, 1.5]), run([45.3, 1.6], [33.5, 1.2]), run([45.3, -1.6], [34.5, -2.6]), pass([30.5, 1.5], [45.7, 1.2])] },
+      // block: nobody charges, five bodies fill the goal and the near angles. Concedes the clean
+      // strike and nothing else — the honest fallback when nobody can run.
+      { id: 'block', view: 'behindGoal',
+        markers: [us(45.7, 9.1, 'I'), us(30.5, 1.5, 'T'), us(29.3, 0.2, 'S'), them(45.7, 0, 'K'), them(42.5, 1.2), them(45.3, -2.1, 'P'), them(45.3, 2.1, 'P'), them(39.7, 4.5), ball(45.7, 9.1)],
+        arrows: [pass([45.7, 9.1], [30.5, 1.5]), pass([30.5, 1.5], [45.7, -1.2])] },
     ],
   },
   {
@@ -188,6 +209,19 @@ export const ACADEMY: Topic[] = [
       { id: 'drawTheFoot', view: 'goalmouth',
         markers: [us(36, 2), them(39, 2), them(45.7, 0, 'K'), ball(36, 2)],
         arrows: [pass([36, 2], [39, 2])] },
+      // the deep diagonal: the early ball from wide into the far-post pocket for a deflection — the
+      // runner leaves before the pass
+      { id: 'deepDiagonal', view: 'behindGoal',
+        markers: [us(24, 13), us(33, -7), them(36, 3), them(40, -2), them(45.7, 0, 'K'), ball(24, 13)],
+        arrows: [run([33, -7], [40.2, -3]), pass([24, 13], [40.2, -3]), pass([40.2, -3], [45.7, 1.2])] },
+      // the overload: their block has slid to the ball's side, so the free side is taken
+      { id: 'overload', view: 'half',
+        markers: [us(30, 10), us(28, -2), us(26, -14), them(34, 8), them(33, 4), them(32, 0), them(31, 12), them(45.7, 0, 'K'), ball(30, 10)],
+        arrows: [pass([30, 10], [28, -2]), run([26, -14], [32, -9]), pass([28, -2], [32, -9])] },
+      // passing into space: not to the man, to the point ahead of him that he reaches before the back
+      { id: 'intoSpace', view: 'half',
+        markers: [us(18, 4), us(26, 14), them(30, 12), them(22, 6), ball(18, 4)],
+        arrows: [run([26, 14], [36, 11]), pass([18, 4], [36, 11])] },
     ],
   },
 ];
@@ -289,7 +323,7 @@ export const topic = (id: TopicId): Topic | undefined => ACADEMY.find((t) => t.i
  */
 export function topicForFinding(kind: string): TopicId | null {
   switch (kind) {
-    case 'pcBattery': case 'pcBatteryGood': case 'pcWon': case 'readPc': return 'penaltyCorner';
+    case 'pcBattery': case 'pcBatteryGood': case 'pcWon': case 'readPc': case 'pcDefenceLeaks': return 'penaltyCorner';
     case 'ownFreeHits': case 'aerialsLost': return 'buildUp';
     case 'readUnderSiege': case 'tactics': case 'tacticsSwitch': case 'thirdQuarterLegs':
     case 'switchWorked': case 'switchFailed': return 'pressing';

@@ -5,6 +5,7 @@
  * modelled as an oriented segment from the body centre, and stamina. Movement
  * is discrete per tick: players never approach tunnelling speeds at 20 Hz.
  */
+import type { Posture } from '../match/commands.js';
 import { dmath, type Radians, type Scalar, type Vec2 } from '@bullyoff/shared';
 import type { PlayerId, TeamId } from '../events/events.js';
 import type { PlayerParams } from '../profile.js';
@@ -29,6 +30,8 @@ export interface PlayerState {
   attrs: Attributes;
   /** After a failed trap/save the player is beaten: no new attempt until this tick. */
   trapCooldownUntil: number;
+  /** Body posture set by the last move command (null = upright and running normally). See `Posture`. */
+  posture: Posture | null;
   /** Per-player kinematic params: profile × attribute factors. Computed once. */
   params: PlayerParams;
 }
@@ -43,7 +46,7 @@ export function createPlayer(id: PlayerId, team: TeamId, x: Scalar, y: Scalar, h
   };
   return {
     id, team, pos: { x, y }, vel: { x: 0, y: 0 }, heading, stickAngle: heading, stamina: 1,
-    wantDir: { x: 0, y: 0 }, wantEffort: 0, onPitch: true, role, attrs: a, params, trapCooldownUntil: -1,
+    wantDir: { x: 0, y: 0 }, wantEffort: 0, onPitch: true, role, attrs: a, params, trapCooldownUntil: -1, posture: null,
   };
 }
 

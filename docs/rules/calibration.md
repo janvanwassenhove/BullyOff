@@ -172,3 +172,48 @@ Phase 11b put stick handedness into the engine (`docs/design/hockey-systems.md` 
 **And one that was a genuine hockey error.** The first version scaled the reverse penalty steeply with skill (a good player paid a third of what a weak one paid). Class then compounded: 6+ goal team scores nearly doubled (12 → 21 per 192 team-innings) and the Poisson shape failed. The truer statement is that *the reverse is awkward for everybody* and what a good player really owns is the footwork to avoid being put on it — which the AI models by choosing better passes and carries. With a shallow skill term the tail came back to 11 and the shape test passes.
 
 **Seed sensitivity, stated plainly.** On the standard seed set (42–137) the men's draw rate reads 0.23 and the women's 0.13, both just outside their bands and in *opposite* directions from the same code — the signature of a statistic whose standard error at n = 96 is ±0.04. On an independent set (`--seed 900`) both profiles return **measured-all-pass: yes** (men 13/15, goals 5.82, draws 0.14; women 14/15, goals 3.66, draws 0.23). Read the draw-rate row as noise unless it moves in the same direction in both profiles.
+
+## Penalty-corner systems and entry patterns (engine 0.10.0, 2026-10-10)
+
+Phase 11c shipped the other half of the action space (`docs/design/hockey-systems.md` §5 and §7, `docs/handoff/phase-11c.md`): four running-out systems as data, the flyer's body height as a real quantity, a deflector who touches the ball, five circle-entry patterns with runners who leave before the pass, passes into space, the up-back-through. Both halves went in together, as the Phase 11 handoff demanded, and the 96-match numbers:
+
+| metric | target | 0.9.0 | **0.10.0** (seeds 42 / 900 / 500) | note |
+|---|---|---|---|---|
+| goals / match (men) | 5.40 | 5.56 | **5.68 / 6.00 / 5.29** | ok on two of three seed sets; see the seed note |
+| goals / match (women) | 3.60 | 3.78 | **3.69 / 3.65** | ok, both seed sets |
+| PCs / match (men) | 9 | 9.5 | **7.8 / 8.1 / 7.3** | ok (est) — and fewer are re-awards, see below |
+| PC conversion (men) | 0.20 | 0.21 | **0.22 / 0.24 / 0.20** | ok (est) |
+| PC conversion (women) | 0.17 | 0.16 | **0.15 / 0.14** | ok (est) |
+| PC (+PS) goal share (men) | 0.33 | 0.33 | **0.34 / 0.38 / 0.32** | ok |
+| team-goals shape vs Poisson (men) | p > 0.01 | ok | **0.57 / 0.12 / 0.65** | ok |
+
+**The counter matrix, measured** (30 corner sequences per cell, men, level-12 squads, re-awards included — `tmp` harness, the relational claims live in `ai/pcDefence.test.ts`):
+
+| conversion | runnerLeads | keeperLeads | doubleCharge | block |
+|---|---|---|---|---|
+| dragFlick | 0.30 | 0.30 | **0.37** | 0.40 |
+| lowHit | **0.20** | 0.10 | 0.07 | 0.17 |
+| slipLeft | 0.27 | 0.40 | **0.53** | 0.33 |
+| slipRight | 0.30 | 0.30 | 0.30 | 0.23 |
+| deflection | 0.20 | 0.13 | 0.00 | 0.03 |
+| flyer set low → dragFlick / lowHit | 0.43 / 0.10 | | | |
+| flyer set high → dragFlick / lowHit | 0.30 / 0.20 | | | |
+
+Read down the columns: the double charge dies to the straight flick and to the slip on the side it did not guess; the single flyer is the best answer to the flick and the worst to the slip; the advancing keeper smothers the low hit and is lifted over; the block concedes the clean strike (flick 0.40) and kills the deflection. Set the flyer low and the flick goes over him; set him high and the low hit goes under. No column is the best answer to every row — which is the whole point.
+
+**What had to be fixed in the model before any of that was true.** The first full run read 3.5 goals and PC conversion 0.02, and every one of the causes was a hockey error, not a number:
+
+1. **The injection was too slow.** At a "stoppable" 8 m/s arrival the sequence from injection to strike took three seconds and the flyer stood on the striker's toes when the ball left — every flick hit his shin, every corner was re-awarded. A real injection is a firm slap, the stop at the top is a drilled skill (the trapper now has a bonus for it in `match.ts`), and the whole thing takes a second and a half. The flyer's race is against *that* clock.
+2. **The flyer blocked everything within a stick's reach.** A stick raised at a 29 m/s lifted ball is a guess; it now touches 45 % of what passes within 0.6 of the reach, which is also what makes *arriving early* matter — near the striker the two corners are a stride apart, near the goal a metre and more either side of the man.
+3. **Strikes were aimed from the wrong point.** The engine brings the ball round in front of the body before a strike, so a striker aiming from a ball at his heel launched a metre away from where he aimed — a metre at the post. `aimFrom` aims from the real launch point; the deflection went from never scoring to 0.20.
+4. **The battery's strikes were counted as reverse-stick.** Handedness exempts set pieces; the stopped ball at a corner is the same routine and is now exempt too. Slip-right converted 0.03 before that and 0.30 after.
+5. **Own runners stood in the shooting lanes.** The far-post runner is off the far-corner lane unless the ball is meant for him, runners take the pocket nearest to where they stand, and the "clearest lane" aim counts teammates as blockers — a strike into your own man's feet is a free hit out.
+6. **The posts stood inside the goal.** A post man a stride inside the frame caught balls with his hip (strokes) and blocked his own keeper's view; the posts now stand on the posts, except in a block, where filling the goal *is* the system and they lie low with the stick along the turf.
+
+**Fewer corners, from the right cause.** PCs per match fell from 9.5 to ~7.8. The missing corners were re-awards: the old single, late runner was hit on the shin every other corner and each re-award counted as a new PC. The new flyer is a narrow upright body (0.3 m) and gets hit far less, so the count is honest; the share of goals from corners is unchanged at 0.33.
+
+**`gkSaveScale` came down again, 1.84 → 1.70 (men) and 1.88 → 1.69 (women).** It is labelled PROVISIONAL as "the part of the gap that shot speed alone does not explain". A real flyer, a real castle and the slip now explain more of that gap, so the knob shrinks — as it did for handedness.
+
+**Seed sensitivity, again.** With three seed sets the men's goals read 5.68, 6.00 and 5.29 for the same code — a spread of ±0.35 around 5.66, where the standard error at n = 96 is about ±0.25. Two of three sets return measured-all-pass; the third misses the top of the band by 0.06. Do not tune `gkSaveScale` against a single seed set: between 1.72 and 1.70 the seed-42 number moved by 0.4 goals, which is seed chaos (any change re-orders every draw), not a response.
+
+**Still on the estimated rows.** Shots per match sit at the top of the band (32–34; the pocket passes into the D are counted as shots by the aim-at-goal definition), green cards at the bottom (1.4–1.5), stroke conversion under (0.49–0.59, small n), women's restarts under (62–64 vs 65). All EST, none a mechanism this phase touched on purpose.

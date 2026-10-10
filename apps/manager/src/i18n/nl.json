@@ -458,6 +458,16 @@
       "high": "HOOG"
     },
     "pcDesigner": "STRAFCORNERROUTINE",
+    "pcDefenceLabel": "UITLOOPSYSTEEM",
+    "pcDefenceHint": "hoe de vijf achter de lijn een strafcorner tegen verdedigen — elk systeem heeft een gat",
+    "pcDefence": { "runnerLeads": "uitloper eerst", "keeperLeads": "keeper eerst", "doubleCharge": "dubbel uitlopen", "block": "blok" },
+    "pcDefenceWhy": { "runnerLeads": "De uitloper gokt op de lijn van de sleep en komt aan als de bal vertrekt. Sterft aan de slip.", "keeperLeads": "De keeper komt laag uit, de uitloper neemt het doel. Smoort de lage slag; wordt eroverheen gesleept.", "doubleCharge": "Twee lopers: één op de stopper, één op de slipkant. Doodt slips en slagen; de rechte sleep gaat over twee lage lijven.", "block": "Niemand loopt uit, vijf lijven vullen het doel. Geeft de schone slag toe, nooit een gat." },
+    "runnerLabel": "UITLOPER",
+    "runner": { "auto": "zoals het systeem", "low": "laag", "high": "hoog" },
+    "runnerHint": "laag blokt de slag en wordt overgesleept; hoog blokt de sleep en de lage slag gaat eronderdoor",
+    "entryLabel": "WEG NAAR DE CIRKEL",
+    "entry": { "auto": "lees het beeld", "baseline": "achterlijn & terugleg", "switchAndSlip": "wisselen & glippen", "deepDiagonal": "diepe diagonaal", "drawTheFoot": "de voet uitlokken", "overload": "overtal zwakke kant" },
+    "entryHint": "het patroon dat de loper vooraf laat vertrekken — de assistent kiest per aanval het beste als je niets vastzet",
     "variant": "variant",
     "aiPicks": "assistent kiest",
     "injector": "aangever",
@@ -639,6 +649,7 @@
       "body": "Je verloor {lost} van {n} aerial-aannames. Op {surface} gras is de platte bal toch sneller.",
       "hint": "Te veel aerials verloren — speel hem plat over de grond."
     },
+    "pcDefenceLeaks": { "title": "Je uitloopsysteem lekt", "body": "{n} strafcorners tegen gingen binnen. Elk uitloopsysteem heeft een gat; kijk welke variant ze speelden en zet er een ander systeem tegenover.", "hint": "Wissel van uitloopsysteem: wat ze slaan, zegt wat je moet dekken." },
     "pcBattery": {
       "title": "De batterij heeft werk nodig",
       "body": "{n} strafcorners, geen goal. Verander de variant wanneer de keeper de flick gelezen heeft.",
@@ -766,7 +777,7 @@
     "balance": "saldo"
   },
   "sheet": { "title": "WEDSTRIJDBLAD", "eleven": "BASISELF", "bench": "BANK", "missing": "NIET BESCHIKBAAR", "missingHint": "vervangen door de assistent", "edit": "OPSTELLING AANPASSEN", "tactics": "TACTIEK", "start": "START DE WEDSTRIJD", "cancel": "TERUG", "plan": "{formation} · {press} · {mentality}", "home": "thuis tegen {opp}", "away": "uit bij {opp}" },
-  "scout": { "title": "SCOUTING", "planLabel": "PLAN", "unseen": "Nog niet gezien dit seizoen — geen rapport.", "system": "Ze spelen {formation}, {press}, {mentality}.", "form": "Gespeeld: {played} · {gf} goals per match, {ga} tegen.", "pc": "{pcs} strafcorners per match, {share} % daarvan gaat binnen.", "discipline": "{fouls} vrije slagen per match weggegeven, {cards} kaarten.", "dangerMan": "{name} ({role}) maakte er {goals}.", "leaky": "Ze slikken {ga} goals per match.", "plan": { "disciplineInD": "Hun strafcorner is hun wapen. Blijf uit de fout in je eigen cirkel: geen stick, geen voet, geen risico.", "attackEarly": "Hun verdediging lekt. Zet er vroeg druk op en zoek snel de cirkel.", "overTheTop": "Ze pressen full-court. Speel eroverheen — lange bal of aerial — in plaats van erdoorheen.", "patientWide": "Ze zakken in een zone. Geduld en breedte: verleg het spel en zoek de cirkelrand.", "switchSides": "Split press: ze sturen je naar één kant. Kantel snel naar de andere flank." } },
+  "scout": { "title": "SCOUTING", "planLabel": "PLAN", "unseen": "Nog niet gezien dit seizoen — geen rapport.", "system": "Ze spelen {formation}, {press}, {mentality}.", "pcDefence": "Bij een strafcorner tegen lopen ze uit met {system} — het gat zit bij {variant}.", "form": "Gespeeld: {played} · {gf} goals per match, {ga} tegen.", "pc": "{pcs} strafcorners per match, {share} % daarvan gaat binnen.", "discipline": "{fouls} vrije slagen per match weggegeven, {cards} kaarten.", "dangerMan": "{name} ({role}) maakte er {goals}.", "leaky": "Ze slikken {ga} goals per match.", "plan": { "disciplineInD": "Hun strafcorner is hun wapen. Blijf uit de fout in je eigen cirkel: geen stick, geen voet, geen risico.", "attackEarly": "Hun verdediging lekt. Zet er vroeg druk op en zoek snel de cirkel.", "overTheTop": "Ze pressen full-court. Speel eroverheen — lange bal of aerial — in plaats van erdoorheen.", "patientWide": "Ze zakken in een zone. Geduld en breedte: verleg het spel en zoek de cirkelrand.", "switchSides": "Split press: ze sturen je naar één kant. Kantel snel naar de andere flank." } },
   "rules": {
     "stageHint": "Klik op een regel om ze op het veld te zien — de scène herhaalt zich.", "stageLabel": "OP HET VELD",
     "view": { "figures": "FIGUREN", "pitch": "OP HET VELD" },
@@ -934,7 +945,7 @@
       "steps": {
         "battery": {
           "title": "De batterij",
-          "body": "Aangever, stopper, afwerker. De injectie moet aankomen rond 8 m/s: te hard en de stopper krijgt hem niet stil, te zacht en de uitloper is er eerder dan de bal."
+          "body": "Aangever, stopper, afwerker. De injectie is een stevige slag die rond 12 m/s aankomt — de stop aan de kop is gedrild — zodat de bal vertrekt voor de uitloper er is. Alles aan een corner is een race tegen die anderhalve seconde."
         },
         "variants": {
           "title": "De varianten",
@@ -947,7 +958,23 @@
         "wearOut": {
           "title": "Slijtage",
           "body": "Negen keer dezelfde variant en ze staan er klaar voor. Hou er één achter voor als het telt."
-        }
+        },
+      "runnerLeads": {
+        "title": "Uitloper eerst",
+        "body": "De uitloper vertrekt bij de injectie op de lijn van de stop en komt aan als de bal vertrekt; de keeper blijft op zijn lijn, de palen houden, de vijfde man dekt de top van de D. Wint tegen de rechte sleep — en sterft aan de slip, want hij ligt op een lijn die de bal niet meer volgt."
+      },
+      "keeperLeads": {
+        "title": "Keeper eerst",
+        "body": "De keeper komt laag uit naar het slagpunt en de uitloper zakt op de lijn om het doel te nemen. Smoort de lage slag en de korte deflectie; wordt eroverheen gesleept, en elke rebound valt op een veldspeler in het doel."
+      },
+      "doubleCharge": {
+        "title": "Dubbel uitlopen",
+        "body": "Twee lopers: één op de stopper, één op de slipkant die de vijfde man gokt. Doodt slips en slagen. Twee lijven die laag naar voren zijn gegaan, zijn twee lijven die niet in het doel staan — de rechte sleep gaat erover."
+      },
+      "block": {
+        "title": "Het blok",
+        "body": "Niemand loopt uit; vijf lijven vullen het doel en de korte hoeken. Je geeft de schone slag toe maar nooit een gat en nooit een geklopte uitloper. Wat je speelt met trage lopers, tegen een topsleper, of om een voorsprong vast te houden."
+      }
       }
     },
     "buildUp": {
@@ -1021,7 +1048,19 @@
         "drawTheFoot": {
           "title": "De voet uitlokken",
           "body": "Een stevige push tegen een verdediger die tussen bal en doel staat. Voet in de cirkel is een strafcorner — zo vallen de meeste corners op clubniveau."
-        }
+        },
+      "deepDiagonal": {
+        "title": "De diepe diagonaal",
+        "body": "De vroege bal van de zijkant in de pocket bij de tweede paal, voor een deflectie. De loper vertrekt vóór de pass — een pocket die je bereikt nadat de bal er is, heeft nooit bestaan."
+      },
+      "overload": {
+        "title": "Overtal op de zwakke kant",
+        "body": "Hun blok is naar de balkant geschoven. Verleg via de vrije man naar de kant die ze hebben opgegeven, en de middenvelder die daar aankomt loopt de D in."
+      },
+      "intoSpace": {
+        "title": "Passen in de ruimte",
+        "body": "Niet op de man maar op het punt vóór hem: de bal die hij haalt voor de back er is. Speel iemand aan de voet en hij moet nog alles doen; speel hem in en hij is weg."
+      }
       }
     },
     "replay": "Opnieuw afspelen",

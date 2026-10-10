@@ -7,11 +7,11 @@
  * it in the coach's language. The counter it suggests is standard coaching against that system, and
  * it says which observation it follows from.
  */
-import type { ClubId, Person, World } from '@bullyoff/season';
-import type { PcVariant } from '@bullyoff/engine';
+import { pcDefenceOf, type ClubId, type Person, type World } from '@bullyoff/season';
+import type { PcDefenceId, PcVariant } from '@bullyoff/engine';
 
 export interface ScoutLine {
-  kind: 'pcThreat' | 'scoring' | 'leaky' | 'discipline' | 'system' | 'form';
+  kind: 'pcThreat' | 'scoring' | 'leaky' | 'discipline' | 'system' | 'form' | 'pcDefence';
   i18nKey: string;
   params: Record<string, string | number>;
   /** Loud enough to change your plan for. */
@@ -64,6 +64,10 @@ export function scoutOpponent(w: World, them: ClubId): ScoutReport {
   // Their system: a coach sees the shape inside ten minutes.
   if (club) {
     lines.push({ kind: 'system', i18nKey: 'scout.system', params: { formation: club.tactics.formation, press: club.tactics.press, mentality: club.tactics.mentality }, strong: false });
+    // How they run out at a corner — and therefore which variant beats them (hockey-systems.md §5).
+    // Every system has a hole; the report names it, the PC designer lets you play it.
+    const def = pcDefenceOf(w, club);
+    lines.push({ kind: 'pcDefence', i18nKey: 'scout.pcDefence', params: { system: def, variant: counterTo(def) }, strong: false });
   }
   lines.push({ kind: 'form', i18nKey: 'scout.form', params: { played: n, gf: per(goalsFor, n), ga: per(goalsAgainst, n) }, strong: false });
 
@@ -101,6 +105,16 @@ function planAgainst(press: string | undefined, lines: readonly ScoutLine[]): Sc
   if (press === 'zone') return { i18nKey: 'scout.plan.patientWide', params: {}, from: 'system' };
   if (press === 'split') return { i18nKey: 'scout.plan.switchSides', params: {}, from: 'system' };
   return null;
+}
+
+/** The counter matrix's clearest column per system (§5): what to run against each running-out system. */
+export function counterTo(def: PcDefenceId): PcVariant {
+  switch (def) {
+    case 'runnerLeads': return 'slipLeft';     // the flyer is committed to a line the ball no longer travels
+    case 'keeperLeads': return 'dragFlick';    // lift it over the advancing keeper
+    case 'doubleCharge': return 'dragFlick';   // two bodies committed low are two bodies not in the goal
+    case 'block': return 'lowHit';             // nobody charges, so the strike is clean — keep it on the turf and live off the rebound
+  }
 }
 
 // ── the penalty-corner read ───────────────────────────────────────────────────

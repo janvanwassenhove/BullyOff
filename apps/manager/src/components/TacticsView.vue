@@ -6,7 +6,7 @@
  */
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { MENTALITY_LINE, PRESS_HEIGHT, type FormationId, type Mentality, type PcVariant, type PressId, type TeamTactics } from '@bullyoff/engine';
+import { MENTALITY_LINE, PRESS_HEIGHT, type EntryPatternId, type FormationId, type Mentality, type PcDefenceId, type PcVariant, type PressId, type RunnerProfile, type TeamTactics } from '@bullyoff/engine';
 import { useAppStore } from '../stores/app';
 import { useSeasonStore } from '../stores/season';
 import { scoutOpponent } from '@bullyoff/insight';
@@ -22,6 +22,20 @@ const FORMATION_IDS: FormationId[] = ['4-3-3', '3-4-3', '4-4-2', '5-3-2', '3-3-3
 const PRESS_IDS: PressId[] = ['full', 'half', 'split', 'zone'];
 const MENTALITIES: Mentality[] = ['defensive', 'balanced', 'attacking'];
 const PCS: PcVariant[] = ['dragFlick', 'lowHit', 'slipRight', 'slipLeft', 'deflection'];
+const PC_DEFENCES: PcDefenceId[] = ['runnerLeads', 'keeperLeads', 'doubleCharge', 'block'];
+const RUNNERS: (RunnerProfile | 'auto')[] = ['auto', 'low', 'high'];
+const ENTRIES: (EntryPatternId | 'auto')[] = ['auto', 'baseline', 'switchAndSlip', 'deepDiagonal', 'drawTheFoot', 'overload'];
+/** Optional knobs: 'auto' removes the key so the engine falls back to the system's value / its own read. */
+function setRunner(v: RunnerProfile | 'auto'): void {
+  const c = club.value; if (!c) return;
+  if (v === 'auto') delete c.tactics.pcRunnerProfile; else c.tactics.pcRunnerProfile = v;
+  void season.save().then((at) => { if (at) app.markSaved(at); });
+}
+function setEntry(v: EntryPatternId | 'auto'): void {
+  const c = club.value; if (!c) return;
+  if (v === 'auto') delete c.tactics.entry; else c.tactics.entry = v;
+  void season.save().then((at) => { if (at) app.markSaved(at); });
+}
 const tempoWord = (x: number): 'low' | 'normal' | 'high' => (x < 0.4 ? 'low' : x > 0.65 ? 'high' : 'normal');
 const TEMPO = { low: 0.25, normal: 0.5, high: 0.8 } as const;
 
@@ -206,6 +220,49 @@ const scout = computed(() => {
             {{ t('coach.pc.' + v) }}
           </button>
         </div>
+      </div>
+      <div class="group">
+        <span class="eyebrow">{{ t('coach.pcDefenceLabel') }}</span>
+        <div class="chips">
+          <button
+            v-for="d in PC_DEFENCES"
+            :key="d"
+            class="choice"
+            :class="{ on: tac.pcDefence === d }"
+            :title="t('coach.pcDefenceWhy.' + d)"
+            @click="patch({ pcDefence: d })"
+          >
+            {{ t('coach.pcDefence.' + d) }}
+          </button>
+        </div>
+        <p class="hint">{{ t('coach.pcDefenceWhy.' + tac.pcDefence) }}</p>
+        <div class="chips">
+          <button
+            v-for="r in RUNNERS"
+            :key="r"
+            class="choice small"
+            :class="{ on: (tac.pcRunnerProfile ?? 'auto') === r }"
+            @click="setRunner(r)"
+          >
+            {{ t('coach.runnerLabel').toLowerCase() }}: {{ t('coach.runner.' + r) }}
+          </button>
+        </div>
+        <p class="hint">{{ t('coach.runnerHint') }}</p>
+      </div>
+      <div class="group">
+        <span class="eyebrow">{{ t('coach.entryLabel') }}</span>
+        <div class="chips">
+          <button
+            v-for="e in ENTRIES"
+            :key="e"
+            class="choice"
+            :class="{ on: (tac.entry ?? 'auto') === e }"
+            @click="setEntry(e)"
+          >
+            {{ t('coach.entry.' + e) }}
+          </button>
+        </div>
+        <p class="hint">{{ t('coach.entryHint') }}</p>
       </div>
     </div>
     <aside class="preview panel">

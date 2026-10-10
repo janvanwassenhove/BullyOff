@@ -136,6 +136,9 @@ export function analyse(log: MatchLog, instructions: readonly CoachInstruction[]
   const pcGoals = goals.filter((g) => g.team === coachTeam && g.fromPC).length;
   if (pcFor >= 4 && pcGoals === 0) out.push({ kind: 'pcBattery', section: 'lesson', severity: 'mistake', tick: lastTick, metrics: { pcs: pcFor, goals: pcGoals }, i18nKey: 'insight.pcBattery', params: { n: pcFor } });
   if (pcFor >= 2 && pcGoals >= 2) out.push({ kind: 'pcBatteryGood', section: 'well', severity: 'good', tick: lastTick, metrics: { pcs: pcFor, goals: pcGoals }, i18nKey: 'insight.pcBatteryGood', params: { goals: pcGoals, n: pcFor } });
+  // the other half of the corner: a running-out system that keeps conceding has been read (§5)
+  const pcAgainstGoals = goals.filter((g) => g.team !== coachTeam && g.fromPC).length;
+  if (pcAgainstGoals >= 2) out.push({ kind: 'pcDefenceLeaks', section: 'lesson', severity: 'mistake', tick: lastTick, metrics: { goals: pcAgainstGoals }, i18nKey: 'insight.pcDefenceLeaks', params: { n: pcAgainstGoals } });
 
   // ── 6. key moments: goals (with their cause), PCs won, cards ──
   for (const g of goals) {
